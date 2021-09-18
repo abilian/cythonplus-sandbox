@@ -89,7 +89,7 @@ def make(filenames):
             )
         )
 
-    print(extensions)
+    # print(extensions)
 
     # hack !
     sys.argv = [sys.argv[0], "build_ext", "--inplace"]

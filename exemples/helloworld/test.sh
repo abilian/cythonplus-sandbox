@@ -1,10 +1,12 @@
 #!/bin/bash -v
 
-# for MacOS environment, need to select some gcc compiler:
-[[ "$OSTYPE" == "darwin"* ]] && source gcc_macports_alias.sh
+name="helloworld"
 
-[ -f helloworld.cpp ] && rm helloworld.cpp
+# for MacOS environment, need to select some gcc compiler:
+[[ "$OSTYPE" == "darwin"* ]] && source ../../utils/gcc_macports_alias.sh
+
+[ -f ${name}.cpp ] && rm ${name}.cpp
 
 python setup.py build_ext --inplace
 
-python -c "import helloworld; helloworld.main()"
+python -c "import ${name}; ${name}.main()"
