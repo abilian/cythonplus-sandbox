@@ -45,7 +45,7 @@ cdef string char_list_repr(CharLst lst) nogil:
 
     for item in lst:
         s = sprintf("%c", item)
-        if result.size() + s.size() > 40:
+        if result.size() + s.size() > 70:
             result = sprintf("%s,...", result)
             break
         if first_one:
