@@ -13,9 +13,13 @@ ctypedef cypdict[long, long] NumDict
 ctypedef cypdict[string, long] LongDict
 ctypedef cypdict[string, string] StringDict
 ctypedef cypdict[string, float] FloatDict
+ctypedef fused AnyDict:
+    NumDict
+    LongDict
+    StringDict
+    FloatDict
 
 
-# some utility functions
 cdef NumDict to_num_dict(python_dict):
     """create a NumDict instance from a int/int python dict
 
@@ -27,6 +31,14 @@ cdef NumDict to_num_dict(python_dict):
     return dic
 
 
+cdef dict from_num_dict(NumDict nd):
+    """create a python dict instance from a NumDict
+
+    (need gil)
+    """
+    return {item.first:item.second for item in nd.items()}
+
+
 cdef string num_dict_repr(NumDict dic) nogil:
     """Some kind of __repr__ for NumDict type
 
@@ -36,8 +48,6 @@ cdef string num_dict_repr(NumDict dic) nogil:
     cdef bint first_one = True
 
     # we may need a cypclass for tuple and/or item_type ?
-    # item is not useable in nogil context
-    # for item in dic.items(): # not usable without GIL
     for item in dic.items():
         s = sprintf("%d:%d", <long> item.first, <long> item.second)
     # for k in dic.keys():
@@ -65,6 +75,8 @@ cdef cypclass DemoDict:
 
     __init__(self, NumDict param_dic):  # remember: no default parameter allowed
         self.dic = param_dic
+        # warn: we work inplace on the input parameter
+
 
     void print_demo(self):
         """method executed with nogil status
@@ -85,28 +97,31 @@ cdef cypclass DemoDict:
 
         printf("modified content: %s\n", num_dict_repr(self.dic))
 
-    NumDict get_num_dict(self):
-        return self.dic
 
 
 def main():
-    cdef NumDict dic
+    cdef NumDict nd
 
-    orig_num_dict = {0:0, 1:1, 2:1, 3:2, 4:3, 5:5, 6:8}
+    orig_python_num_dict = {0:0, 1:1, 2:1, 3:2, 4:3, 5:5, 6:8}
 
     print('Start')
-    dic = to_num_dict(orig_num_dict)
+    nd = to_num_dict(orig_python_num_dict)
+
+    # test the from_num_dict on initial value:
+    python_dict_init = from_num_dict(nd)
 
     with nogil:  # starting in nogil to see if how to pass arguments
-        # with gil:
-        demo = DemoDict(dic)
-        # and now some "print" demo:
+        demo = DemoDict(nd)
         demo.print_demo()
 
     # try return data (with gil)
-    python_dic = {item.first:item.second for item in dic.items()}
-    print('Returned dict in "python/gil" perimeter:', python_dic)
-    print('(result is not correct at the moment, search in progress...)')
-
+    python_dict_nd = from_num_dict(nd)
+    python_dict_result = from_num_dict(demo.dic)
+    print('in "python/gil" perimeter:')
+    print("  - initial dict:", python_dict_init)
+    print("  - parameter dict:", python_dict_nd)
+    print("(So the parameter dict was modified in place)")
+    print("  - modified dict:", python_dict_result)
+    # result is ok with del_item fix of 21sept
     print()
     print("The end.")
