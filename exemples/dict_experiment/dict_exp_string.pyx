@@ -12,7 +12,7 @@ from libcythonplus.dict cimport cypdict
 ctypedef cypdict[long, long] NumDict
 ctypedef cypdict[string, long] LongDict
 ctypedef cypdict[string, string] StringDict
-ctypedef cypdict[string, float] FloatDict
+ctypedef cypdict[string, double] FloatDict
 ctypedef fused AnyDict:
     NumDict
     LongDict
