@@ -3,6 +3,7 @@
 names="
 set_exp_long
 set_exp_string
+set_exp_float
 "
 
 # for MacOS environment, need to select some gcc compiler:
