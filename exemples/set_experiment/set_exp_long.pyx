@@ -76,6 +76,8 @@ cdef cypclass DemoLongSet:
         self.lset.add(1000)  # add existing
         self.lset.discard(420)  # discard non existing
         self.lset.discard(2000)
+        x = 10
+        printf("%d is in set: %d\n", x, x in self.lset)
         s2 = LongSet()
         s2.add(5000)
         self.lset.update(s2)

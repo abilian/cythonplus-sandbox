@@ -2,6 +2,7 @@
 
 names="
 set_exp_long
+set_exp_string
 "
 
 # for MacOS environment, need to select some gcc compiler:
