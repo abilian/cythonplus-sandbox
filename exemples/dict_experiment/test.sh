@@ -3,6 +3,7 @@
 names="
 dict_exp_long
 dict_exp_num
+dict_exp_string
 dict_exp_any
 "
 
