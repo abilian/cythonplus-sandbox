@@ -1,0 +1,12 @@
+ext_scalar = Extension(
+    "stdlib.any_scalar",
+    language="c++",
+    sources=["stdlib/any_scalar.pyx"],
+    extra_compile_args=[
+        "-std=c++11",
+        "-O3",
+        "-Wno-deprecated-declarations",
+    ],
+    libraries=["fmt"],
+    include_dirs=["stdlib"],
+)
