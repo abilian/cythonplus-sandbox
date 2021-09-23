@@ -38,45 +38,45 @@ cdef SuperDict new_super_dict(AnyDict ad) nogil:
 
 # no fused
 # cdef cypclass SuperDict:
-#     string active
+#     string type
 #
 #     __init__(self):
-#         self.active = string("")
+#         self.type = string("")
 #
 #     void detect(self, AnyDict d):
 #         if AnyDict is NumDict:
 #             printf("NumDict")
 
 cdef cypclass SuperDict:
-    string active
+    string type
     NumDict num_dict
     LongDict long_dict
     StringDict string_dict
     FloatDict float_dict
 
     __init__(self):
-        self.active = string("")
+        self.type = string("")
 
     void load_num_dict(self, NumDict d):
-        self.active = string("num_dict")
+        self.type = string("num_dict")
         self.num_dict = d
 
     void load_long_dict(self, LongDict d):
-        self.active = string("long_dict")
+        self.type = string("long_dict")
         self.long_dict = d
 
     void load_string_dict(self, StringDict d):
-        self.active = string("string_dict")
+        self.type = string("string_dict")
         self.string_dict = d
 
     void load_float_dict(self, FloatDict d):
-        self.active = string("float_dict")
+        self.type = string("float_dict")
         self.float_dict = d
 
     string repr(self):
-        if self.active == string("num_dict"):
+        if self.type == string("num_dict"):
             return num_dict_repr(self.num_dict)
-        if self.active == string("string_dict"):
+        if self.type == string("string_dict"):
             return string_dict_repr(self.string_dict)
         with gil:
             raise ValueError("Not implemented...")
@@ -229,18 +229,18 @@ def main():
 
     test_dic1 = to_num_dict(orig_num_dict)
     sdic1 = new_super_dict(test_dic1)
-    printf("test1, super dict type: %s \n", sdic1.active)
+    printf("test1, super dict type: %s \n", sdic1.type)
 
     print()
 
     sdic2 = python_dict_to_super_dict(orig_num_dict)
-    printf("test2a, super dict type: %s \n", sdic2.active)
+    printf("test2a, super dict type: %s \n", sdic2.type)
     printf("test2a, super dict repr(): \n    %s\n", sdic2.repr())
 
     print()
     print("Same super dict instance will now store another type of dict:")
     sdic2 = python_dict_to_super_dict(orig_string_dict)
-    printf("test2b, super dict type: %s \n", sdic2.active)
+    printf("test2b, super dict type: %s \n", sdic2.type)
     printf("test2b, super dict repr(): \n    %s\n", sdic2.repr())
 
     print()
