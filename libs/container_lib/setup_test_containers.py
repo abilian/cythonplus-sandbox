@@ -4,6 +4,7 @@ from Cython.Build import cythonize
 
 from extension_any_scalar import ext_any_scalar
 from extension_any_scalar_dict import ext_any_scalar_dict
+from extension_any_scalar_list import ext_any_scalar_list
 from extension_scalar_dicts import ext_scalar_dicts
 
 name = "test_containers"
@@ -26,6 +27,7 @@ setup(
             ),
             ext_any_scalar,
             ext_any_scalar_dict,
+            ext_any_scalar_list,
             ext_scalar_dicts,
         ],
         language_level="3str",

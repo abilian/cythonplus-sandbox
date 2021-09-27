@@ -8,8 +8,6 @@ from stdlib.string cimport string
 from stdlib.fmt cimport sprintf
 from containerlib.any_scalar cimport *
 
-ctypedef cypdict[string, AnyScalar] AnyScalarDict
-
 
 cdef string anyscalar_dict_repr(AnyScalarDict) nogil
 cdef AnyScalarDict to_anyscalar_dict(dict)

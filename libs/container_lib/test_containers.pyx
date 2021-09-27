@@ -58,7 +58,7 @@ def test_as():
     test_as_val(b"Zoé")
 
 
-def test_asd():
+def test_AnyScalarDict():
     cdef AnyScalarDict asd
 
     print('Start test AnyScalarDict')
@@ -388,11 +388,39 @@ def test_super_dict():
     print(super_dict_to_python_dict(sdic2))
 
 
+def test_encapsulation_AnyScalar_dict_and_list():
+    cdef AnyScalarDict asd
+
+    print('Start test encapsulation_AnyScalarDict')
+
+    orig_python_dict = {
+         b'alpha': b'bytes alpha',
+         'values': [
+            1, 2.0, "a string", {"c":1, "d":2}
+         ],
+         'beta': {
+            'beta2': {
+                'a': 4,
+                'b': 22,
+                'lst': ["A", "B", "C"]
+            },
+            'beta3': 3
+         },
+         'gamma': 1,
+         'delta': 2.5,
+     }
+
+    asd = to_anyscalar_dict(orig_python_dict)
+    python_dict_init = from_anyscalar_dict(asd)
+    print(anyscalar_dict_repr(asd))
+    print(python_dict_init)
+
+
 def main():
     print("\n" + "-" * 30)
     test_as()
     print("\n" + "-" * 30)
-    test_asd()
+    test_AnyScalarDict()
     print("\n" + "-" * 30)
     test_string_dict()
     print("\n" + "-" * 30)
@@ -403,5 +431,7 @@ def main():
     test_float_dict()
     print("\n" + "-" * 30)
     test_super_dict()
+    print("\n" + "-" * 30)
+    test_encapsulation_AnyScalar_dict_and_list()
     print("\n" + "-" * 30)
     print("The end.")

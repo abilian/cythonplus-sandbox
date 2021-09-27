@@ -38,6 +38,7 @@ cdef string scalar_b_repr(string s) nogil:
     """
     return sprintf("AnyScalar(b, %s)", s)
 
+
 cdef string scalar_i_short_repr(long i) nogil:
     """Some kind of short __repr__ for i type of AnyScalar
 
@@ -88,6 +89,21 @@ cdef AnyScalar python_to_any_scalar(value):
         any.set_bytes(string(bytes(value)))
     elif isinstance(value, float):
         any.set_float(value)
+    elif isinstance(value, dict):
+        asd = AnyScalarDict()
+        for key, val in value.items():
+            if isinstance(key, str):
+                string_key = string(bytes(key.encode("utf8")))
+            else:
+                string_key = string(bytes(key))
+            # create the AnyScalar wrapper:
+            asd[string_key] = python_to_any_scalar(val)
+        any.set_dict(asd)
+    elif isinstance(value, list):
+        asl = AnyScalarList()
+        for item in value:
+            asl.append(python_to_any_scalar(item))
+        any.set_list(asl)
     else:
         any.clean()
     return any
@@ -106,5 +122,12 @@ cdef any_scalar_to_python(AnyScalar any):
         return any.a_string.decode("utf8", "replace")
     elif any.type == <anytype_t> 'b':
         return any.a_string
+    elif any.type == <anytype_t> 'd':
+        return {
+            i.first.decode("utf8", 'replace'): any_scalar_to_python(i.second)
+            for i in any.a_dict.items()
+        }
+    elif any.type == <anytype_t> 'l':
+        return [any_scalar_to_python(i) for i in any.a_list]
     else:
         return None

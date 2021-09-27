@@ -4,15 +4,22 @@ Cython+ experiment for abstract super class AnyScalar
 (using syntax of september 2021)
 """
 from stdlib.string cimport string
+from stdlib.string cimport string
+from libcythonplus.dict cimport cypdict
+from libcythonplus.list cimport cyplist
 
+ctypedef cypdict[string, AnyScalar] AnyScalarDict
+ctypedef cyplist[AnyScalar] AnyScalarList
 ctypedef unsigned char anytype_t
 
 
 cdef cypclass AnyScalar:
     anytype_t type
-    string a_string     # type "s" or type "b"
-    long a_long         # type "i"
-    double a_double     # type "f"
+    string a_string         # type "s" or type "b"
+    long a_long             # type "i"
+    double a_double         # type "f"
+    AnyScalarDict a_dict    # type "d"
+    AnyScalarList a_list    # type "l"
 
     __init__(self):
         self.clean()
@@ -24,6 +31,8 @@ cdef cypclass AnyScalar:
         self.a_string = string("")
         self.a_long = 0
         self.a_double = 0.0
+        self.a_dict = NULL
+        self.a_list = NULL
         self.type = <anytype_t> " "
 
     void set_int(self, long value):
@@ -48,6 +57,20 @@ cdef cypclass AnyScalar:
         self.type = <anytype_t> "b"
         self.a_string = value
 
+    void set_dict(self, AnyScalarDict value):
+        """special case, value is already a AnyScalarDict, not a python dict
+        """
+        self.clean()
+        self.type = <anytype_t> "d"
+        self.a_dict = value
+
+    void set_list(self, AnyScalarList value):
+        """special case, value is already a AnyScalarList, not a python dict
+        """
+        self.clean()
+        self.type = <anytype_t> "l"
+        self.a_list = value
+
     string repr(self):
         if self.type == <anytype_t> "i":
             return scalar_i_repr(self.a_long)
@@ -57,7 +80,11 @@ cdef cypclass AnyScalar:
             return scalar_s_repr(self.a_string)
         if self.type == <anytype_t> "b":
             return scalar_b_repr(self.a_string)
-        return string("AnySclaler(empty)")
+        if self.type == <anytype_t> "d":
+            return string("AnyScalarDict(...)")
+        if self.type == <anytype_t> "l":
+            return string("AnyScalarList(...)")
+        return string("AnyScalar(empty)")
 
     string short_repr(self):
         if self.type == <anytype_t> "i":
@@ -68,6 +95,10 @@ cdef cypclass AnyScalar:
             return scalar_s_short_repr(self.a_string)
         if self.type == <anytype_t> "b":
             return scalar_b_short_repr(self.a_string)
+        if self.type == <anytype_t> "d":
+            return string("{...}")
+        if self.type == <anytype_t> "l":
+            return string("[...]")
         return string("(empty)")
 
 
