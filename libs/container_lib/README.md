@@ -1,4 +1,4 @@
-# containerslib
+# containerlib
 
 A set of container utilities for cython+ cypclasses.
 
@@ -54,9 +54,11 @@ build the dict-like class AnyScalarDict containing heterogeneous scalar values.
 
     cdef cypclass AnyScalar:
         anytype_t type
-        string a_string     # type "s" or type "b"
-        long a_long         # type "i"
-        double a_double     # type "f"
+        string a_string         # type "s" or type "b"
+        long a_long             # type "i"
+        double a_double         # type "f"
+        AnyScalarDict a_dict    # type "d"
+        AnyScalarList a_list    # type "l"
         ...
 
 
@@ -78,8 +80,19 @@ build the dict-like class AnyScalarDict containing heterogeneous scalar values.
 
 A dict-like cypclass containing heterogeneous scalar values.
 
-    ctypedef cypdict[string, AnyScalar] AnyScalarDict
+    ctypedef cypdict[string, AnyScalar] AnyScalarDict  # defined in any_scalar.pxd
 
     cdef string anyscalar_dict_repr(AnyScalarDict) nogil
     cdef AnyScalarDict to_anyscalar_dict(dict)
     cdef dict from_anyscalar_dict(AnyScalarDict)
+
+
+## any_scalar_list
+
+A list-like cypclass containing heterogeneous scalar values.
+
+    ctypedef cyplist[AnyScalar] AnyScalarList  # defined in any_scalar.pxd
+
+    cdef string anyscalar_list_repr(AnyScalarList) nogil
+    cdef AnyScalarList to_anyscalar_list(list)
+    cdef list from_anyscalar_list(AnyScalarList)
