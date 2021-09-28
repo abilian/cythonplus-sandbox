@@ -12,31 +12,38 @@ from containerlib.any_scalar_list import *
 import unittest
 
 
-asl_data = (
-    ([],                'AnyScalarList([])'),
-    ([1, 2],            'AnyScalarList([(i, 1), (i, 2)])'),
-    (["a", "b"],        'AnyScalarList([(s, a), (s, b)])'),
-    (["a", 1, 2.5],
-            'AnyScalarList([(s, a), (i, 1), (f, 2.500000)])'),
-    (["a", 1, 2.5, {}, [], {"a": 1, "b": "c", "lst":[1, 2, 3]}],
-            'AnyScalarList([(s, a), (i, 1), (f, 2.500000), {...}, [...], {...}])'),
-)
-
-
 class TestAnyScalarList(unittest.TestCase):
+
+    data = (
+        ([],                'AnyScalarList([])'),
+        ([1, 2],            'AnyScalarList([(i, 1), (i, 2)])'),
+        (["a", "b"],        'AnyScalarList([(s, a), (s, b)])'),
+        (["a", 1, 2.5],
+                'AnyScalarList([(s, a), (i, 1), (f, 2.500000)])'),
+        (["a", 1, 2.5, {}, [], {"a": 1, "b": "c", "lst":[1, 2, 3]}],
+                'AnyScalarList([(s, a), (i, 1), (f, 2.500000), {...}, [...], {...}])'),
+    )
+
+    def test_to_anyscalar_list_load_len(self):
+        cdef AnyScalarList a
+
+        for input, _ in self.data:
+            with self.subTest(i=input):
+                a = to_anyscalar_list(input)
+                self.assertEqual(a.__len__(), len(input))
 
     def test_to_anyscalar_list(self):
         cdef AnyScalarList a
 
-        for input, repr in asl_data:
+        for input, repr in self.data:
             with self.subTest(i=input):
                 a = to_anyscalar_list(input)
-                self.assertEqual(anyscalar_list_repr(a).decode("utf8"), repr)
+                self.assertEqual(anyscalar_list_repr(a), repr.encode("utf8"))
 
     def test_from_anyscalar_list(self):
         cdef AnyScalarList a
 
-        for input, _ in asl_data: #tpe, _, _  in any_scalar_data:
+        for input, _ in self.data:
             with self.subTest(i=input):
                 a = to_anyscalar_list(input)
                 retour = from_anyscalar_list(a)

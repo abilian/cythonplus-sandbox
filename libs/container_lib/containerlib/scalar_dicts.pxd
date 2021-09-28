@@ -1,6 +1,6 @@
 # distutils: language = c++
 """
-Cython+ experiment for scalar dicts
+Cython+ wrapper class for scalar dicts
 (using syntax of september 2021)
 """
 from libcythonplus.dict cimport cypdict
@@ -36,9 +36,9 @@ cdef FloatDict to_float_dict(dict)
 cdef dict from_float_dict(FloatDict)
 ############  SuperDict  #####################################
 cdef cypclass SuperDict:
-    """SuperDict is a wrapper around the various classes of fused AnyDict
-
-    (nogil)
+    """SuperDict is a wrapper around the classes of fused AnyDict
+    (NumDict, LongDict, StringDict, FloatDict). These classes are homogeneous
+    dictionaries.
     """
     string type
     NumDict num_dict
@@ -64,37 +64,37 @@ cdef cypclass SuperDict:
 
     void load_num_dict(self, NumDict d):
         self.clean()
-        self.type = string("num_dict")
+        self.type = string("NumDict")
         self.num_dict = d
 
     void load_long_dict(self, LongDict d):
         self.clean()
-        self.type = string("long_dict")
+        self.type = string("LongDict")
         self.long_dict = d
 
     void load_string_dict(self, StringDict d):
         self.clean()
-        self.type = string("string_dict")
+        self.type = string("StringDict")
         self.string_dict = d
 
     void load_float_dict(self, FloatDict d):
         self.clean()
-        self.type = string("float_dict")
+        self.type = string("FloatDict")
         self.float_dict = d
 
     string repr(self):
-        if self.type == string("num_dict"):
+        if self.type == string("NumDict"):
             return num_dict_repr(self.num_dict)
-        if self.type == string("string_dict"):
+        if self.type == string("StringDict"):
             return string_dict_repr(self.string_dict)
-        if self.type == string("long_dict"):
+        if self.type == string("LongDict"):
             return long_dict_repr(self.long_dict)
-        if self.type == string("float_dict"):
+        if self.type == string("FloatDict"):
             return float_dict_repr(self.float_dict)
         if self.type == string(""):
             return string("SuperDict(empty)")
         with gil:
-            raise ValueError("Not implemented...")
+            raise ValueError("Not implemented")
 
 cdef SuperDict new_super_dict(AnyDict) nogil
 cdef SuperDict python_dict_to_super_dict(dict)

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[ -f test_containerlib.sh ] || exit 1   # security
+[ -f test_containerlib_full.sh ] || exit 1   # security
 
 rm -fr build
 rm -fr __pycache__
