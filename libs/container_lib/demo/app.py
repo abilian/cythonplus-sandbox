@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 """Some test application
 """
-import os
-import sys
-
 from config import Config
-from localtime import py_now_utc, py_now_local
 from engine import py_engine
+from localtime import py_now_local
 
 
 def main():
@@ -14,8 +11,9 @@ def main():
     result = py_engine(conf.content)
     print(py_now_local())
     print(result)
-    print("Answer:")
-    print(result["result"]["answer"])
+    print()
+    print("The question in config file was:", result["response"]["the_question_was"])
+    print("Response:", result["response"]["answer"])
 
 
 if __name__ == "__main__":

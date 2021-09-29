@@ -11,7 +11,7 @@ import toml
 class Config:
     default_conf = {
         "title": "demo config",
-        "version": "1.2.3",
+        "version": "1.0",
         "test": {
             "data": [0, 1, 1, 2, 3, 5, 8],
             "colors": ["red", "blue"],
@@ -19,7 +19,10 @@ class Config:
             "name": "sample",
             "ratio": 1.5,
         },
-        "engine": {"motor": "fibonacci", "args": [40], "return": ["all", "xyz"]},
+        "engine": {
+            "the_question_is": "The question of universe",
+            "test": [1, 2, 3],
+        },
     }
     default_path = "config.toml"
 

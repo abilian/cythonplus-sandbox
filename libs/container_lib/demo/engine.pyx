@@ -16,9 +16,8 @@ cdef cypclass Engine:
     AnyScalarDict config
     LongDict computation
     AnyScalarDict result
-    string motor
-    AnyScalarList args
-    AnyScalarList expected
+    string ask
+    AnyScalarList test
 
     __init__(self, AnyScalarDict config):
         self.config = config
@@ -26,11 +25,15 @@ cdef cypclass Engine:
         self.computation = LongDict()
 
     AnyScalarDict run(self):
+        cdef AnyScalarDict d
+
         self.parse_config()
         self.compute()
         self.result["config"] = new_any_scalar(self.config)
-        # hack:
-        self.result["result"] = new_any_scalar(convert_to_asd(self.computation))
+        # warning: here conversion from LongDict to AnyScalarDict
+        d = convert_to_asd(self.computation)
+        d["the_question_was"] = new_any_scalar(self.ask)
+        self.result["response"] = new_any_scalar(d)
         return self.result
 
     void parse_config(self):
@@ -40,10 +43,8 @@ cdef cypclass Engine:
 
         kw = string("engine")
         eng = (<AnyScalar> self.config[kw]).a_dict
-        self.motor = (<AnyScalar> eng["motor"]).a_string
-        # with gil:
-        self.args = (<AnyScalar> eng["args"]).a_list
-        self.expected = (<AnyScalar> eng["return"]).a_list
+        self.ask = (<AnyScalar> eng["the_question_is"]).a_string
+        self.test = (<AnyScalar> eng["test"]).a_list
 
     AnyScalarDict compute(self):
         """Main computation is here.
@@ -51,8 +52,11 @@ cdef cypclass Engine:
         self.computation["answer"] = 42
 
 
-#hack:
+
 cdef AnyScalarDict convert_to_asd(LongDict d) nogil:
+    """convert LongDict (a cypdict[string, long]) to AnyScalarDict
+       (a cypdict[string, AnyScalar]
+    """
     cdef AnyScalarDict asd
 
     asd = AnyScalarDict()
@@ -62,7 +66,11 @@ cdef AnyScalarDict convert_to_asd(LongDict d) nogil:
 
 
 cpdef py_engine(config):
-    """Interface from Py world and Cy+ world, convert arguments.
+    """Interface from python world and cythony+ world, convert arguments.
+
+    - config argument is a python dict
+    - conversion to the AnyScalarDict format (a cypclass)
+    - and conversion from the AnyScalarDict format back to python dict
     """
     cdef AnyScalarDict config_asd
     cdef AnyScalarDict result_asd
