@@ -1,7 +1,14 @@
-title = "config"
-ratio = 1.5
+title = "demo config"
+version = "1.2.3"
 
-[content]
+[test]
 data = [ 0, 1, 1, 2, 3, 5, 8,]
+colors = [ "red", "blue",]
 flag = true
 name = "sample"
+ratio = 1.5
+
+[engine]
+motor = "fibonacci"
+args = [ 40,]
+return = [ "all", "xyz",]

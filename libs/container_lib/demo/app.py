@@ -10,10 +10,12 @@ from engine import py_engine
 
 
 def main():
-    c = Config()
-    result = py_engine(c)
+    conf = Config()
+    result = py_engine(conf.content)
     print(py_now_local())
     print(result)
+    print("Answer:")
+    print(result["result"]["answer"])
 
 
 if __name__ == "__main__":

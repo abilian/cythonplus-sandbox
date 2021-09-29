@@ -10,9 +10,16 @@ import toml
 
 class Config:
     default_conf = {
-        "title": "config",
-        "content": {"data": [0, 1, 1, 2, 3, 5, 8], "flag": True, "name": "sample"},
-        "ratio": 1.5,
+        "title": "demo config",
+        "version": "1.2.3",
+        "test": {
+            "data": [0, 1, 1, 2, 3, 5, 8],
+            "colors": ["red", "blue"],
+            "flag": True,
+            "name": "sample",
+            "ratio": 1.5,
+        },
+        "engine": {"motor": "fibonacci", "args": [40], "return": ["all", "xyz"]},
     }
     default_path = "config.toml"
 
