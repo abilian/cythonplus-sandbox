@@ -71,6 +71,33 @@ cdef string scalar_b_short_repr(string s) nogil:
     return sprintf("(b, %s)", s)
 
 
+cdef AnyScalar new_any_scalar(AnyBaseType a) nogil:
+    """Constructor of AnyScalar instance, using fused AnyBaseType as input.
+
+    nota:
+      - external constructor, cypclass don't accept fused types.
+      - this is not a copy() function.
+
+    (nogil)
+    """
+    cdef AnyScalar as
+
+    as = AnyScalar()
+    if AnyBaseType is string:
+        as.set_string(a)
+    elif AnyBaseType is long:
+        as.set_int(a)
+    elif AnyBaseType is double:
+        as.set_float(a)
+    elif AnyBaseType is AnyScalarDict:
+        as.set_dict(a)
+    elif AnyBaseType is AnyScalarList:
+        as.set_list(a)
+    elif AnyBaseType is AnyScalar:
+        as.set_anyscalar(a)
+    return as
+
+
 cdef AnyScalar python_to_any_scalar(value):
     """Detect the type of values of a python type, return the corresponding AnyScalar
     instance

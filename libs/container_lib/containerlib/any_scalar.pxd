@@ -11,6 +11,13 @@ from libcythonplus.list cimport cyplist
 ctypedef cypdict[string, AnyScalar] AnyScalarDict
 ctypedef cyplist[AnyScalar] AnyScalarList
 ctypedef unsigned char anytype_t
+ctypedef fused AnyBaseType:
+    string
+    long
+    double
+    AnyScalarDict
+    AnyScalarList
+    AnyScalar
 
 
 cdef cypclass AnyScalar:
@@ -20,6 +27,10 @@ cdef cypclass AnyScalar:
     double a_double         # type "f"
     AnyScalarDict a_dict    # type "d"
     AnyScalarList a_list    # type "l"
+    # StringDict  Would be too much
+    # NumDict
+    # LongDict
+    # FloatDict
 
     __init__(self):
         self.clean()
@@ -71,6 +82,15 @@ cdef cypclass AnyScalar:
         self.type = <anytype_t> "l"
         self.a_list = value
 
+    void set_anyscalar(self, AnyScalar as):
+        self.clean()
+        self.type = as.type
+        self.a_string = as.a_string
+        self.a_long = as.a_long
+        self.a_double = as.a_double
+        self.a_dict = as.a_dict
+        self.a_list = as.a_list
+
     string repr(self):
         if self.type == <anytype_t> "i":
             return scalar_i_repr(self.a_long)
@@ -102,6 +122,7 @@ cdef cypclass AnyScalar:
         return string("(empty)")
 
 
+
 cdef string scalar_i_repr(long) nogil
 cdef string scalar_d_repr(double) nogil
 cdef string scalar_s_repr(string) nogil
@@ -112,5 +133,6 @@ cdef string scalar_d_short_repr(double) nogil
 cdef string scalar_s_short_repr(string) nogil
 cdef string scalar_b_short_repr(string) nogil
 
+cdef AnyScalar new_any_scalar(AnyBaseType) nogil
 cdef any_scalar_to_python(AnyScalar)
 cdef AnyScalar python_to_any_scalar(object)
