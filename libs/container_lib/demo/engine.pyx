@@ -77,8 +77,9 @@ cpdef py_engine(config):
     cdef Engine engine
 
     config_asd = to_anyscalar_dict(config)
-    engine = Engine(config_asd)
-    result_asd = engine.run()
+    with nogil:
+        engine = Engine(config_asd)
+        result_asd = engine.run()
     result = from_anyscalar_dict(result_asd)
 
     return result
