@@ -37,42 +37,42 @@ class TestStringDict(unittest.TestCase):
         "...})"
         ).encode("utf8")
 
-    def test_python_to_string_dict_len(self):
+    def test_python_py_to_string_dict_len(self):
         cdef StringDict d
 
-        d = to_string_dict(self.data)
+        d = py_to_string_dict(self.data)
         self.assertEqual(d.__len__(), len(self.data))
 
-    def test_python_to_string_dict_len_0(self):
+    def test_python_py_to_string_dict_len_0(self):
         cdef StringDict d
 
-        d = to_string_dict({})
+        d = py_to_string_dict({})
         self.assertEqual(d.__len__(), 0)
 
     def test_string_dict_repr(self):
         cdef StringDict d
 
-        d = to_string_dict(self.data)
+        d = py_to_string_dict(self.data)
         self.assertEqual(string_dict_repr(d), self.repr)
 
     def test_string_dict_repr_empty(self):
         cdef StringDict d
 
-        d = to_string_dict({})
+        d = py_to_string_dict({})
         self.assertEqual(string_dict_repr(d), b"StringDict({})")
 
-    def test_from_string_dict(self):
+    def test_string_dict_to_py(self):
         cdef StringDict d
 
-        d = to_string_dict(self.data)
-        retour = from_string_dict(d)
+        d = py_to_string_dict(self.data)
+        retour = string_dict_to_py(d)
         self.assertEqual(retour, self.data_str)
 
-    def test_from_string_dict_empty(self):
+    def test_string_dict_to_py_empty(self):
         cdef StringDict d
 
-        d = to_string_dict({})
-        retour = from_string_dict(d)
+        d = py_to_string_dict({})
+        retour = string_dict_to_py(d)
         self.assertEqual(retour, {})
 
 
@@ -86,42 +86,42 @@ class TestNumDict(unittest.TestCase):
         ")"
         ).encode("utf8")
 
-    def test_python_to_num_dict_len(self):
+    def test_python_py_to_num_dict_len(self):
         cdef NumDict d
 
-        d = to_num_dict(self.data)
+        d = py_to_num_dict(self.data)
         self.assertEqual(d.__len__(), len(self.data))
 
-    def test_python_to_num_dict_len_0(self):
+    def test_python_py_to_num_dict_len_0(self):
         cdef NumDict d
 
-        d = to_num_dict({})
+        d = py_to_num_dict({})
         self.assertEqual(d.__len__(), 0)
 
     def test_num_dict_repr(self):
         cdef NumDict d
 
-        d = to_num_dict(self.data)
+        d = py_to_num_dict(self.data)
         self.assertEqual(num_dict_repr(d), self.repr)
 
     def test_num_dict_repr_empty(self):
         cdef NumDict d
 
-        d = to_num_dict({})
+        d = py_to_num_dict({})
         self.assertEqual(num_dict_repr(d), b"NumDict({})")
 
-    def test_from_num_dict(self):
+    def test_num_dict_to_py(self):
         cdef NumDict d
 
-        d = to_num_dict(self.data)
-        retour = from_num_dict(d)
+        d = py_to_num_dict(self.data)
+        retour = num_dict_to_py(d)
         self.assertEqual(retour, self.data)
 
-    def test_from_num_dict_empty(self):
+    def test_num_dict_to_py_empty(self):
         cdef NumDict d
 
-        d = to_num_dict({})
-        retour = from_num_dict(d)
+        d = py_to_num_dict({})
+        retour = num_dict_to_py(d)
         self.assertEqual(retour, {})
 
 
@@ -148,42 +148,42 @@ class TestLongDict(unittest.TestCase):
         ")"
         ).encode("utf8")
 
-    def test_python_to_long_dict_len(self):
+    def test_python_py_to_long_dict_len(self):
         cdef LongDict d
 
-        d = to_long_dict(self.data)
+        d = py_to_long_dict(self.data)
         self.assertEqual(d.__len__(), len(self.data))
 
-    def test_python_to_long_dict_len_0(self):
+    def test_python_py_to_long_dict_len_0(self):
         cdef LongDict d
 
-        d = to_long_dict({})
+        d = py_to_long_dict({})
         self.assertEqual(d.__len__(), 0)
 
     def test_long_dict_repr(self):
         cdef LongDict d
 
-        d = to_long_dict(self.data)
+        d = py_to_long_dict(self.data)
         self.assertEqual(long_dict_repr(d), self.repr)
 
     def test_long_dict_repr_empty(self):
         cdef LongDict d
 
-        d = to_long_dict({})
+        d = py_to_long_dict({})
         self.assertEqual(long_dict_repr(d), b"LongDict({})")
 
-    def test_from_long_dict(self):
+    def test_long_dict_to_py(self):
         cdef LongDict d
 
-        d = to_long_dict(self.data)
-        retour = from_long_dict(d)
+        d = py_to_long_dict(self.data)
+        retour = long_dict_to_py(d)
         self.assertEqual(retour, self.data_str)
 
-    def test_from_long_dict_empty(self):
+    def test_long_dict_to_py_empty(self):
         cdef LongDict d
 
-        d = to_long_dict({})
-        retour = from_long_dict(d)
+        d = py_to_long_dict({})
+        retour = long_dict_to_py(d)
         self.assertEqual(retour, {})
 
 
@@ -214,42 +214,42 @@ class TestFloatDict(unittest.TestCase):
         ")"
         ).encode("utf8")
 
-    def test_python_to_float_dict_len(self):
+    def test_python_py_to_float_dict_len(self):
         cdef FloatDict d
 
-        d = to_float_dict(self.data)
+        d = py_to_float_dict(self.data)
         self.assertEqual(d.__len__(), len(self.data))
 
-    def test_python_to_float_dict_len_0(self):
+    def test_python_py_to_float_dict_len_0(self):
         cdef FloatDict d
 
-        d = to_float_dict({})
+        d = py_to_float_dict({})
         self.assertEqual(d.__len__(), 0)
 
     def test_float_dict_repr(self):
         cdef FloatDict d
 
-        d = to_float_dict(self.data)
+        d = py_to_float_dict(self.data)
         self.assertEqual(float_dict_repr(d), self.repr)
 
     def test_float_dict_repr_empty(self):
         cdef FloatDict d
 
-        d = to_float_dict({})
+        d = py_to_float_dict({})
         self.assertEqual(float_dict_repr(d), b"FloatDict({})")
 
-    def test_from_float_dict(self):
+    def test_float_dict_to_py(self):
         cdef FloatDict d
 
-        d = to_float_dict(self.data)
-        retour = from_float_dict(d)
+        d = py_to_float_dict(self.data)
+        retour = float_dict_to_py(d)
         self.assertEqual(retour, self.data_str)
 
-    def test_from_float_dict_empty(self):
+    def test_float_dict_to_py_empty(self):
         cdef FloatDict d
 
-        d = to_float_dict({})
-        retour = from_float_dict(d)
+        d = py_to_float_dict({})
+        retour = float_dict_to_py(d)
         self.assertEqual(retour, {})
 
 
@@ -266,50 +266,50 @@ class TestSuperDict(unittest.TestCase):
     d_str_repr = b"StringDict({one:two})"
     d_float_repr = b"FloatDict({one:1.000000})"
 
-    def test_python_dict_to_super_dict_num(self):
+    def test_py_to_superdict_num(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict(self.d_num)
+        d = py_to_superdict(self.d_num)
         self.assertEqual(d.type, b"NumDict")
 
-    def test_python_dict_to_super_dict_long(self):
+    def test_py_to_superdict_long(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict(self.d_long)
+        d = py_to_superdict(self.d_long)
         self.assertEqual(d.type, b"LongDict")
 
-    def test_python_dict_to_super_dict_string(self):
+    def test_py_to_superdict_string(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict(self.d_str)
+        d = py_to_superdict(self.d_str)
         self.assertEqual(d.type, b"StringDict")
 
-    def test_python_dict_to_super_dict_float(self):
+    def test_py_to_superdict_float(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict(self.d_float)
+        d = py_to_superdict(self.d_float)
         self.assertEqual(d.type, b"FloatDict")
 
     def test_python_to_super_dict_len_0(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict({})
+        d = py_to_superdict({})
         self.assertEqual(d.type, b"StringDict")
 
     # def test_python_to_super_dict_bad(self):
     #     cdef SuperDict d
     #
-    #     # need to wrap with super_dict_to_python_dict() to have python object
+    #     # need to wrap with superdict_to_py() to have python object
     #     self.assertRaises(ValueError,
-    #                       super_dict_to_python_dict(
-    #                             python_dict_to_super_dict(self.d_bad)
+    #                       superdict_to_py(
+    #                             py_to_superdict(self.d_bad)
     #                       )
     #     )
 
     def test_super_dict_clean(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict(self.d_str)
+        d = py_to_superdict(self.d_str)
         self.assertEqual(d.type, b"StringDict")
         d.clean()
         self.assertEqual(d.type, b"")
@@ -317,59 +317,59 @@ class TestSuperDict(unittest.TestCase):
     def test_super_dict_load_another_dict_variant(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict(self.d_str)
+        d = py_to_superdict(self.d_str)
         self.assertEqual(d.type, b"StringDict")
-        d = python_dict_to_super_dict(self.d_long)
+        d = py_to_superdict(self.d_long)
         self.assertEqual(d.type, b"LongDict")
 
     def test_super_dict_num_repr(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict(self.d_num)
+        d = py_to_superdict(self.d_num)
         self.assertEqual(d.repr(), self.d_num_repr)
 
     def test_super_dict_string_repr(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict(self.d_str)
+        d = py_to_superdict(self.d_str)
         self.assertEqual(d.repr(), self.d_str_repr)
 
     def test_super_dict_long_repr(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict(self.d_long)
+        d = py_to_superdict(self.d_long)
         self.assertEqual(d.repr(), self.d_long_repr)
 
     def test_super_dict_float_repr(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict(self.d_float)
+        d = py_to_superdict(self.d_float)
         self.assertEqual(d.repr(), self.d_float_repr)
 
     def test_super_dict_to_python_num(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict(self.d_num)
-        retour = super_dict_to_python_dict(d)
+        d = py_to_superdict(self.d_num)
+        retour = superdict_to_py(d)
         self.assertEqual(retour, self.d_num)
 
     def test_super_dict_to_python_string(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict(self.d_str)
-        retour = super_dict_to_python_dict(d)
+        d = py_to_superdict(self.d_str)
+        retour = superdict_to_py(d)
         self.assertEqual(retour, self.d_str)
 
     def test_super_dict_to_python_long(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict(self.d_long)
-        retour = super_dict_to_python_dict(d)
+        d = py_to_superdict(self.d_long)
+        retour = superdict_to_py(d)
         self.assertEqual(retour, self.d_long)
 
     def test_super_dict_to_python_float(self):
         cdef SuperDict d
 
-        d = python_dict_to_super_dict(self.d_float)
-        retour = super_dict_to_python_dict(d)
+        d = py_to_superdict(self.d_float)
+        retour = superdict_to_py(d)
         self.assertEqual(retour, self.d_float)

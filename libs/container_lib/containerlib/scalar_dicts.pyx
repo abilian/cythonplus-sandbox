@@ -35,7 +35,7 @@ cdef string string_dict_repr(StringDict sd) nogil:
     return result
 
 
-cdef StringDict to_string_dict(dict python_dict):
+cdef StringDict py_to_string_dict(dict python_dict):
     """Create a StringDict instance from a str/str python dict (str or bytes accepted).
 
     (need gil)
@@ -55,7 +55,7 @@ cdef StringDict to_string_dict(dict python_dict):
     return sd
 
 
-cdef dict from_string_dict(StringDict sd):
+cdef dict string_dict_to_py(StringDict sd):
     """Create a python dict instance from a StringDict.
 
     (need gil)
@@ -91,7 +91,7 @@ cdef string num_dict_repr(NumDict nd) nogil:
     return result
 
 
-cdef NumDict to_num_dict(dict python_dict):
+cdef NumDict py_to_num_dict(dict python_dict):
     """Create a NumDict instance from a int/int python dict.
 
     (need gil)
@@ -102,7 +102,7 @@ cdef NumDict to_num_dict(dict python_dict):
     return dic
 
 
-cdef dict from_num_dict(NumDict nd):
+cdef dict num_dict_to_py(NumDict nd):
     """Create a python dict instance from a NumDict.
 
     (need gil)
@@ -135,7 +135,7 @@ cdef string long_dict_repr(LongDict ld) nogil:
     return result
 
 
-cdef LongDict to_long_dict(dict python_dict):
+cdef LongDict py_to_long_dict(dict python_dict):
     """Create a LongDict instance from a str/int python dict (accept bytes/int).
 
     (need gil)
@@ -151,7 +151,7 @@ cdef LongDict to_long_dict(dict python_dict):
     return ld
 
 
-cdef dict from_long_dict(LongDict ld):
+cdef dict long_dict_to_py(LongDict ld):
     """Create a python dict instance from a LongDict.
 
     (need gil)
@@ -184,7 +184,7 @@ cdef string float_dict_repr(FloatDict fd) nogil:
     return result
 
 
-cdef FloatDict to_float_dict(dict python_dict):
+cdef FloatDict py_to_float_dict(dict python_dict):
     """Create a FloatDict instance from a str/float python dict.
 
     (need gil)
@@ -200,7 +200,7 @@ cdef FloatDict to_float_dict(dict python_dict):
     return fd
 
 
-cdef dict from_float_dict(FloatDict fd):
+cdef dict float_dict_to_py(FloatDict fd):
     """Create a python dict instance from a FloatDict..
 
     (need gil)
@@ -211,7 +211,7 @@ cdef dict from_float_dict(FloatDict fd):
 
 ############  SuperDict  #####################################
 
-cdef SuperDict new_super_dict(AnyDict ad) nogil:
+cdef SuperDict new_superdict(AnyDict ad) nogil:
     """Constructor of SuperDict instance, using fused AnyDict as input.
 
     SuperDict is a wrapper around the classes of fused AnyDict.
@@ -231,7 +231,7 @@ cdef SuperDict new_super_dict(AnyDict ad) nogil:
     return sd
 
 
-cdef SuperDict python_dict_to_super_dict(dict d):
+cdef SuperDict py_to_superdict(dict d):
     """Detect the type of values of a homogenous python dict, return
     the corresponding SuperDict instance.
 
@@ -245,7 +245,7 @@ cdef SuperDict python_dict_to_super_dict(dict d):
     if not d:
         # empty dict default to StringDict
         str_dict = StringDict()
-        return new_super_dict(str_dict)
+        return new_superdict(str_dict)
 
     # detection of type of assumed homogenous python dict:
     for item in d.items():
@@ -254,20 +254,20 @@ cdef SuperDict python_dict_to_super_dict(dict d):
 
     if isinstance(k, int):
         if isinstance(v, int):
-            num_dict = to_num_dict(d)
-            return new_super_dict(num_dict)
+            num_dict = py_to_num_dict(d)
+            return new_superdict(num_dict)
         else:
             raise ValueError("Unsupported dict variant")
     elif isinstance(k, (str, bytes)):
         if isinstance(v, (str, bytes)):
-            str_dict = to_string_dict(d)
-            return new_super_dict(str_dict)
+            str_dict = py_to_string_dict(d)
+            return new_superdict(str_dict)
         elif isinstance(v, int):
-            long_dict = to_long_dict(d)
-            return new_super_dict(long_dict)
+            long_dict = py_to_long_dict(d)
+            return new_superdict(long_dict)
         elif isinstance(v, float):
-            float_dict = to_float_dict(d)
-            return new_super_dict(float_dict)
+            float_dict = py_to_float_dict(d)
+            return new_superdict(float_dict)
         else:
             raise ValueError("Unsupported dict variant")
             # see later for more types
@@ -275,19 +275,19 @@ cdef SuperDict python_dict_to_super_dict(dict d):
         raise ValueError("Unsupported dict variant")
 
 
-cdef dict super_dict_to_python_dict(SuperDict sd):
+cdef dict superdict_to_py(SuperDict sd):
     """Return a python dict from SuperDict instance.
 
     (need gil)
     """
     if sd.type == string("NumDict"):
-        return from_num_dict(sd.num_dict)
+        return num_dict_to_py(sd.num_dict)
     if sd.type == string("StringDict"):
-        return from_string_dict(sd.string_dict)
+        return string_dict_to_py(sd.string_dict)
     if sd.type == string("LongDict"):
-        return from_long_dict(sd.long_dict)
+        return long_dict_to_py(sd.long_dict)
     if sd.type == string("FloatDict"):
-        return from_float_dict(sd.float_dict)
+        return float_dict_to_py(sd.float_dict)
     if sd.type == string(""):
         return {}
     raise ValueError("Not implemented")

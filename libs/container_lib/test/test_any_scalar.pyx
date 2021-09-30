@@ -30,12 +30,12 @@ class TestAnyscalar(unittest.TestCase):
         ([1, 2, 3], "l", "AnyScalarList(...)",          "[...]"),
     )
 
-    def test_python_to_any_scalar_type(self):
+    def test_py_to_anyscalar_type(self):
         cdef AnyScalar a
 
         for input, tpe, _, _  in self.data:
             with self.subTest(i=input):
-                a = python_to_any_scalar(input)
+                a = py_to_anyscalar(input)
                 self.assertEqual(chr(a.type), tpe)
 
     def test_any_scalar_repr(self):
@@ -43,7 +43,7 @@ class TestAnyscalar(unittest.TestCase):
 
         for input, _, repr, _  in self.data:
             with self.subTest(i=input):
-                a = python_to_any_scalar(input)
+                a = py_to_anyscalar(input)
                 self.assertEqual(a.repr().decode("utf8", "replace"), repr)
 
     def test_any_scalar_short_r(self):
@@ -51,21 +51,21 @@ class TestAnyscalar(unittest.TestCase):
 
         for input, _, _, short_r in self.data:
             with self.subTest(i=input):
-                a = python_to_any_scalar(input)
+                a = py_to_anyscalar(input)
                 self.assertEqual(a.short_repr().decode("utf8", "replace"), short_r)
 
-    def test_any_scalar_to_python(self):
+    def test_anyscalar_to_py(self):
         cdef AnyScalar a
 
         for input, _, _, _ in self.data:
             with self.subTest(i=input):
-                a = python_to_any_scalar(input)
-                retour = any_scalar_to_python(a)
+                a = py_to_anyscalar(input)
+                retour = anyscalar_to_py(a)
                 self.assertEqual(retour, input)
 
     def test_any_scalar_clean(self):
         cdef AnyScalar a
-        a = python_to_any_scalar(1)
+        a = py_to_anyscalar(1)
         a.clean()
         self.assertEqual(chr(a.type), " ")
         self.assertEqual(a.a_long, 0)

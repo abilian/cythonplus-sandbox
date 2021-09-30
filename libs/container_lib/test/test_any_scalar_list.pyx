@@ -24,27 +24,27 @@ class TestAnyScalarList(unittest.TestCase):
                 'AnyScalarList([(s, a), (i, 1), (f, 2.500000), {...}, [...], {...}])'),
     )
 
-    def test_to_anyscalar_list_load_len(self):
+    def test_py_to_anyscalar_list_load_len(self):
         cdef AnyScalarList a
 
         for input, _ in self.data:
             with self.subTest(i=input):
-                a = to_anyscalar_list(input)
+                a = py_to_anyscalar_list(input)
                 self.assertEqual(a.__len__(), len(input))
 
-    def test_to_anyscalar_list(self):
+    def test_py_to_anyscalar_list(self):
         cdef AnyScalarList a
 
         for input, repr in self.data:
             with self.subTest(i=input):
-                a = to_anyscalar_list(input)
+                a = py_to_anyscalar_list(input)
                 self.assertEqual(anyscalar_list_repr(a), repr.encode("utf8"))
 
-    def test_from_anyscalar_list(self):
+    def test_anyscalar_list_to_py(self):
         cdef AnyScalarList a
 
         for input, _ in self.data:
             with self.subTest(i=input):
-                a = to_anyscalar_list(input)
-                retour = from_anyscalar_list(a)
+                a = py_to_anyscalar_list(input)
+                retour = anyscalar_list_to_py(a)
                 self.assertEqual(retour, input)

@@ -4,7 +4,6 @@ Cython+ experiment for abstract super class AnyScalar
 (using syntax of september 2021)
 """
 from stdlib.string cimport string
-from stdlib.string cimport string
 from libcythonplus.dict cimport cypdict
 from libcythonplus.list cimport cyplist
 
@@ -133,6 +132,6 @@ cdef string scalar_d_short_repr(double) nogil
 cdef string scalar_s_short_repr(string) nogil
 cdef string scalar_b_short_repr(string) nogil
 
-cdef AnyScalar new_any_scalar(AnyBaseType) nogil
-cdef any_scalar_to_python(AnyScalar)
-cdef AnyScalar python_to_any_scalar(object)
+cdef AnyScalar new_anyscalar(AnyBaseType) nogil
+cdef anyscalar_to_py(AnyScalar)
+cdef AnyScalar py_to_anyscalar(object)

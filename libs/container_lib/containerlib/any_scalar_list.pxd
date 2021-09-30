@@ -10,5 +10,5 @@ from containerlib.any_scalar cimport *
 
 
 cdef string anyscalar_list_repr(AnyScalarList) nogil
-cdef AnyScalarList to_anyscalar_list(list)
-cdef list from_anyscalar_list(AnyScalarList)
+cdef AnyScalarList py_to_anyscalar_list(list)
+cdef list anyscalar_list_to_py(AnyScalarList)

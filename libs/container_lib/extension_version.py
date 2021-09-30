@@ -1,9 +1,9 @@
 from distutils.extension import Extension
 
-ext_any_scalar = Extension(
-    "containerlib.any_scalar",
+ext_version = Extension(
+    "containerlib.version",
     language="c++",
-    sources=["containerlib/any_scalar.pyx"],
+    sources=["containerlib/version.pyx"],
     extra_compile_args=[
         "-std=c++11",
         "-O3",

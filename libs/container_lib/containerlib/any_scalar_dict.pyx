@@ -35,7 +35,7 @@ cdef string anyscalar_dict_repr(AnyScalarDict dic) nogil:
     return result
 
 
-cdef AnyScalarDict to_anyscalar_dict(dict python_dict):
+cdef AnyScalarDict py_to_anyscalar_dict(dict python_dict):
     """create a AnyScalarDict instance from a str/* python dict
 
     (need gil)
@@ -47,16 +47,16 @@ cdef AnyScalarDict to_anyscalar_dict(dict python_dict):
         else:
             string_key = string(bytes(key))
         # create the AnyScalar wrapper:
-        asd[string_key] = python_to_any_scalar(value)
+        asd[string_key] = py_to_anyscalar(value)
     return asd
 
 
-cdef dict from_anyscalar_dict(AnyScalarDict dic):
+cdef dict anyscalar_dict_to_py(AnyScalarDict dic):
     """create a python dict instance from a AnyScalarDict
 
     (need gil)
     """
     return {
-        i.first.decode("utf8", 'replace'): any_scalar_to_python(i.second)
+        i.first.decode("utf8", 'replace'): anyscalar_to_py(i.second)
         for i in dic.items()
     }

@@ -20,20 +20,20 @@ ctypedef fused AnyDict:
 
 ############  StringDict  #####################################
 cdef string string_dict_repr(StringDict) nogil
-cdef StringDict to_string_dict(dict)
-cdef dict from_string_dict(StringDict)
+cdef StringDict py_to_string_dict(dict)
+cdef dict string_dict_to_py(StringDict)
 ############  NumDict  #####################################
 cdef string num_dict_repr(NumDict) nogil
-cdef NumDict to_num_dict(dict)
-cdef dict from_num_dict(NumDict)
+cdef NumDict py_to_num_dict(dict)
+cdef dict num_dict_to_py(NumDict)
 ############  LongDict  #####################################
 cdef string long_dict_repr(LongDict) nogil
-cdef LongDict to_long_dict(dict)
-cdef dict from_long_dict(LongDict)
+cdef LongDict py_to_long_dict(dict)
+cdef dict long_dict_to_py(LongDict)
 ############  FloatDict  #####################################
 cdef string float_dict_repr(FloatDict) nogil
-cdef FloatDict to_float_dict(dict)
-cdef dict from_float_dict(FloatDict)
+cdef FloatDict py_to_float_dict(dict)
+cdef dict float_dict_to_py(FloatDict)
 ############  SuperDict  #####################################
 cdef cypclass SuperDict:
     """SuperDict is a wrapper around the classes of fused AnyDict
@@ -96,6 +96,6 @@ cdef cypclass SuperDict:
         with gil:
             raise ValueError("Not implemented")
 
-cdef SuperDict new_super_dict(AnyDict) nogil
-cdef SuperDict python_dict_to_super_dict(dict)
-cdef dict super_dict_to_python_dict(SuperDict)
+cdef SuperDict new_superdict(AnyDict) nogil
+cdef SuperDict py_to_superdict(dict)
+cdef dict superdict_to_py(SuperDict)

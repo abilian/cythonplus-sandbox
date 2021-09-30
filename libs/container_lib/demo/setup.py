@@ -6,6 +6,7 @@ from extension_any_scalar import ext_any_scalar
 from extension_any_scalar_dict import ext_any_scalar_dict
 from extension_any_scalar_list import ext_any_scalar_list
 from extension_scalar_dicts import ext_scalar_dicts
+from extension_version import ext_version
 
 
 def pyx_ext(name):
@@ -27,6 +28,7 @@ extensions = [
     ext_any_scalar_dict,
     ext_any_scalar_list,
     ext_scalar_dicts,
+    ext_version,
     pyx_ext("engine"),
     pyx_ext("localtime"),
 ]

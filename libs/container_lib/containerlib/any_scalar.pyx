@@ -71,7 +71,7 @@ cdef string scalar_b_short_repr(string s) nogil:
     return sprintf("(b, %s)", s)
 
 
-cdef AnyScalar new_any_scalar(AnyBaseType a) nogil:
+cdef AnyScalar new_anyscalar(AnyBaseType a) nogil:
     """Constructor of AnyScalar instance, using fused AnyBaseType as input.
 
     nota:
@@ -98,7 +98,7 @@ cdef AnyScalar new_any_scalar(AnyBaseType a) nogil:
     return as
 
 
-cdef AnyScalar python_to_any_scalar(value):
+cdef AnyScalar py_to_anyscalar(value):
     """Detect the type of values of a python type, return the corresponding AnyScalar
     instance
 
@@ -124,19 +124,19 @@ cdef AnyScalar python_to_any_scalar(value):
             else:
                 string_key = string(bytes(key))
             # create the AnyScalar wrapper:
-            asd[string_key] = python_to_any_scalar(val)
+            asd[string_key] = py_to_anyscalar(val)
         any.set_dict(asd)
     elif isinstance(value, list):
         asl = AnyScalarList()
         for item in value:
-            asl.append(python_to_any_scalar(item))
+            asl.append(py_to_anyscalar(item))
         any.set_list(asl)
     else:
         any.clean()
     return any
 
 
-cdef any_scalar_to_python(AnyScalar any):
+cdef anyscalar_to_py(AnyScalar any):
     """Return the python value embeded in a AnyScalar
 
     (need gil)
@@ -151,10 +151,10 @@ cdef any_scalar_to_python(AnyScalar any):
         return any.a_string
     elif any.type == <anytype_t> 'd':
         return {
-            i.first.decode("utf8", 'replace'): any_scalar_to_python(i.second)
+            i.first.decode("utf8", 'replace'): anyscalar_to_py(i.second)
             for i in any.a_dict.items()
         }
     elif any.type == <anytype_t> 'l':
-        return [any_scalar_to_python(i) for i in any.a_list]
+        return [anyscalar_to_py(i) for i in any.a_list]
     else:
         return None

@@ -35,20 +35,20 @@ cdef string anyscalar_list_repr(AnyScalarList lst) nogil:
     return result
 
 
-cdef AnyScalarList to_anyscalar_list(list python_list):
+cdef AnyScalarList py_to_anyscalar_list(list python_list):
     """create a AnyScalarList instance from a python list
 
     (need gil)
     """
     asl = AnyScalarList()
     for item in python_list:
-        asl.append(python_to_any_scalar(item))
+        asl.append(py_to_anyscalar(item))
     return asl
 
 
-cdef list from_anyscalar_list(AnyScalarList lst):
+cdef list anyscalar_list_to_py(AnyScalarList lst):
     """create a python dict instance from a AnyScalarList
 
     (need gil)
     """
-    return [any_scalar_to_python(i) for i in lst]
+    return [anyscalar_to_py(i) for i in lst]

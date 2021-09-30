@@ -27,21 +27,21 @@ class TestAnyScalarDict(unittest.TestCase):
         "...})"
         ).encode("utf8")
 
-    def test_to_anyscalar_dict_load_len(self):
+    def test_py_to_anyscalar_dict_load_len(self):
         cdef AnyScalarDict asd
 
-        asd = to_anyscalar_dict(self.data)
+        asd = py_to_anyscalar_dict(self.data)
         self.assertEqual(asd.__len__(), 4)
 
-    def test_to_anyscalar_dict(self):
+    def test_py_to_anyscalar_dict(self):
         cdef AnyScalarDict asd
 
-        asd = to_anyscalar_dict(self.data)
+        asd = py_to_anyscalar_dict(self.data)
         self.assertEqual(anyscalar_dict_repr(asd), self.repr)
 
-    def test_from_anyscalar_dict(self):
+    def test_anyscalar_dict_to_py(self):
         cdef AnyScalarDict asd
 
-        asd = to_anyscalar_dict(self.data)
-        retour = from_anyscalar_dict(asd)
+        asd = py_to_anyscalar_dict(self.data)
+        retour = anyscalar_dict_to_py(asd)
         self.assertEqual(retour, self.data)

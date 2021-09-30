@@ -29,11 +29,11 @@ cdef cypclass Engine:
 
         self.parse_config()
         self.compute()
-        self.result["config"] = new_any_scalar(self.config)
+        self.result["config"] = new_anyscalar(self.config)
         # warning: here conversion from LongDict to AnyScalarDict
         d = convert_to_asd(self.computation)
-        d["the_question_was"] = new_any_scalar(self.ask)
-        self.result["response"] = new_any_scalar(d)
+        d["the_question_was"] = new_anyscalar(self.ask)
+        self.result["response"] = new_anyscalar(d)
         return self.result
 
     void parse_config(self):
@@ -61,7 +61,7 @@ cdef AnyScalarDict convert_to_asd(LongDict d) nogil:
 
     asd = AnyScalarDict()
     for item in d.items():
-        asd[item.first] = new_any_scalar(item.second)
+        asd[item.first] = new_anyscalar(item.second)
     return asd
 
 
@@ -76,10 +76,10 @@ cpdef py_engine(config):
     cdef AnyScalarDict result_asd
     cdef Engine engine
 
-    config_asd = to_anyscalar_dict(config)
+    config_asd = py_to_anyscalar_dict(config)
     with nogil:
         engine = Engine(config_asd)
         result_asd = engine.run()
-    result = from_anyscalar_dict(result_asd)
+    result = anyscalar_dict_to_py(result_asd)
 
     return result

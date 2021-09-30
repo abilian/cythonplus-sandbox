@@ -10,5 +10,5 @@ from containerlib.any_scalar cimport *
 
 
 cdef string anyscalar_dict_repr(AnyScalarDict) nogil
-cdef AnyScalarDict to_anyscalar_dict(dict)
-cdef dict from_anyscalar_dict(AnyScalarDict)
+cdef AnyScalarDict py_to_anyscalar_dict(dict)
+cdef dict anyscalar_dict_to_py(AnyScalarDict)

@@ -34,6 +34,6 @@ class TestAnyScalarDictNested(unittest.TestCase):
     def test_nested(self):
         cdef AnyScalarDict d
 
-        d = to_anyscalar_dict(self.data)
-        retour = from_anyscalar_dict(d)
+        d = py_to_anyscalar_dict(self.data)
+        retour = anyscalar_dict_to_py(d)
         self.assertEqual(retour,self.data)
