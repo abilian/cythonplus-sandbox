@@ -26,17 +26,17 @@ cdef cypclass Fibo:
 ctypedef cyplist[Fibo] Flist
 
 
-cdef Flist fibo_list(int size):
+cdef Flist fibo_list(int size) nogil:
     cdef Flist results
     cdef Fibo f
     cdef int i
     cdef double x
     results = Flist()
-    with nogil:
-        for i in range(size):
-            f = Fibo(i)
-            f.compute()
-            results.append(f)
+    # with nogil:
+    for i in range(size):
+        f = Fibo(i)
+        f.compute()
+        results.append(f)
     return results
 
 
