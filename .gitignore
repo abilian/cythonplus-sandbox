@@ -57,3 +57,5 @@ MANIFEST
 
 # Komodo EDIT/IDE project files
 /*.komodoproject
+
+exemples/golomb_cy_monocore/golomb.c
