@@ -16,7 +16,7 @@ cdef extern from "<sys/types.h>" nogil:
     ctypedef union pthread_condattr_t:
         pass
 
-cdef extern from "<pthread_barrier.h>" nogil:
+cdef extern from "<pthread.h>" nogil:
     int pthread_create(pthread_t *, const pthread_attr_t *, void *(*)(void *), void *)
     void pthread_exit(void *)
     int pthread_join(pthread_t, void **)
@@ -31,9 +31,9 @@ cdef extern from "<pthread_barrier.h>" nogil:
     int pthread_mutex_unlock(pthread_mutex_t *)
     int pthread_mutex_trylock(pthread_mutex_t *)
 
-    int pthread_barrier_init(pthread_barrier_t *, const pthread_barrierattr_t *, unsigned int)
-    int pthread_barrier_destroy(pthread_barrier_t *)
-    int pthread_barrier_wait(pthread_barrier_t *)
+    # int pthread_barrier_init(pthread_barrier_t *, const pthread_barrierattr_t *, unsigned int)
+    # int pthread_barrier_destroy(pthread_barrier_t *)
+    # int pthread_barrier_wait(pthread_barrier_t *)
 
     int pthread_cond_init(pthread_cond_t * cond, const pthread_condattr_t * attr)
     int pthread_cond_destroy(pthread_cond_t *cond)
@@ -42,3 +42,9 @@ cdef extern from "<pthread_barrier.h>" nogil:
     int pthread_cond_signal(pthread_cond_t *cond)
 
     enum: PTHREAD_CREATE_JOINABLE
+
+
+cdef extern from "pthread_barrier.h" nogil:
+    int pthread_barrier_init(pthread_barrier_t *, const pthread_barrierattr_t *, unsigned int)
+    int pthread_barrier_destroy(pthread_barrier_t *)
+    int pthread_barrier_wait(pthread_barrier_t *)

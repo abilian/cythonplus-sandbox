@@ -15,8 +15,8 @@ def pyx_ext(name):
             "-march=native",
             "-pthread",
         ],
-        library_dirs=["macthreads"],
-        include_dirs=["macthreads"],
+        library_dirs=["lib_barrier"],
+        include_dirs=["lib_barrier"],
         libraries=["pthread_barrier"],
     )
 
