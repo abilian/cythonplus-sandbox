@@ -12,9 +12,13 @@ def golomb_sequence(size):
     return [(i, g(i)) for i in range(1, size + 1)]
 
 
-def main():
-    print(golomb_sequence(50))
+def main(size=None):
+    if not size:
+        size = 50
+    print(golomb_sequence(int(size)))
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    main(sys.argv[1])

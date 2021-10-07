@@ -15,5 +15,7 @@ cdef list golomb_sequence(long size):
     return lst
 
 
-def main():
-    print(golomb_sequence(50))
+def main(size=None):
+    if not size:
+        size = 50
+    print(golomb_sequence(int(size)))

@@ -1,0 +1,4 @@
+title = "Golomb cythonplus multicore"
+module = "golomb"
+function = "main"
+args = [50]

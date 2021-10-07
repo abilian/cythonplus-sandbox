@@ -1,0 +1,4 @@
+title = "Golomb python"
+module = "golomb"
+function = "main"
+args = [50]

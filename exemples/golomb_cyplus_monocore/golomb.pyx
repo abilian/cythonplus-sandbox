@@ -1,7 +1,10 @@
 # distutils: language = c++
 
 # golomb sequence
+
 from libcythonplus.list cimport cyplist
+
+
 
 cdef cypclass Golomb:
     long rank
@@ -27,14 +30,10 @@ ctypedef cyplist[Golomb] Glist
 
 cdef Glist golomb_sequence(long size) nogil:
     cdef Glist lst
-    # cdef long i
 
     lst = Glist()
-    with nogil:
-        for i in range(1, size+1):
-            lst.append(Golomb(i))
-    # for i in range(size):
-    #     (<Golomb>lst[i]).compute()
+    for i in range(1, size+1):
+        lst.append(Golomb(i))
     return lst
 
 
@@ -42,9 +41,11 @@ cdef py_golomb_sequence(long size):
     cdef Glist glist
 
     glist = golomb_sequence(size)
-    return [(g.rank, g.value) for g in glist]
+    sequence = [(g.rank, g.value) for g in glist]
+    return sequence
 
 
-
-def main():
-    print(py_golomb_sequence(50))
+def main(size=None):
+    if not size:
+        size = 50
+    print(py_golomb_sequence(int(size)))
