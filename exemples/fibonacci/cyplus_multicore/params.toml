@@ -1,4 +1,5 @@
 title = "Fibonacci cythonplus multicore"
 module = "fibonacci_cyplus_multicore"
 function = "main"
-args = [1477]
+# args = [1476]
+args = [10]

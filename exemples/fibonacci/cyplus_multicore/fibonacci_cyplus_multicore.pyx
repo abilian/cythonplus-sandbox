@@ -35,6 +35,7 @@ cdef lock cypdict[long, double] fibo_sequence(long size) nogil:
         fibo = Fibo(scheduler, i)
         afibo = <active Fibo> activate(consume fibo)
         afibo.compute(NULL, results)
+
     scheduler.finish()
     del scheduler
 
@@ -54,6 +55,7 @@ cdef py_fibo_sequence(long size):
 
 def main(size=None):
     if not size:
-        size = 1477
+        size = 1476
     for item in py_fibo_sequence(int(size))[-10:]:
         print(f"{item[0]}: {item[1]:.1f}, ", end= "")
+    print()
