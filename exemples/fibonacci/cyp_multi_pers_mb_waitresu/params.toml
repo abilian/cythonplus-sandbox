@@ -1,0 +1,5 @@
+title = "Fibonacci cythonplus multicore PersitScheduler"
+module = "fibonacci_cyplus_multi_pers"
+function = "main"
+args = [1476]
+# args = [10]
