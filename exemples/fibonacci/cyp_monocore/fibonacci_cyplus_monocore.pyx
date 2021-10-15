@@ -16,9 +16,7 @@ cdef cypclass Fibo:
         b = 1.0
         cdef int i
         for i in range(self.level):
-            tmp = a
-            a = b
-            b = tmp + b
+            a, b = b, a + b
         self.value = a
 
 
@@ -31,15 +29,29 @@ cdef Flist fibo_list(int size) nogil:
     cdef Fibo f
     cdef int i
     cdef double x
+
     results = Flist()
-    # with nogil:
-    for i in range(size):
+    for i in range(size+1):
         f = Fibo(i)
         f.compute()
         results.append(f)
     return results
 
 
-def main():
-    py_results = [(f.level, f.value) for f in fibo_list(1477)]
-    print(py_results[-10:])
+
+cdef py_fibo_sequence(long size):
+    cdef Flist results
+    with nogil:
+        results = fibo_list(size)
+    return [f.value for f in results]
+
+
+def print_summary(sequence):
+    for idx in (0, 1, -1):
+        print(f"{idx}: {sequence[idx]:.1f}, ")
+
+
+def main(size=None):
+    if not size:
+        size = 1476
+    print_summary(py_fibo_sequence(int(size)))

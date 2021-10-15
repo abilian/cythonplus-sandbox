@@ -23,12 +23,9 @@ cdef cypclass Fibo activable:
         cdef double a, b, tmp
         a = 0.0
         b = 1.0
-        tmp = 0.0
 
         for i in range(self.level):
-            tmp = a
-            a = b
-            b = tmp + b
+            a, b = b, a + b
 
         # printf("%ld %lf\n", self.level, a)
         with wlocked self.results:
@@ -62,12 +59,6 @@ cdef py_fibo_sequence(long size):
     cdef lock cypdict[long, double] results
     with nogil:
         results = fibo_sequence(size)
-    ###
-    missing = set(range(size+1))
-    for i in results:
-        missing.discard(i)
-    print(f"missing: {missing}")
-    ###
     py_results = sorted([(i, results[i]) for i in range(size+1)])
     del results
     return py_results

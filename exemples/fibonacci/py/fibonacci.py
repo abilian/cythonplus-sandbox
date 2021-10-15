@@ -13,14 +13,24 @@ def fibo(n):
 
 
 def fibo_list(size):
-    results = (
-        []
-    )  # store each result, or for the C versions the clever compiler will not
+    results = []
+    # store each result, or for the C versions the clever compiler will not
     # compute unused results
-    for i in range(size):
+    for i in range(size + 1):
         results.append(fibo(i))
     return results
 
 
+def print_summary(sequence):
+    for idx in (0, 1, -1):
+        print(f"{idx}: {sequence[idx]:.1f}, ")
+
+
+def main(size=None):
+    if not size:
+        size = 1476
+    print_summary(fibo_list(int(size)))
+
+
 if __name__ == "__main__":
-    print(fibo_list(1477)[-10:])
+    main()

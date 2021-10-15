@@ -4,7 +4,7 @@ from libcpp.deque cimport deque
 from libcpp.vector cimport vector
 from libcpp.atomic cimport atomic
 from libc.stdio cimport printf
-# from libc.stdlib cimport rand
+from libc.stdlib cimport rand
 from posix.unistd cimport sysconf
 from pthread.pthreads cimport *
 from pthread.semaphore cimport *
@@ -17,9 +17,8 @@ cdef extern from "<unistd.h>" nogil:
 cdef cypclass PersistScheduler
 cdef cypclass Worker
 
-# The 'inline' qualifier on this function is a hack to convince Cython to allow
-# a definition in a .pxd file. The C compiler will dismiss it because we pass
-# the function pointer to create a thread which prevents inlining.
+# The 'inline' qualifier on this function is a hack to convince Cython to allow a definition in a .pxd file.
+# The C compiler will dismiss it because we pass the function pointer to create a thread which prevents inlining.
 cdef inline void * worker_function(void * arg) nogil:
     worker = <lock Worker> arg
     sch = <PersistScheduler> <void*> worker.scheduler
@@ -33,10 +32,6 @@ cdef inline void * worker_function(void * arg) nogil:
             return <void*> 0
         # Pop or steal a queue.
         queue = worker.get_queue()
-        # if <void*> queue == NULL:
-        if queue is NULL:
-            sem_post(&sch.num_free_queues)
-            continue
         with wlocked queue:
             # Do one task on the queue.
             queue.activate()
@@ -56,7 +51,6 @@ cdef inline void * worker_function(void * arg) nogil:
 
 
 cdef cypclass Worker:
-    # threaded, a queue of queues of messages
     deque[lock SequentialMailBox] queues
     lock PersistScheduler scheduler
     pthread_t thread
@@ -81,19 +75,23 @@ cdef cypclass Worker:
     lock SequentialMailBox steal_queue(lock self):
         # Steal a queue from another worker:
         # - inspect each worker in order starting at a random offset
-        # - skip this worker and any worker with an empty queue list
+        # - skip any worker with an empty queue list
         # - return the last queue of the first worker with a non-empty list
+        # - continue looping until a queue is found
+        cdef int i, index, num_workers, random_offset
         sch = <PersistScheduler> <void*> self.scheduler
-        for victim in sch.workers:
-            if victim is self:
-                continue
+        num_workers = <int> sch.workers.size()
+        index = rand() % num_workers
+        while True:
+            victim = sch.workers[index]
             with wlocked victim:
                 if not victim.queues.empty():
                     stolen_queue = victim.queues.back()
                     victim.queues.pop_back()
-                    stolen_queue.has_worker = True
                     return stolen_queue
-        return NULL
+            index += 1
+            if index >= num_workers:
+                index = 0
 
     int join(self):
         # Join the worker thread.
@@ -107,11 +105,12 @@ cdef cypclass PersistScheduler:
     atomic[int] num_pending_queues
     sem_t is_idle
     volatile bint is_finished
+    int num_workers
 
     lock PersistScheduler __new__(alloc, int num_workers=0):
         self = <lock PersistScheduler> consume alloc()
-        if num_workers == 0:
-            num_workers = sysconf(_SC_NPROCESSORS_ONLN)
+        if num_workers == 0: num_workers = sysconf(_SC_NPROCESSORS_ONLN)
+        self.num_workers = num_workers
         sem_init(&self.num_free_queues, 0, 0)
         # Initially the scheduler is idle but not finished
         self.is_finished = False
@@ -135,43 +134,45 @@ cdef cypclass PersistScheduler:
         sem_destroy(&self.num_free_queues)
         sem_destroy(&self.is_idle)
 
-    void post_queue(self, lock SequentialMailBox queue):
-        cdef int num_previous_queues
-        # Add a queue to the first worker.
-        main_worker = self.workers[0]
-        with wlocked main_worker:
-            queue.has_worker = True
-            main_worker.queues.push_back(queue)
+    void post_queue(lock self, lock SequentialMailBox queue):
+        cdef int num_workers, random_offset, num_previous_queues
+        sch = <PersistScheduler> <void*> self
         # Increment the number of non-completed queues.
-        num_previous_queues = self.num_pending_queues.fetch_add(1)
+        num_previous_queues = sch.num_pending_queues.fetch_add(1)
         if num_previous_queues == 0:
             # Signal that the scheduler is not idle.
-            sem_trywait(&self.is_idle)
+            sem_wait(&self.is_idle)
+        # Add a queue to a random worker.
+        num_workers = <int> sch.workers.size()
+        random_offset = rand() % num_workers
+        receiver = sch.workers[random_offset]
+        with wlocked receiver:
+            queue.has_worker = True
+            receiver.queues.push_back(queue)
         # Signal that a queue is available.
-        sem_post(&self.num_free_queues)
+        sem_post(&sch.num_free_queues)
 
     void join(lock self):
-        # Wait until there is no more work.
-        sem_wait(&self.is_idle)
-        sem_post(&self.is_idle)  # re increment to permit another join() if needed
+        # Wait until the scheduler is idle.
+        is_idle = &self.is_idle
+        sem_wait(is_idle)
+        sem_post(is_idle)
 
     void finish(lock self):
-        # Wait until there is no more work.
-        self.join()
+        # Wait until the scheduler is idle.
+        is_idle = &self.is_idle
+        sem_wait(is_idle)
         # Signal the worker threads that there is no more work.
         self.is_finished = True
         # Pretend that there are new queues to wake up the workers.
-        # num_free_queues = &self.num_free_queues
+        num_free_queues = &self.num_free_queues
         for worker in self.workers:
-            sem_post(&self.num_free_queues)
-        # for worker in self.workers:
-        #     worker.join()
+            sem_post(num_free_queues)
         # Clear the workers to break reference cycles.
         self.workers.clear()
 
 
 cdef cypclass SequentialMailBox(ActhonQueueInterface):
-    # a dequeue of messages
     deque[ActhonMessageInterface] messages
     lock PersistScheduler scheduler
     bint has_worker
@@ -184,6 +185,7 @@ cdef cypclass SequentialMailBox(ActhonQueueInterface):
         return self.messages.empty()
 
     void push(locked self, ActhonMessageInterface message):
+        cdef bint has_worker
         # Add a task to the queue.
         self.messages.push_back(message)
         if message._sync_method is not NULL:
@@ -205,7 +207,7 @@ cdef cypclass SequentialMailBox(ActhonQueueInterface):
             if next_message._sync_method is not NULL:
                 next_message._sync_method.removeActivity()
         else:
-            printf("Pushed front message to back :\n")
+            printf("Pushed front message to back :/\n")
             self.messages.push_back(next_message)
         return one_message_processed
 
@@ -228,46 +230,3 @@ cdef cypclass BatchMailBox(SequentialMailBox):
 cdef inline ActhonResultInterface NullResult() nogil:
     return NULL
 
-
-# Taken from:
-# https://lab.nexedi.com/nexedi/cython/blob/3.0a6-cypclass/tests/run/cypclass_acthon.pyx#L66
-cdef cypclass WaitResult(ActhonResultInterface):
-    union result_t:
-        int int_val
-        void* ptr
-    result_t result
-    sem_t semaphore
-
-    __init__(self):
-        self.result.ptr = NULL
-        sem_init(&self.semaphore, 0, 0)
-
-    __dealloc__(self):
-        sem_destroy(&self.semaphore)
-
-    @staticmethod
-    ActhonResultInterface construct():
-        return WaitResult()
-
-    void pushVoidStarResult(self, void* result):
-        self.result.ptr = result
-        sem_post(&self.semaphore)
-
-    void pushIntResult(self, int result):
-        self.result.int_val = result
-        sem_post(&self.semaphore)
-
-    result_t _getRawResult(const self):
-        # We must ensure a result exists, but we can let others access it immediately
-        # The cast here is a way of const-casting (we're modifying the semaphore in a const method)
-        sem_wait(<sem_t*> &self.semaphore)
-        sem_post(<sem_t*> &self.semaphore)
-        return self.result
-
-    void* getVoidStarResult(const self):
-        res = self._getRawResult()
-        return res.ptr
-
-    int getIntResult(const self):
-        res = self._getRawResult()
-        return res.int_val
