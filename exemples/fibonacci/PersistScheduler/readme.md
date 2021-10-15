@@ -1,7 +1,10 @@
 **Proposal for a persistent scheduler**
 
 
+
 - Based on runtime/scheduler.pxd
+
+- updated and fixed version of 15 oct 2021
 
 - Changes:
 
