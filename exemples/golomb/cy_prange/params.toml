@@ -1,4 +1,4 @@
-title = "Golomb, cython monocore"
+title = "Golomb, cython multicore, using prange"
 module = "golomb"
 function = "golomb_sequence"
 args = [50]

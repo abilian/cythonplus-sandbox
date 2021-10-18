@@ -2,14 +2,15 @@
 # golomb sequence
 
 
-def g(n):
+def gpos(n):
+    """Return the value of position n of the Golomb sequence (recursive function)."""
     if n == 1:
         return 1
-    return g(n - g(g(n - 1))) + 1
+    return gpos(n - gpos(gpos(n - 1))) + 1
 
 
 def golomb_sequence(size):
-    return [(i, g(i)) for i in range(1, size + 1)]
+    return [(i, gpos(i)) for i in range(1, size + 1)]
 
 
 def main(size=None):

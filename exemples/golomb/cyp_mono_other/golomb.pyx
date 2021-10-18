@@ -1,15 +1,16 @@
 # distutils: language = c++
 # golomb sequence
-# another cyplus implementation, faster ?
+# cythonplus monocore, implementation with ouside function, faster ?
+
 from libcythonplus.list cimport cyplist
 
 
-cdef long g(long n) nogil:
-    """Return the value of position n of the Golomb sequence (recursice function).
+cdef long gpos(long n) nogil:
+    """Return the value of position n of the Golomb sequence (recursive function).
     """
     if n == 1:
         return 1
-    return g(n - g(g(n - 1))) + 1
+    return gpos(n - gpos(gpos(n - 1))) + 1
 
 
 cdef cypclass Golomb:
@@ -18,7 +19,7 @@ cdef cypclass Golomb:
 
     __init__(self, long rank):
         self.rank = rank
-        self.value = g(self.rank)
+        self.value = gpos(self.rank)
 
 
 ctypedef cyplist[long] Longlist

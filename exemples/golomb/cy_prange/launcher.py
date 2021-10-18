@@ -25,11 +25,15 @@ def launch():
     title = params.get("title", module)
     function_name = params.get("function", "main")
     args = params.get("args", [])
+    print(f"{title}")
+    print(f"params: {args}")
     function = getattr(importlib.import_module(".", module), function_name)
+
     t0 = time()
     function(*args)
     duration = time() - t0
-    print(f"{title}: {args}\nduration: {duration:3.3f}\n")
+
+    print(f"duration: {duration:3.3f}s\n")
 
 
 if __name__ == "__main__":

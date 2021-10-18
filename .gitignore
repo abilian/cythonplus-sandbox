@@ -5,6 +5,8 @@ __pycache__
 *.o
 
 exemples/*.c
+exemples/*/*.c
+exemples/*/*/*.c
 *.cpp
 
 *.egg

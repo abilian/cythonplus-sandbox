@@ -1,5 +1,9 @@
 # golomb sequence
-# cython monocore
+# cython multicore, using prange
+import os
+from cython.parallel import prange
+
+
 
 cdef long gpos(long n) nogil:
     if n == 1:
@@ -9,10 +13,14 @@ cdef long gpos(long n) nogil:
 
 cdef list cy_golomb_sequence(long size):
     cdef list lst = []
-    cdef long i
+    cdef long i, g
+    cdef int cpus = os.cpu_count()
 
-    for i in range(1, size+1):
-        lst.append((i, gpos(i)))
+    for i in prange(1, size + 1, nogil=True, num_threads=cpus,
+                    schedule='static', chunksize=5):
+        g = gpos(i)
+        with gil:
+            lst.append((i, g))
     return lst
 
 

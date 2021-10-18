@@ -1,4 +1,4 @@
-title = "Golomb cythonplus monocore"
+title = "Golomb, cythonplus monocore, implementation with internal method"
 module = "golomb"
 function = "py_golomb_sequence"
 args = [50]

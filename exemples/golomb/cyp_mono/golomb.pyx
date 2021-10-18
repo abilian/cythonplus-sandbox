@@ -1,5 +1,6 @@
 # distutils: language = c++
 # golomb sequence
+# cythonplus monocore, implementation with internal method
 
 from libcythonplus.list cimport cyplist
 
@@ -11,15 +12,15 @@ cdef cypclass Golomb:
     __init__(self, long rank):
         self.rank = rank
         self.value = 0
-        self.compute()  # would prefer to not compute here
+        self.compute()  # would prefer to not compute directly in init
 
-    long g(self, long n):  # better with external function ?
+    long gpos(self, long n):  # better with external function ?
         if n == 1:
             return 1
-        return self.g(n - self.g(self.g(n - 1))) + 1
+        return self.gpos(n - self.gpos(self.gpos(n - 1))) + 1
 
     void compute(self):
-        self.value = self.g(self.rank)
+        self.value = self.gpos(self.rank)
 
 
 

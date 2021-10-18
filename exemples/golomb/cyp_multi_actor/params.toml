@@ -1,4 +1,4 @@
-title = "Golomb cythonplus multicore, actor implementation"
+title = "Golomb, cythonplus multicore, implementation with actors"
 module = "golomb"
 function = "py_golomb_sequence"
 args = [50]

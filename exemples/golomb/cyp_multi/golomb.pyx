@@ -1,17 +1,18 @@
 # distutils: language = c++
 # golomb sequence
+# cythonplus multicore, 'with wlocked' implementation
 
 from libcythonplus.dict cimport cypdict
 from scheduler.persistscheduler cimport SequentialMailBox, NullResult, PersistScheduler
 
 
 
-cdef long g(long n) nogil:
-    """Return the value of position n of the Golomb sequence (recursice function).
+cdef long gpos(long n) nogil:
+    """Return the value of position n of the Golomb sequence (recursive function).
     """
     if n == 1:
         return 1
-    return g(n - g(g(n - 1))) + 1
+    return gpos(n - gpos(gpos(n - 1))) + 1
 
 
 
@@ -31,7 +32,7 @@ cdef cypclass Golomb activable:
     void run(self):
         cdef long value
 
-        value = g(self.rank)
+        value = gpos(self.rank)
         with wlocked self.results:
             self.results[self.rank] = value
 

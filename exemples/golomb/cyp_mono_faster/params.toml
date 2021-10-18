@@ -1,4 +1,0 @@
-title = "Golomb cythonplus monocore (faster implementation)"
-module = "golomb"
-function = "py_golomb_sequence"
-args = [50]

@@ -1,4 +1,4 @@
-title = "Golomb python"
+title = "Golomb, pure python"
 module = "golomb"
 # function = "main"
 function = "golomb_sequence"
