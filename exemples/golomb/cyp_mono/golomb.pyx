@@ -1,9 +1,7 @@
 # distutils: language = c++
-
 # golomb sequence
 
 from libcythonplus.list cimport cyplist
-
 
 
 cdef cypclass Golomb:
@@ -37,7 +35,7 @@ cdef Glist golomb_sequence(long size) nogil:
     return lst
 
 
-cdef py_golomb_sequence(long size):
+cpdef py_golomb_sequence(long size):
     cdef Glist glist
 
     glist = golomb_sequence(size)

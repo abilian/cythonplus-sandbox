@@ -1,4 +1,5 @@
 title = "Golomb python"
 module = "golomb"
-function = "main"
+# function = "main"
+function = "golomb_sequence"
 args = [50]

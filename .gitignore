@@ -4,6 +4,7 @@ __pycache__
 *.so
 *.o
 
+exemples/*.c
 *.cpp
 
 *.egg
@@ -58,4 +59,4 @@ MANIFEST
 # Komodo EDIT/IDE project files
 /*.komodoproject
 
-exemples/golomb_cy_monocore/golomb.c
+.DS_Store

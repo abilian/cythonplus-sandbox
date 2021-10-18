@@ -6,7 +6,7 @@ cdef long g(long n) nogil:
     return g(n - g(g(n - 1))) + 1
 
 
-cdef list golomb_sequence(long size):
+cdef list cy_golomb_sequence(long size):
     cdef list lst = []
     cdef long i
 
@@ -15,7 +15,12 @@ cdef list golomb_sequence(long size):
     return lst
 
 
+cpdef golomb_sequence(long size):
+    # to permit import from python module
+    return cy_golomb_sequence(size)
+
+
 def main(size=None):
     if not size:
         size = 50
-    print(golomb_sequence(int(size)))
+    print(cy_golomb_sequence(int(size)))
