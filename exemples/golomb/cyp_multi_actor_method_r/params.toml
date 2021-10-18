@@ -1,0 +1,4 @@
+title = "Golomb, cythonplus multicore, implementation with actors, with instance method, reverse order"
+module = "golomb"
+function = "py_golomb_sequence"
+args = [50]

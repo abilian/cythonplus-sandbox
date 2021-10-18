@@ -9,6 +9,7 @@ cyp_mono_other
 cyp_multi
 cyp_multi_actor
 cyp_multi_actor_method
+cyp_multi_actor_method_r
 "
 
 for d in ${folders}; do
