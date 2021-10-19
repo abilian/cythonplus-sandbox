@@ -1,3 +1,4 @@
+# Fibonacci x 100, cython monocore
 
 cdef double fibo(int n) nogil:
     cdef double a, b
@@ -14,7 +15,7 @@ cdef list fibo_list(int size):
     cdef int i
     cdef double x
 
-    # here, no multicore implementation
+    # monocore implementation
     for i in range(size + 1):
         results.append(fibo(i))
     return results
@@ -29,3 +30,19 @@ def main(size=None):
     if not size:
         size = 1476
     print_summary(fibo_list(int(size)))
+
+
+cdef list cy_fibo_many(int size, int repeat):
+    cdef list many = []
+
+    for i in range(repeat):
+        many.append(fibo_list(size))
+    return many
+
+
+def fibo_many(size=None, repeat=100):
+    if not size:
+        size = 1476
+    size = int(size)
+    repeat = int(repeat)
+    return cy_fibo_many(size, repeat)

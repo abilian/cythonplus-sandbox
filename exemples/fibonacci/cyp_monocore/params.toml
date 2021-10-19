@@ -1,0 +1,4 @@
+title = "Fibonacci x 100, cythonplus monocore"
+module = "fibonacci_cyplus_monocore"
+function = "fibo_many"
+args = [1476, 100]

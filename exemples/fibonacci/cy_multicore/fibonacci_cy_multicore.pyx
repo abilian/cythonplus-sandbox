@@ -1,4 +1,8 @@
+# Fibonacci x 100, cython multicore using prange
+
+import os
 from cython.parallel import prange
+
 
 cdef double fibo(int n) nogil:
     cdef double a, b
@@ -10,14 +14,14 @@ cdef double fibo(int n) nogil:
     return a
 
 
-cdef list fibo_list(int size):
+cdef list fibo_list(int size, int cpus):
     cdef list results = []
     cdef int i
     cdef double x
 
-    # here, multicore implementation
-    for i in prange(size + 1, nogil=True, num_threads=4,
-                    schedule='static', chunksize=100):
+    # multicore implementation using prange
+    for i in prange(size + 1, nogil=True, num_threads=cpus,
+                    schedule='static', chunksize=200):
         x = fibo(i)
         with gil:
             results.append((i, x))
@@ -32,4 +36,31 @@ def print_summary(sequence):
 def main(size=None):
     if not size:
         size = 1476
-    print_summary(fibo_list(int(size)))
+    cpus = os.cpu_count()
+    print_summary(fibo_list(int(size), cpus))
+
+
+cdef list cy_fibo_many(int size, int repeat):
+    # cdef list flist
+    cdef list many = []
+    cdef int cpus = os.cpu_count()
+    cdef int i
+
+    # # multicore implementation using prange (2nd prange use)
+    # for i in prange(repeat, nogil=True, num_threads=cpus,
+    #                 schedule='static', chunksize=10):
+    #     with gil:
+    #         flist = fibo_list(size, cpus)
+    #         many.append(flist)
+
+    for i in range(repeat):
+        many.append(fibo_list(size, cpus))
+    return many
+
+
+def fibo_many(size=None, repeat=100):
+    if not size:
+        size = 1476
+    size = int(size)
+    repeat = int(repeat)
+    return cy_fibo_many(size, repeat)

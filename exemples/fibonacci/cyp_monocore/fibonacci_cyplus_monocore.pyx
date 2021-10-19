@@ -1,5 +1,7 @@
 # distutils: language = c++
+# Fibonacci x 100, cythonplus monocore
 from libcythonplus.list cimport cyplist
+
 
 cdef cypclass Fibo:
     int level
@@ -31,7 +33,7 @@ cdef Flist fibo_list(int size) nogil:
     cdef double x
 
     results = Flist()
-    for i in range(size+1):
+    for i in range(size + 1):
         f = Fibo(i)
         f.compute()
         results.append(f)
@@ -39,11 +41,12 @@ cdef Flist fibo_list(int size) nogil:
 
 
 
-cdef py_fibo_sequence(long size):
+cdef py_fibo_sequence(int size):
     cdef Flist results
     with nogil:
         results = fibo_list(size)
     return [f.value for f in results]
+
 
 
 def print_summary(sequence):
@@ -51,7 +54,26 @@ def print_summary(sequence):
         print(f"{idx}: {sequence[idx]:.1f}, ")
 
 
+
 def main(size=None):
     if not size:
         size = 1476
     print_summary(py_fibo_sequence(int(size)))
+
+
+
+cdef list cyp_fibo_many(int size, int repeat):
+    cdef list many = []
+
+    for i in range(repeat):
+        many.append(py_fibo_sequence(size))
+    return many
+
+
+
+def fibo_many(size=None, repeat=100):
+    if not size:
+        size = 1476
+    size = int(size)
+    repeat = int(repeat)
+    return cyp_fibo_many(size, repeat)
