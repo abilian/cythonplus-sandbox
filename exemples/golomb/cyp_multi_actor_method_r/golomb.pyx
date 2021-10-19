@@ -65,7 +65,7 @@ cdef cypclass GolombGenerator activable:
 
     void run(self):
         # reverse order to ensure longest computations launched early :
-        for rank in range(size, 0, -1):
+        for rank in range(self.size, 0, -1):
             golomb = <active Golomb> activate(consume Golomb(self.scheduler,
                                                              self.recorder,
                                                              rank))
@@ -78,7 +78,6 @@ cdef cypclass GolombGenerator activable:
 
 
 cdef cypdict[long, long] golomb_sequence(long size) nogil:
-    cdef cypdict[long, long] results
     cdef active GolombGenerator generator
     cdef lock PersistScheduler scheduler
 

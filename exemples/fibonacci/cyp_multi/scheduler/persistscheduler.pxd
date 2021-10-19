@@ -229,3 +229,4 @@ cdef cypclass BatchMailBox(SequentialMailBox):
 
 cdef inline ActhonResultInterface NullResult() nogil:
     return NULL
+

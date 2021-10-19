@@ -161,7 +161,9 @@ cdef cypclass PersistScheduler:
     void finish(lock self):
         # Wait until the scheduler is idle.
         is_idle = &self.is_idle
+        printf("wait\n")
         sem_wait(is_idle)
+        printf("wait done\n")
         # Signal the worker threads that there is no more work.
         self.is_finished = True
         # Pretend that there are new queues to wake up the workers.

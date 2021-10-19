@@ -1,0 +1,4 @@
+title = "Fibonacci x 100, cythonplus multicore, keep scheduler"
+module = "fibonacci_cyp_multi"
+function = "fibo_many"
+args = [1476, 100]
