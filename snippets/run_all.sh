@@ -1,9 +1,6 @@
 #!/bin/bash
 
-folders="
-helloworld
-localtime_wrapper
-"
+source _folders.sh
 
 for d in ${folders}; do
    cd ${d}

@@ -3,7 +3,7 @@
 This folder contains short snippets of code showing howto to use the Cython+ compiler.
 
 
-## Organization
+## Content
 
 Each subfolder contains a complete exemple and the following files:
 
@@ -11,6 +11,7 @@ Each subfolder contains a complete exemple and the following files:
 - run.sh: script to demonstrate the compiled code
 
 The `lib`folder contains various common libraries used by several exemples.
+
 
 ## Requirements
 
@@ -28,7 +29,29 @@ The `lib`folder contains various common libraries used by several exemples.
 
   A basic "Hellow World" exemple using `cypclass`.
 
-  tags: `basic`, `cypclass`
+  tags: `basic`, `cypclass`, `printf`
+
+
+- cyplist_basic
+
+  A basic use case of `cyplist`, the list class of cython+.
+
+  tags: `basic`, `printf`, `cyplist`, `nogil`, `int`
+
+
+- cypdict_basic
+
+  A basic use case of `cypdict`, the dict class of cython+.
+
+  tags: `basic`, `printf`, `cypdict`, `nogil`, `string`, `long`
+
+
+- cypset_basic
+
+  A basic use case of `cypset`, the set class of cython+.
+
+  tags: `basic`, `printf`, `cypset`, `nogil`, `long`
+
 
 - localtime_wrapper
 
