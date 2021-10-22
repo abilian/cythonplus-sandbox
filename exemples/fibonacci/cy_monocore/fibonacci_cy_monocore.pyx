@@ -3,6 +3,7 @@
 cdef double fibo(int n) nogil:
     cdef double a, b
     cdef int i
+
     a = 0.0
     b = 1.0
     for i in range(n):
@@ -40,9 +41,11 @@ cdef list cy_fibo_many(int size, int repeat):
     return many
 
 
-def fibo_many(size=None, repeat=100):
+def fibo_many(size=None, repeat=None):
     if not size:
         size = 1476
+    if not repeat:
+        repeat = 100
     size = int(size)
     repeat = int(repeat)
     return cy_fibo_many(size, repeat)

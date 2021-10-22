@@ -6,9 +6,10 @@ from cython.parallel import prange
 
 cdef double fibo(int n) nogil:
     cdef double a, b
+    cdef int i
+
     a = 0.0
     b = 1.0
-    cdef int i
     for i in range(n):
         a, b = b, a + b
     return a
@@ -41,26 +42,20 @@ def main(size=None):
 
 
 cdef list cy_fibo_many(int size, int repeat):
-    # cdef list flist
     cdef list many = []
     cdef int cpus = os.cpu_count()
     cdef int i
-
-    # # multicore implementation using prange (2nd prange use)
-    # for i in prange(repeat, nogil=True, num_threads=cpus,
-    #                 schedule='static', chunksize=10):
-    #     with gil:
-    #         flist = fibo_list(size, cpus)
-    #         many.append(flist)
 
     for i in range(repeat):
         many.append(fibo_list(size, cpus))
     return many
 
 
-def fibo_many(size=None, repeat=100):
+def fibo_many(size=None, repeat=None):
     if not size:
         size = 1476
+    if not repeat:
+        repeat = 100
     size = int(size)
     repeat = int(repeat)
     return cy_fibo_many(size, repeat)

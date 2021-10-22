@@ -1,9 +1,8 @@
 # distutils: language = c++
-# Fibonacci x 100, cythonplus multicore, keep scheduler, result as actor
-
+# Fibonacci x 100, cythonplus multicore, optimized, result as actor"
 from libcythonplus.dict cimport cypdict
 from scheduler.persistscheduler cimport SequentialMailBox, NullResult, PersistScheduler
-from libc.stdio cimport printf
+
 
 
 cdef cypclass Fibo activable:
@@ -16,19 +15,18 @@ cdef cypclass Fibo activable:
              long level):
         self._active_result_class = NullResult
         self._active_queue_class = consume SequentialMailBox(scheduler)
-        self.level = level
         self.recorder = recorder
+        self.level = level
 
 
     void run(self):
-        cdef double a, b, tmp
+        cdef double a, b
+
         a = 0.0
         b = 1.0
-
         for i in range(self.level):
             a, b = b, a + b
-
-        self.recorder.store(NULL, self.level, a)
+        self.recorder.record(NULL, self.level, a)
 
 
 
@@ -40,41 +38,45 @@ cdef cypclass Recorder activable:
         self._active_queue_class = consume SequentialMailBox(scheduler)
         self.storage = cypdict[long, double]()
 
-    void store(self, long key, double value):
+
+    void record(self, long key, double value):
         self.storage[key] = value
 
-    cypdict[long, double] content(self):
+
+    cypdict[long, double] dump(self):
         return self.storage
 
 
 
 cdef cypclass FiboGenerator activable:
-    long size
     lock PersistScheduler scheduler
+    long size
     active Recorder recorder
 
     __init__(self, lock PersistScheduler scheduler, long size):
         self._active_result_class = NullResult
         self._active_queue_class = consume SequentialMailBox(scheduler)
-        self.scheduler = scheduler  # keep it for use with sub objects
+        # keep scheduler for use with Fibo instances when run() :
+        self.scheduler = scheduler
         self.size = size
         self.recorder = activate (consume Recorder(scheduler))
 
+
     void run(self):
+        cdef long level
         # reverse order to ensure longest computations launched early :
         for level in range(self.size, -1, -1):
-            fibo = <active Fibo> activate(consume Fibo(self.scheduler,
-                                                       self.recorder,
-                                                       level))
+            fibo = activate(consume Fibo(self.scheduler, self.recorder, level))
             fibo.run(NULL)
 
-    cypdict[long, double] results(self):
-        recorder = consume self.recorder  # strange construct ?
-        return <cypdict[long, double]> recorder.content()
+
+    cypdict[long, double] dump(self):
+        recorder = consume self.recorder  # to stop the active state
+        return <cypdict[long, double]> recorder.dump()
 
 
 
-cdef cypdict[long, double] fibo_sequence(long size) nogil:
+cdef cypdict[long, double] compute_fibo_sequence(long size) nogil:
     cdef active FiboGenerator generator
     cdef lock PersistScheduler scheduler
 
@@ -83,44 +85,26 @@ cdef cypdict[long, double] fibo_sequence(long size) nogil:
     generator = activate(consume FiboGenerator(scheduler, size))
     generator.run(NULL)
     scheduler.finish()
-    consumed = consume(generator)
-    return <cypdict[long, double]> consumed.results()
+    consumed_generator = consume generator  # to stop active state
+    return <cypdict[long, double]> consumed_generator.dump()
 
 
 
-cdef py_fibo_sequence(long size):
+cdef py_fibo_one(long size):
     cdef cypdict[long, double] results
 
     with nogil:
-        results = fibo_sequence(size)
+        results = compute_fibo_sequence(size)
 
     py_results = sorted([(i, results[i]) for i in range(size + 1)])
-    del results
-
     return py_results
 
 
 
-def print_summary(sequence):
-    for item in (sequence[0], sequence[1], sequence[-1]):
-        print(f"{item[0]}: {item[1]:.1f}, ")
-
-
-
-def main(size=None):
-    if not size:
-        size = 1476
-    print_summary(cyp_fibo_many(int(size), 100))
-
-
-
-cdef list cyp_fibo_many(long size, int repeat):
+cdef list py_fibo_many(long size, int repeat):
     many = []
-
     for i in range(repeat):
-        printf("--- repeat %d\n", i)
-        many.append(py_fibo_sequence(size))
-
+        many.append(py_fibo_one(size))
     return many
 
 
@@ -128,6 +112,8 @@ cdef list cyp_fibo_many(long size, int repeat):
 def fibo_many(size=None, repeat=100):
     if not size:
         size = 1476
+    if not repeat:
+        repeat = 100
     size = int(size)
     repeat = int(repeat)
-    return cyp_fibo_many(size, repeat)
+    return py_fibo_many(size, repeat)

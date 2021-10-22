@@ -13,10 +13,11 @@ cdef cypclass Fibo:
 
 
     void compute(self):
-        cdef double a, b, tmp
+        cdef double a, b
+        cdef int i
+
         a = 0.0
         b = 1.0
-        cdef int i
         for i in range(self.level):
             a, b = b, a + b
         self.value = a
@@ -28,24 +29,26 @@ ctypedef cyplist[Fibo] Flist
 
 cdef Flist fibo_list(int size) nogil:
     cdef Flist results
-    cdef Fibo f
+    cdef Fibo fibo
     cdef int i
     cdef double x
 
     results = Flist()
     for i in range(size + 1):
-        f = Fibo(i)
-        f.compute()
-        results.append(f)
+        fibo = Fibo(i)
+        fibo.compute()
+        results.append(fibo)
     return results
 
 
 
 cdef py_fibo_sequence(int size):
     cdef Flist results
+
     with nogil:
         results = fibo_list(size)
-    return [f.value for f in results]
+
+    return [fibo.value for fibo in results]
 
 
 
@@ -62,7 +65,7 @@ def main(size=None):
 
 
 
-cdef list cyp_fibo_many(int size, int repeat):
+cdef list py_fibo_many(int size, int repeat):
     cdef list many = []
 
     for i in range(repeat):
@@ -71,9 +74,11 @@ cdef list cyp_fibo_many(int size, int repeat):
 
 
 
-def fibo_many(size=None, repeat=100):
+def fibo_many(size=None, repeat=None):
     if not size:
         size = 1476
+    if not repeat:
+        repeat = 100
     size = int(size)
     repeat = int(repeat)
-    return cyp_fibo_many(size, repeat)
+    return py_fibo_many(size, repeat)

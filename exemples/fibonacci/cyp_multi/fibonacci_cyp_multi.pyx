@@ -1,9 +1,7 @@
 # distutils: language = c++
 # Fibonacci x 100, cythonplus multicore
-
 from libcythonplus.dict cimport cypdict
 from scheduler.persistscheduler cimport SequentialMailBox, NullResult, PersistScheduler
-
 
 
 cdef cypclass Fibo activable:
@@ -21,13 +19,12 @@ cdef cypclass Fibo activable:
 
 
     void run(self):
-        cdef double a, b, tmp
+        cdef double a, b
+
         a = 0.0
         b = 1.0
-
         for i in range(self.level):
             a, b = b, a + b
-
         with wlocked self.results:
             self.results[self.level] = a
 
@@ -41,7 +38,7 @@ cdef lock cypdict[long, double] fibo_sequence(long size) nogil:
     scheduler = PersistScheduler()
 
     for i in range(size + 1):
-        fibo = <active Fibo> activate(consume Fibo(scheduler, results, i))
+        fibo = activate(consume Fibo(scheduler, results, i))
         fibo.run(NULL)
 
     scheduler.finish()
@@ -62,20 +59,7 @@ cdef py_fibo_sequence(long size):
 
 
 
-def print_summary(sequence):
-    for item in (sequence[0], sequence[1], sequence[-1]):
-        print(f"{item[0]}: {item[1]:.1f}, ")
-
-
-
-def main(size=None):
-    if not size:
-        size = 1476
-    print_summary(py_fibo_sequence(int(size)))
-
-
-
-cdef list cyp_fibo_many(int size, int repeat):
+cdef list py_fibo_many(int size, int repeat):
     cdef list many = []
 
     for i in range(repeat):
@@ -87,6 +71,8 @@ cdef list cyp_fibo_many(int size, int repeat):
 def fibo_many(size=None, repeat=100):
     if not size:
         size = 1476
+    if not repeat:
+        repeat = 100
     size = int(size)
     repeat = int(repeat)
-    return cyp_fibo_many(size, repeat)
+    return py_fibo_many(size, repeat)
