@@ -45,7 +45,8 @@ cdef inline void * worker_function(void * arg) nogil:
                 # Discard the empty queue and continue the main loop.
                 continue
         # The queue is not empty: reinsert it in this worker's queues.
-        worker.queues.push_back(queue)
+        with wlocked worker:
+            worker.queues.push_back(queue)
         # Signal that the queue is available.
         sem_post(&sch.num_free_queues)
 
@@ -229,4 +230,3 @@ cdef cypclass BatchMailBox(SequentialMailBox):
 
 cdef inline ActhonResultInterface NullResult() nogil:
     return NULL
-

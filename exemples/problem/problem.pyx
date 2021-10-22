@@ -1,8 +1,7 @@
 # distutils: language = c++
 
 from libcythonplus.dict cimport cypdict
-# from scheduler.persistscheduler cimport SequentialMailBox, NullResult, PersistScheduler
-from scheduler.persistscheduler_trace cimport SequentialMailBox, NullResult, PersistScheduler
+from scheduler.persistscheduler cimport SequentialMailBox, NullResult, PersistScheduler
 from libc.stdio cimport printf
 
 
