@@ -1,0 +1,4 @@
+title = "Chameneos, cythonplus actor"
+module = "chameneos"
+function = "main"
+args = [100000]
