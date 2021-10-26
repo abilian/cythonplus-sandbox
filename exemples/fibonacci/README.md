@@ -1,11 +1,12 @@
 # Fibonacci
 
 Compute Fibonacci sequence (without memoize), on double, upto 1476, 100x.
-- few calculations
 
+  - For each subfolder:
 
     ./make_all.sh
     ./launch_all.sh
+
 
 Expected results
 

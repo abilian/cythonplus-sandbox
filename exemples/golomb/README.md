@@ -1,6 +1,7 @@
 # Golomb
 
-Compute Golomb sequence up to 50 (without memoize).
+Compute Golomb sequence up to 50 (without memoize). Benchmark.
+
 - very few calculations
 - a lot of recursivity
 
