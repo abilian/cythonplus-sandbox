@@ -53,6 +53,14 @@ The `lib`folder contains various common libraries used by several exemples.
   tags: `basic`, `printf`, `cypset`, `long`
 
 
+- numeric limits
+
+  Display the size of main numeric types. Cython+ relies on C++ types, whose size
+  can vary by operating system or compiler.
+
+  tags: `numeric`, `types`, `cypclass`, `inheritance`
+
+
 - localtime_wrapper
 
   A wrapper around the libc `time` library, with both cython+ and python helper

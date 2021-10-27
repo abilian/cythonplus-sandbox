@@ -2,7 +2,7 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
 
-name = "max_limits"
+name = "numeric_limits"
 
 setup(
     ext_modules=cythonize(
