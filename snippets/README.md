@@ -5,7 +5,7 @@ This folder contains short snippets of code showing howto to use the Cython+ com
 
 ## Content
 
-Each subfolder contains a complete exemple and the following files:
+Each subfolder contains a complete example and the following files:
 
 - make.sh: script to build the exemple
 - run.sh: script to demonstrate the compiled code
@@ -36,28 +36,38 @@ The `lib`folder contains various common libraries used by several exemples.
 
   A basic use case of `cyplist`, the list class of cython+.
 
-  tags: `basic`, `printf`, `cyplist`, `nogil`, `int`
+  tags: `basic`, `printf`, `cyplist`, `int`
 
 
 - cypdict_basic
 
   A basic use case of `cypdict`, the dict class of cython+.
 
-  tags: `basic`, `printf`, `cypdict`, `nogil`, `string`, `long`
+  tags: `basic`, `printf`, `cypdict`, `string`, `long`
 
 
 - cypset_basic
 
   A basic use case of `cypset`, the set class of cython+.
 
-  tags: `basic`, `printf`, `cypset`, `nogil`, `long`
+  tags: `basic`, `printf`, `cypset`, `long`
 
 
 - localtime_wrapper
 
-  A wrapper around the libc `time` library, with both cython+ and python helper function to display current local time. Note that cython+ strings are plain b"" strings that need to be decoded to UTF-8 to be used as regular python `str`.
+  A wrapper around the libc `time` library, with both cython+ and python helper
+  function to display current local time. Note that cython+ strings are plain b""
+  strings that need to be decoded to UTF-8 to be used as regular python `str`.
 
-    tags: `libc`, `pxd`, `string`, `nogil`
+    tags: `libc`, `pxd`, `string`
+
+
+- factorial
+
+   A factorial() implementation. Note that cython+ does not use unlimited size
+   integers, so the possibility of an overflow need to be checked.
+
+    tags: `unsigned long long`, 'overflow'
 
 
 ## Licence

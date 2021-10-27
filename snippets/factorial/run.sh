@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python -c "from helloworld import main; main()"
+python -c "from factorial import main; main()"
