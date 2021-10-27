@@ -1,0 +1,4 @@
+title = "fannkuchredux, cython, basic cython port of multiprocess version"
+module = "fannkuchredux"
+function = "main"
+args = [10]

@@ -1,0 +1,4 @@
+title = "fannkuchredux, pure python, multicore using multiprocess"
+module = "fannkuchredux"
+function = "main"
+args = [10]

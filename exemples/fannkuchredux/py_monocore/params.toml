@@ -1,0 +1,4 @@
+title = "fannkuchredux, pure python, monocore"
+module = "fannkuchredux"
+function = "main"
+args = [10]
