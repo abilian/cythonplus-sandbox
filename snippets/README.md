@@ -53,6 +53,20 @@ The `lib`folder contains various common libraries used by several exemples.
   tags: `basic`, `printf`, `cypset`, `long`
 
 
+- list_sort_reverse_in_place
+
+  A quick implementation of in-place sort and reverse of a list.
+
+  tags: `list`, `sort`, `reverse`
+
+
+- list_copy_slice
+
+  A quick implementation of copy slice of a list.
+
+  tags: `list`, `slice`
+
+
 - numeric limits
 
   Display the size of main numeric types. Cython+ relies on C++ types, whose size
@@ -75,7 +89,7 @@ The `lib`folder contains various common libraries used by several exemples.
    A factorial() implementation. Note that cython+ does not use unlimited size
    integers, so the possibility of an overflow need to be checked.
 
-    tags: `unsigned long long`, 'overflow'
+    tags: `unsigned long long`, `overflow`
 
 
 ## Licence
