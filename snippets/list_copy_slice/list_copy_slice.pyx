@@ -15,6 +15,17 @@ cdef void print_list(IntList lst) nogil:
     printf("\n")
 
 
+cdef IntList copy_list(IntList lst) nogil:
+    cdef IntList result = IntList()
+
+    if lst._active_iterators == 0:
+        result._elements = lst._elements
+        return result
+    else:
+        with gil:
+            raise RuntimeError("Modifying a list with active iterators")
+
+
 cdef IntList copy_slice(IntList lst, size_t start, size_t end) nogil:
     cdef IntList result = IntList()
 
@@ -48,6 +59,12 @@ cdef void demo_slice():
 
         printf('original list:\n')
         print_list(lst1)
+
+        printf('copy list, add element, print both):\n')
+        lst2 = copy_list(lst1)
+        lst2.append(6)
+        print_list(lst1)
+        print_list(lst2)
 
         printf('copy slice [1:3] in a new list:\n')
         lst2 = copy_slice(lst1, 1, 3)

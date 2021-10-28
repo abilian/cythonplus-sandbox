@@ -55,16 +55,30 @@ The `lib`folder contains various common libraries used by several exemples.
 
 - list_sort_reverse_in_place
 
-  A quick implementation of in-place sort and reverse of a list.
+  A quick implementation of in-place sort and reverse of a cyplist.
 
-  tags: `list`, `sort`, `reverse`
+  tags: `cyplist`, `sort`, `reverse`
 
 
 - list_copy_slice
 
-  A quick implementation of copy slice of a list.
+  A quick implementation of copy and copy a slice of a cyplist.
 
-  tags: `list`, `slice`
+  tags: `cyplist`, `copy`, `slice`
+
+
+- list_min_max_sum
+
+  A quick (inefficient) implementation of min, max and sum for a cyplist.
+
+  tags: `cyplist`, `min`, `max`, `sum`
+
+
+- div_mod
+
+  Nogil integerdivision and modulo: use // and % oprators.
+
+  tags: `divmod`
 
 
 - numeric limits
