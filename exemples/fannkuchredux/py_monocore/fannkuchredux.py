@@ -58,7 +58,7 @@ def fannkuch(n):
 
 def main(n=None):
     if not n:
-        n = 10
+        n = 11
     print(("Pfannkuchen(%i) = %i" % (n, fannkuch(n))))
 
 

@@ -1,4 +1,4 @@
-title = "fannkuchredux, cythonplus, wip"
+title = "fannkuchredux, cythonplus with actors"
 module = "fannkuchredux"
 function = "main"
-args = [10]
+args = [11]

@@ -52,7 +52,7 @@ def task_body(parms):
     maxflips = 0
     checksum = 0
     for i in range(parms[1], parms[2]):
-        data = list(g.next() if sys.version_info[0] < 3 else g.__next__())
+        data = list(g.__next__())
         f = data[0]
         if f > 0:
             flips = 0
@@ -90,7 +90,7 @@ def main_fk(length):
 
 def main(length=None):
     if not length:
-        length = 10
+        length = 11
     main_fk(length)
 
 

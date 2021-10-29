@@ -53,11 +53,10 @@ def task_body(parms):
     cdef int maxflips, checksum
 
     g = PermutationGenerator(parms[0], parms[1])
-
     maxflips = 0
     checksum = 0
     for i in range(parms[1], parms[2]):
-        data = list(g.next() if sys.version_info[0] < 3 else g.__next__())
+        data = list(g.__next__())
         f = data[0]
         if f > 0:
             flips = 0
@@ -90,13 +89,14 @@ def main_fk(length):
     processors.close()
     processors.join()
     processors.terminate()
-
+    # print(res[0])
+    # print(res[1])
     print("%d\nPfannkuchen(%d) = %d" % (sum(res[1]), length, max(res[0])))
 
 
 def main(length=None):
     if not length:
-        length = 10
+        length = 11
     main_fk(length)
 
 

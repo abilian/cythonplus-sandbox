@@ -1,0 +1,3 @@
+title = "fannkuchredux, C++ implementation, using openmp"
+exe = "./fannkuchredux.gcc_run"
+args = [11]
