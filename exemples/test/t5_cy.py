@@ -6,6 +6,7 @@ import os
 from glob import glob
 from os.path import abspath, expanduser, join, relpath
 from random import Random
+from time import perf_counter
 
 from flask import Flask, jsonify, send_file, send_from_directory, url_for
 from cywhitenoise import WhiteNoise
@@ -33,14 +34,14 @@ TPLATE = """<!DOCTYPE html>
 
 def images_list():
     images = []
-    for suffix in ("gif", "jpg", "png"):
+    for suffix in ("gif", "jpg", "png", "html", "txt"):
         images.extend(
             [
                 relpath(x, STATIC_FOLDER)
                 for x in glob(join(STATIC_FOLDER, f"**/*.{suffix}"), recursive=True)
             ]
         )
-    print(f"found {len(images)} images in", STATIC_FOLDER)
+    print(f"found {len(images)} files in", STATIC_FOLDER)
     return images
 
 
@@ -53,6 +54,7 @@ def create_app(script_info=None):
     rnd = Random()
     rnd.seed(1415)
 
+    t0 = perf_counter()
     # configure WhiteNoise
     app.wsgi_app = WhiteNoise(
         app.wsgi_app,
@@ -61,6 +63,7 @@ def create_app(script_info=None):
         max_age=WHITENOISE_MAX_AGE,
     )
     print(len(app.wsgi_app.files), "files cached by Whitenoise")
+    print("Whitenoise initialization:", perf_counter() - t0)
 
     @app.route("/")
     def index():
