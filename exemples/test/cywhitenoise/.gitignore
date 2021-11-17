@@ -1,0 +1,10 @@
+*.py[co]
+__pycache__
+/MANIFEST
+/.tox
+/.coverage
+/.coverage.*
+/htmlcov
+/docs/_build
+/dist
+/*.egg-info
