@@ -1,6 +1,6 @@
 #!/bin/bash -v
 
-[ -f "build_cywn.sh" ] || exit 1
+[ -f "build_cywhitenoise.sh" ] || exit 1
 [ -d cywhitenoise ] && rm -fr cywhitenoise
 cd sources/cywhitenoise
 ./make_cython.sh
