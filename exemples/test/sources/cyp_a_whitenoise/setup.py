@@ -2,8 +2,8 @@ import ast
 import codecs
 import os
 import re
+import sys
 
-# from setuptools import setup, find_packages
 from setuptools import find_packages
 
 from distutils.core import setup
@@ -25,26 +25,19 @@ version_string = VERSION_RE.search(read("cyp_a_whitenoise/__init__.py")).group(1
 version = str(ast.literal_eval(version_string))
 
 
-def py_ext(*pathname):
+def pypyx_ext(*pathname):
+    src = os.path.join(*pathname) + ".py"
+    if not os.path.exists(src):
+        src += "x"
+    if not os.path.exists(src):
+        raise ValueError(f"file not found: {src}")
     return Extension(
         ".".join(pathname),
-        sources=[os.path.join(*pathname) + ".py"],
+        sources=[src],
+        include_dirs=["stdlib"],
         language="c++",
         extra_compile_args=[
-            "-std=c++11",
-            "-O3",
-            "-Wno-deprecated-declarations",
-        ],
-    )
-
-
-def pyx_ext(*pathname):
-    return Extension(
-        ".".join(pathname),
-        sources=[os.path.join(*pathname) + ".pyx"],
-        language="c++",
-        extra_compile_args=[
-            "-std=c++11",
+            "-std=c++17",
             "-O3",
             "-Wno-deprecated-declarations",
         ],
@@ -52,14 +45,14 @@ def pyx_ext(*pathname):
 
 
 extensions = [
-    py_ext("cyp_a_whitenoise", "base"),
-    py_ext("cyp_a_whitenoise", "compress"),
-    py_ext("cyp_a_whitenoise", "django"),
-    py_ext("cyp_a_whitenoise", "media_types"),
-    py_ext("cyp_a_whitenoise", "middleware"),
-    py_ext("cyp_a_whitenoise", "responders"),
-    py_ext("cyp_a_whitenoise", "storage"),
-    py_ext("cyp_a_whitenoise", "string_utils"),
+    pypyx_ext("cyp_a_whitenoise", "base"),
+    pypyx_ext("cyp_a_whitenoise", "compress"),
+    pypyx_ext("cyp_a_whitenoise", "django"),
+    pypyx_ext("cyp_a_whitenoise", "media_types"),
+    pypyx_ext("cyp_a_whitenoise", "middleware"),
+    pypyx_ext("cyp_a_whitenoise", "responders"),
+    pypyx_ext("cyp_a_whitenoise", "storage"),
+    pypyx_ext("cyp_a_whitenoise", "string_utils"),
 ]
 
 
@@ -67,6 +60,9 @@ setup(
     ext_modules=cythonize(
         extensions,
         language_level="3str",
+        include_path=[
+            PROJECT_ROOT + "/cyp_a_whitenoise",
+        ],
     ),
     name="cyp_a_whitenoise",
     version=version,
@@ -104,4 +100,6 @@ setup(
     # ],
     extras_require={"brotli": ["Brotli"]},
     python_requires=">=3.5, <4",
+    include_package_data=True,
+    zip_safe=False,
 )

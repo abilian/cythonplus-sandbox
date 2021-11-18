@@ -1,3 +1,4 @@
+# distutils: language = c++
 import os
 from posixpath import normpath
 import re
@@ -12,6 +13,11 @@ from .string_utils import (
     decode_path_info,
     ensure_leading_trailing_slash,
 )
+
+from libcythonplus.dict cimport cypdict
+from stdlib.string cimport string as Str
+
+ctypedef cypdict[Str, Str] Sdict
 
 
 class WhiteNoise(object):
@@ -63,7 +69,10 @@ class WhiteNoise(object):
             raise TypeError(
                 "Unexpected keyword argument '{0}'".format(list(kwargs.keys())[0])
             )
-        self.media_types = MediaTypes(extra_types=self.mimetypes)
+
+        ## wrapping with nogil cypclass
+        self.media_types = make_media_types(self.mimetypes)
+
         self.application = application
         self.files = {}
         self.directories = []
@@ -271,3 +280,49 @@ def scantree(root):
             yield from scantree(entry.path)
         else:
             yield entry.path, entry.stat()
+
+
+cdef Str to_str(byte_or_string):
+    """(need gil)
+    """
+    if isinstance(byte_or_string, str):
+        return Str(bytes(key.encode("utf8")))
+    else:
+        return Str(bytes(byte_or_string))
+
+
+cdef Sdict to_str_dict(python_dict):
+    """create a Sdict instance from a str/str python dict
+
+    (need gil)
+    """
+    sd = Sdict()
+    for key, value in python_dict.items():
+        if isinstance(key, str):
+            string_key = string(bytes(key.encode("utf8")))
+        else:
+            string_key = string(bytes(key))
+        sd[to_str(key)] = to_str(value)
+    return sd
+
+
+cdef dict from_str_dict(Sdict sd):
+    """create a python dict instance from a Sdict
+
+    (need gil)
+    """
+    return {
+        i.first.decode("utf8", 'replace'): i.second.decode("utf8", 'replace')
+        for i in sd.items()
+    }
+
+
+cdef cypclass make_media_types(mimetypes):
+    cdef Sdict c_mt
+
+    if mimetypes:
+        c_mt = to_str_dict(mimetypes)
+    else:
+        c_mt = Sdict()
+
+    return MediaTypes(c_mt)
