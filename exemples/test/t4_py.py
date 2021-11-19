@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-from cywhitenoise import WhiteNoise
-from cywhitenoise import __version__ as wversion
+from whitenoise import WhiteNoise
+from whitenoise import __version__ as wversion
 
-print("found cywhitenoise version", wversion)
+print("found whitenoise version", wversion)
 
 import wn_base_app
 

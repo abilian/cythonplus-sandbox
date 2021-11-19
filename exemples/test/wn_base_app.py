@@ -9,7 +9,9 @@ from random import Random
 from time import perf_counter
 
 from flask import Flask, jsonify, send_file, send_from_directory, url_for
-from whitenoise import WhiteNoise
+
+# from cyp_a_whitenoise import WhiteNoise
+
 
 SITE = abspath(expanduser("~/tmp/wntest/site1"))
 STATIC_FOLDER = join(SITE, "static")
@@ -60,6 +62,7 @@ def create_app(script_info=None):
     )
     print(len(app.wsgi_app.files), "files cached by Whitenoise")
     print("Whitenoise initialization:", perf_counter() - t0)
+    print("")
 
     @app.route("/")
     def index():
