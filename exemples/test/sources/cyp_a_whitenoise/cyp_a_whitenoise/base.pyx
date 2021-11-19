@@ -6,7 +6,8 @@ import warnings
 from wsgiref.headers import Headers
 from wsgiref.util import FileWrapper
 
-from .media_types import MediaTypes
+from .media_types cimport MediaTypes, Sdict, c_wrap_get_type
+
 from .responders import StaticFile, MissingFileError, IsDirectoryError, Redirect
 from .string_utils import (
     decode_if_byte_string,
@@ -17,31 +18,44 @@ from .string_utils import (
 from libcythonplus.dict cimport cypdict
 from stdlib.string cimport string as Str
 
-ctypedef cypdict[Str, Str] Sdict
 
 
-class WhiteNoise(object):
+
+# cdef class WhiteNoise():
+class WhiteNoise():
+    ## we need a cdef to ba able of manage a MediaTypes attribute...
+    ## => no **kwargs in __ini__
+    ## => will need some wrapper to keep API, TODO
+    ## For now : no optional args
+    # cdef MediaTypes media_types
 
     # Ten years is what nginx sets a max age if you use 'expires max;'
     # so we'll follow its lead
     FOREVER = 10 * 365 * 24 * 60 * 60
 
-    # Attributes that can be set by keyword args in the constructor
-    config_attrs = (
-        "autorefresh",
-        "max_age",
-        "allow_all_origins",
-        "charset",
-        "mimetypes",
-        "add_headers_function",
-        "index_file",
-        "immutable_file_test",
-    )
+    # # Attributes that can be set by keyword args in the constructor
+    # config_attrs = (
+    #     "autorefresh",
+    #     "max_age",
+    #     "allow_all_origins",
+    #     "charset",
+    #     "mimetypes",
+    #     "add_headers_function",
+    #     "index_file",
+    #     "immutable_file_test",
+    # )
+
     # Re-check the filesystem on every request so that any changes are
     # automatically picked up. NOTE: For use in development only, not supported
     # in production
     autorefresh = False
+
+    ## BUG AttributeError: 'cyp_a_whitenoise.base.WhiteNoise' object attribute 'max_age' is read-only
+    ## => cant be so "dynamic"
+    ## => make all class attribute instance attributes
+    ## max_age = 60
     max_age = 60
+
     # Set 'Access-Control-Allow-Orign: *' header on all files.
     # As these are all public static files this is safe (See
     # https://www.w3.org/TR/cors/#security) and ensures that things (e.g
@@ -56,22 +70,28 @@ class WhiteNoise(object):
     # Name of index file (None to disable index support)
     index_file = None
 
-    def __init__(self, application, root=None, prefix=None, **kwargs):
-        for attr in self.config_attrs:
-            try:
-                value = kwargs.pop(attr)
-            except KeyError:
-                pass
-            else:
-                value = decode_if_byte_string(value)
-                setattr(self, attr, value)
-        if kwargs:
-            raise TypeError(
-                "Unexpected keyword argument '{0}'".format(list(kwargs.keys())[0])
-            )
+    # def __init__(self, application, root=None, prefix=None, **kwargs):
+    def __init__(self, application, root=None, prefix=None, max_age=60):
+
+        # for attr in self.config_attrs:
+        #     try:
+        #         value = kwargs.pop(attr)
+        #     except KeyError:
+        #         pass
+        #     else:
+        #         value = decode_if_byte_string(value)
+        #         setattr(self, attr, value)
+        # if kwargs:
+        #     raise TypeError(
+        #         "Unexpected keyword argument '{0}'".format(list(kwargs.keys())[0])
+        #     )
 
         ## wrapping with nogil cypclass
-        self.media_types = make_media_types(self.mimetypes)
+        ## if error cyp_a_whitenoise/base.pyx:74:43: Cannot convert 'cypdict[string,string]' to Python object
+        ## => set a pxd declaration
+
+        # self.media_types = make_media_types(self.mimetypes)
+        self.media_types = WrapMediaTypes(self.mimetypes)
 
         self.application = application
         self.files = {}
@@ -229,7 +249,14 @@ class WhiteNoise(object):
         )
 
     def add_mime_headers(self, headers, path, url):
+        ## error: cyp_a_whitenoise/base.pyx:235:37:
+        ## Object of type 'MediaTypes' has no attribute 'get_type'
+        ## BUG: it does.
+        # media_type = self.media_types.get_type(path)
+
+        # media_type = c_wrap_get_type(self.media_types, path)
         media_type = self.media_types.get_type(path)
+
         if media_type.startswith("text/"):
             params = {"charset": str(self.charset)}
         else:
@@ -286,7 +313,7 @@ cdef Str to_str(byte_or_string):
     """(need gil)
     """
     if isinstance(byte_or_string, str):
-        return Str(bytes(key.encode("utf8")))
+        return Str(bytes(byte_or_string.encode("utf8")))
     else:
         return Str(bytes(byte_or_string))
 
@@ -299,9 +326,9 @@ cdef Sdict to_str_dict(python_dict):
     sd = Sdict()
     for key, value in python_dict.items():
         if isinstance(key, str):
-            string_key = string(bytes(key.encode("utf8")))
+            string_key = Str(bytes(key.encode("utf8")))
         else:
-            string_key = string(bytes(key))
+            string_key = Str(bytes(key))
         sd[to_str(key)] = to_str(value)
     return sd
 
@@ -317,12 +344,34 @@ cdef dict from_str_dict(Sdict sd):
     }
 
 
-cdef cypclass make_media_types(mimetypes):
-    cdef Sdict c_mt
 
-    if mimetypes:
-        c_mt = to_str_dict(mimetypes)
-    else:
-        c_mt = Sdict()
+cdef class WrapMediaTypes():
+    cdef MediaTypes mt[1]
 
-    return MediaTypes(c_mt)
+    def __init__(self, mimetypes):
+        cdef Sdict c_mt
+
+        if mimetypes:
+            c_mt = to_str_dict(mimetypes)
+        else:
+            c_mt = Sdict()
+        self.mt[0] = MediaTypes(c_mt)
+
+    def get_type(self, path):
+        return self.mt[0].get_type(to_str(path)).decode("utf8", 'replace')
+
+
+#
+# cdef Toto make_media_types(dict mimetypes):
+# # cdef MediaTypes make_media_types(dict mimetypes):
+#     cdef Sdict c_mt
+#     cdef Toto response
+#     # cdef MediaTypes response
+#
+#     if mimetypes:
+#         c_mt = to_str_dict(mimetypes)
+#     else:
+#         c_mt = Sdict()
+#
+#     # return MediaTypes(c_mt)
+#     return Toto(c_mt)

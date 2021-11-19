@@ -6,7 +6,12 @@
 mkdir build
 cp -a cyp_a_whitenoise build
 cp setup.py build
+cp gcc_macports_alias.sh build
 cd build
+
+# for MacOS environment using MacPorts, need to select some gcc compiler:
+[[ "$OSTYPE" == "darwin"* ]] && source ./gcc_macports_alias.sh
+
 python setup.py build_ext --inplace
 find cyp_a_whitenoise -type f -name "*.c" -delete
 find cyp_a_whitenoise -type f -name "*.cpp" -delete
