@@ -1,0 +1,10 @@
+*.cpp
+cython/*.c
+cython/*.h
+*.html
+*.o
+*.exe
+*.lock
+*.json
+*.out
+rust/target/

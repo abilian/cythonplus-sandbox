@@ -1,0 +1,23 @@
+[package]
+name = "main"
+version = "0.1.0"
+authors = ["Leo Le Bouter <leo.le.bouter@nexedi.com>", "Xavier Thompson <xavier.thompson@nexedi.com>"]
+edition = "2018"
+
+[dependencies]
+md-5 = "0.9.1"
+sha-1 = "0.9.1"
+sha2 = "0.9.1"
+hex = "0.4.2"
+anyhow = "1.0.32"
+rmp-serde = "0.14.4"
+nix = "0.18.0"
+serde = { version = "1.0.115", features = ["derive"] }
+base64 = "0.12.3"
+rayon = "1.4.0"
+serde_json = "1.0.57"
+
+[profile.release]
+opt-level = 'z'
+lto = true
+codegen-units = 1
