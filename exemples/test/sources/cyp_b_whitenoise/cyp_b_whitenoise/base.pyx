@@ -9,7 +9,7 @@ from wsgiref.util import FileWrapper
 from libcythonplus.dict cimport cypdict
 from stdlib.string cimport string as Str
 
-from .media_types cimport MediaTypes, Sdict, c_wrap_get_type
+from .media_types cimport MediaTypes, Sdict#, c_wrap_get_type
 from .responders import StaticFile, MissingFileError, IsDirectoryError, Redirect
 from .string_utils import (
     decode_if_byte_string,
@@ -335,12 +335,7 @@ cdef Sdict to_str_dict(python_dict):
     """
     sd = Sdict()
     for key, value in python_dict.items():
-        if isinstance(key, str):
-            string_key = Str(bytes(key.encode("utf8")))
-        else:
-            string_key = Str(bytes(key))
-        # sd[to_str(key)] = to_str(value)
-        sd[to_str(key)] = to_c_str(value)
+        sd[to_c_str(key)] = to_c_str(value)
     return sd
 
 
