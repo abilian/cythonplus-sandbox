@@ -18,6 +18,7 @@ extensions = [
     Extension(
         "main",
         language="c++",
+        # sources=["main.pyx"],
         sources=["main.pyx", "runtime/pthread_barrier.c"],
         extra_compile_args=[
             "-pthread",

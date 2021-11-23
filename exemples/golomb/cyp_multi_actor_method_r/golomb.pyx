@@ -1,10 +1,13 @@
 # distutils: language = c++
 # golomb sequence
-# cythonplus multicore, implementation with actors, with instance method, reverse order
+# cythonplus multicore, implementation with actors, with instance
+# method, reverse order
 
 from libcythonplus.dict cimport cypdict
-from scheduler.persistscheduler cimport SequentialMailBox, NullResult, PersistScheduler
-
+IF UNAME_SYSNAME == "Darwin":
+    from scheduler_darwin.scheduler cimport SequentialMailBox, NullResult, Scheduler
+ELSE:
+    from scheduler.scheduler cimport SequentialMailBox, NullResult, Scheduler
 
 
 cdef cypclass Golomb activable:
@@ -12,7 +15,7 @@ cdef cypclass Golomb activable:
     active Recorder recorder
 
     __init__(self,
-             lock PersistScheduler scheduler,
+             lock Scheduler scheduler,
              active Recorder recorder,
              long rank):
         self._active_result_class = NullResult
@@ -34,11 +37,10 @@ cdef cypclass Golomb activable:
         self.recorder.store(NULL, self.rank, value)
 
 
-
 cdef cypclass Recorder activable:
     cypdict[long, long] storage
 
-    __init__(self, lock PersistScheduler scheduler):
+    __init__(self, lock Scheduler scheduler):
         self._active_result_class = NullResult
         self._active_queue_class = consume SequentialMailBox(scheduler)
         self.storage = cypdict[long, long]()
@@ -50,13 +52,12 @@ cdef cypclass Recorder activable:
         return self.storage
 
 
-
 cdef cypclass GolombGenerator activable:
     long size
-    lock PersistScheduler scheduler
+    lock Scheduler scheduler
     active Recorder recorder
 
-    __init__(self, lock PersistScheduler scheduler, long size):
+    __init__(self, lock Scheduler scheduler, long size):
         self._active_result_class = NullResult
         self._active_queue_class = consume SequentialMailBox(scheduler)
         self.scheduler = scheduler  # keep it for use with sub objects
@@ -76,12 +77,11 @@ cdef cypclass GolombGenerator activable:
         return <cypdict[long, long]> recorder.content()
 
 
-
 cdef cypdict[long, long] golomb_sequence(long size) nogil:
     cdef active GolombGenerator generator
-    cdef lock PersistScheduler scheduler
+    cdef lock Scheduler scheduler
 
-    scheduler = PersistScheduler()
+    scheduler = Scheduler()
     generator = activate(consume GolombGenerator(scheduler, size))
     generator.run(NULL)
     scheduler.finish()
