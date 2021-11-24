@@ -5,7 +5,7 @@
 /** Pthread-barrier implementation for macOS using a pthread mutex and condition variable */
 
 
-#include "pthread_barrier.h"
+#include "c_pthread_barrier.h"
 #include <errno.h>
 
 #ifdef __APPLE__

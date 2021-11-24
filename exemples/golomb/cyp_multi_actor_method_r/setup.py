@@ -1,60 +1,66 @@
-from setuptools import Extension, setup
+from distutils.core import setup
+from distutils.extension import Extension
 from Cython.Build import cythonize
 import platform
 
+from distutils import sysconfig
+
 if platform.system() == "Darwin":
-    pthread_barrier = Extension(
-        "pthread_darwin.pthread_barrier",
-        language="c",
-        sources=["pthread_darwin/pthread_barrier.c"],
-        extra_compile_args=[
-            "-pthread",
-            "-Wno-unused-function",
-            "-Wno-deprecated-declarations",
-        ],
-        include_dirs=[".", "/opt/local/include", "pthread_darwin"],
-        library_dirs=[".", "/opt/local/lib", "pthread_darwin"],
-        extra_link_args=[],
-    )
+    print("Darwin build.")
+    vars = sysconfig.get_config_vars()
+    vars["LDSHARED"] = vars["LDSHARED"].replace("-bundle", "-dynamiclib")
     golomb = Extension(
         "golomb",
         language="c++",
-        sources=["golomb.pyx"],
+        sources=["golomb.pyx", "scheduler_darwin/c_pthread_barrier.cxx"],
         extra_compile_args=[
             "-pthread",
-            "-std=c++11",
-            # "-O3",
-            "-march=native",
-            "-Wno-unused-function",
-            "-Wno-deprecated-declarations",
-        ],
-        include_dirs=[".", "/opt/local/include", "pthread_darwin", "scheduler_darwin"],
-        library_dirs=[".", "/opt/local/lib", "./pthread_darwin", "./scheduler_darwin"],
-        # library_dirs=[".", "/opt/local/lib", "runtime"],
-        # extra_link_args=["-L.", "-lpthread_barrier"],
-        libraries=["pthread_barrier"],
-    )
-    extensions = [pthread_barrier, golomb]
-else:
-    golomb = Extension(
-        "golomb",
-        language="c++",
-        sources=["golomb.pyx"],
-        extra_compile_args=[
             "-std=c++11",
             "-O3",
             "-Wno-unused-function",
             "-Wno-deprecated-declarations",
+        ],
+        include_dirs=[
+            ".",
+            "/opt/local/include",
+            "scheduler_darwin",
+        ],
+        library_dirs=[
+            ".",
+            "/opt/local/lib",
+            "scheduler_darwin",
+        ],
+    )
+    setup(
+        name="golomb",
+        ext_modules=cythonize(
+            [golomb],
+            language_level="3str",
+            include_path=[".", "scheduler_darwin"],
+        ),
+    )
+
+else:
+    print("Linux build.")
+    golomb = Extension(
+        "golomb",
+        language="c++",
+        sources=["golomb.pyx"],
+        extra_compile_args=[
             "-pthread",
+            "-std=c++11",
+            "-O3",
+            "-Wno-unused-function",
+            "-Wno-deprecated-declarations",
         ],
     )
     extensions = [golomb]
 
-setup(
-    name="golomb",
-    ext_modules=cythonize(
-        extensions,
-        language_level="3str",
-        include_path=[".", "pthread_darwin", "scheduler_darwin"],
-    ),
-)
+    setup(
+        name="golomb",
+        ext_modules=cythonize(
+            [golomb],
+            language_level="3str",
+            include_path=[".", "pthread", "scheduler"],
+        ),
+    )

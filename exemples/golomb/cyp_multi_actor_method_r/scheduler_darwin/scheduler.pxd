@@ -6,9 +6,9 @@ from libcpp.atomic cimport atomic
 from libc.stdio cimport printf
 from libc.stdlib cimport rand
 from posix.unistd cimport sysconf
-from pthread_darwin.pthreads cimport *
-from pthread_darwin.semaphore cimport *
-from pthread_darwin.pthread_barrier cimport *
+from scheduler_darwin.pthreads cimport *
+from scheduler_darwin.semaphore cimport *
+from scheduler_darwin.pthread_barrier cimport *
 
 cdef extern from "<unistd.h>" nogil:
     enum: _SC_NPROCESSORS_ONLN  # Seems to not be included in "posix.unistd".
@@ -25,7 +25,9 @@ cdef inline void * worker_function(void * arg) nogil:
     worker = <lock Worker> arg
     sch = <Scheduler> <void*> worker.scheduler
     # Wait until all the workers are ready.
+    printf("barrier wait:\n")
     pthread_barrier_wait(&sch.barrier)
+    printf("barrier wait done.\n")
     while 1:
         # Wait until a queue becomes available.
         sem_wait(&sch.num_free_queues)
@@ -128,6 +130,7 @@ cdef cypclass Scheduler:
         self.is_done = False
         self.workers.reserve(num_workers)
         for i in range(num_workers):
+            printf("will gen 1 worker\n")
             worker = Worker(self)
             if worker is NULL:
                 # Signal that no work will be done.
@@ -135,7 +138,10 @@ cdef cypclass Scheduler:
                 return self
             self.workers.push_back(worker)
         # Wait until all the worker threads are ready.
+        printf("Wait until all the worker threads are ready.\n")
         pthread_barrier_wait(&self.barrier)
+        printf("Wait until all the worker threads are ready. done.\n")
+
         return self
 
     __dealloc__(self):
