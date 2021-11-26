@@ -1,4 +1,4 @@
-from distutils.core import setup
+from  distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
 import platform
@@ -22,12 +22,12 @@ if platform.system() == "Darwin":
         ],
         include_dirs=[
             ".",
-            "/opt/local/include",
+            # "/opt/local/include",
             "scheduler_darwin",
         ],
         library_dirs=[
             ".",
-            "/opt/local/lib",
+            # "/opt/local/lib",
             "scheduler_darwin",
         ],
     )
