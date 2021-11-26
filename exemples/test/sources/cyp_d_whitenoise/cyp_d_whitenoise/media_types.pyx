@@ -1,0 +1,335 @@
+# distutils: language = c++
+
+from libcythonplus.dict cimport cypdict
+from stdlib.string cimport Str
+
+
+# cdef const char* c_wrap_get_type(MediaTypes mt, Str path) nogil:
+#     return mt.get_type(path)
+
+
+cdef const char* extension(Str filename) nogil:
+    cdef size_t pos = filename._str.find_last_of(".")
+    return Str.to_c_str(filename.substr(pos + 1))
+
+
+cdef Sdict default_types() nogil:
+    cdef Sdict d
+
+    d = Sdict()
+    d[Str.to_c_str(Str(".3gp"))] = Str.to_c_str(Str("video/3gpp"))
+    d[Str.to_c_str(Str(".3gp"))] = Str.to_c_str(Str("video/3gpp"))
+    d[Str.to_c_str(Str(".3gpp"))] = Str.to_c_str(Str("video/3gpp"))
+    d[Str.to_c_str(Str(".7z"))] = Str.to_c_str(Str("application/x-7z-compressed"))
+    d[Str.to_c_str(Str(".ai"))] = Str.to_c_str(Str("application/postscript"))
+    d[Str.to_c_str(Str(".asf"))] = Str.to_c_str(Str("video/x-ms-asf"))
+    d[Str.to_c_str(Str(".asx"))] = Str.to_c_str(Str("video/x-ms-asf"))
+    d[Str.to_c_str(Str(".atom"))] = Str.to_c_str(Str("application/atom+xml"))
+    d[Str.to_c_str(Str(".avi"))] = Str.to_c_str(Str("video/x-msvideo"))
+    d[Str.to_c_str(Str(".bmp"))] = Str.to_c_str(Str("image/x-ms-bmp"))
+    d[Str.to_c_str(Str(".cco"))] = Str.to_c_str(Str("application/x-cocoa"))
+    d[Str.to_c_str(Str(".crt"))] = Str.to_c_str(Str("application/x-x509-ca-cert"))
+    d[Str.to_c_str(Str(".css"))] = Str.to_c_str(Str("text/css"))
+    d[Str.to_c_str(Str(".der"))] = Str.to_c_str(Str("application/x-x509-ca-cert"))
+    d[Str.to_c_str(Str(".doc"))] = Str.to_c_str(Str("application/msword"))
+    d[Str.to_c_str(Str(".docx"))] = Str.to_c_str(Str("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+    d[Str.to_c_str(Str(".ear"))] = Str.to_c_str(Str("application/java-archive"))
+    d[Str.to_c_str(Str(".eot"))] = Str.to_c_str(Str("application/vnd.ms-fontobject"))
+    d[Str.to_c_str(Str(".eps"))] = Str.to_c_str(Str("application/postscript"))
+    d[Str.to_c_str(Str(".flv"))] = Str.to_c_str(Str("video/x-flv"))
+    d[Str.to_c_str(Str(".gif"))] = Str.to_c_str(Str("image/gif"))
+    d[Str.to_c_str(Str(".hqx"))] = Str.to_c_str(Str("application/mac-binhex40"))
+    d[Str.to_c_str(Str(".htc"))] = Str.to_c_str(Str("text/x-component"))
+    d[Str.to_c_str(Str(".htm"))] = Str.to_c_str(Str("text/html"))
+    d[Str.to_c_str(Str(".html"))] = Str.to_c_str(Str("text/html"))
+    d[Str.to_c_str(Str(".ico"))] = Str.to_c_str(Str("image/x-icon"))
+    d[Str.to_c_str(Str(".jad"))] = Str.to_c_str(Str("text/vnd.sun.j2me.app-descriptor"))
+    d[Str.to_c_str(Str(".jar"))] = Str.to_c_str(Str("application/java-archive"))
+    d[Str.to_c_str(Str(".jardiff"))] = Str.to_c_str(Str("application/x-java-archive-diff"))
+    d[Str.to_c_str(Str(".jng"))] = Str.to_c_str(Str("image/x-jng"))
+    d[Str.to_c_str(Str(".jnlp"))] = Str.to_c_str(Str("application/x-java-jnlp-file"))
+    d[Str.to_c_str(Str(".jpeg"))] = Str.to_c_str(Str("image/jpeg"))
+    d[Str.to_c_str(Str(".jpg"))] = Str.to_c_str(Str("image/jpeg"))
+    d[Str.to_c_str(Str(".js"))] = Str.to_c_str(Str("text/javascript"))
+    d[Str.to_c_str(Str(".json"))] = Str.to_c_str(Str("application/json"))
+    d[Str.to_c_str(Str(".kar"))] = Str.to_c_str(Str("audio/midi"))
+    d[Str.to_c_str(Str(".kml"))] = Str.to_c_str(Str("application/vnd.google-earth.kml+xml"))
+    d[Str.to_c_str(Str(".kmz"))] = Str.to_c_str(Str("application/vnd.google-earth.kmz"))
+    d[Str.to_c_str(Str(".m3u8"))] = Str.to_c_str(Str("application/vnd.apple.mpegurl"))
+    d[Str.to_c_str(Str(".m4a"))] = Str.to_c_str(Str("audio/x-m4a"))
+    d[Str.to_c_str(Str(".m4v"))] = Str.to_c_str(Str("video/x-m4v"))
+    d[Str.to_c_str(Str(".md"))] = Str.to_c_str(Str("text/markdown"))
+    d[Str.to_c_str(Str(".mid"))] = Str.to_c_str(Str("audio/midi"))
+    d[Str.to_c_str(Str(".midi"))] = Str.to_c_str(Str("audio/midi"))
+    d[Str.to_c_str(Str(".mjs"))] = Str.to_c_str(Str("text/javascript"))
+    d[Str.to_c_str(Str(".mml"))] = Str.to_c_str(Str("text/mathml"))
+    d[Str.to_c_str(Str(".mng"))] = Str.to_c_str(Str("video/x-mng"))
+    d[Str.to_c_str(Str(".mov"))] = Str.to_c_str(Str("video/quicktime"))
+    d[Str.to_c_str(Str(".mp3"))] = Str.to_c_str(Str("audio/mpeg"))
+    d[Str.to_c_str(Str(".mp4"))] = Str.to_c_str(Str("video/mp4"))
+    d[Str.to_c_str(Str(".mpeg"))] = Str.to_c_str(Str("video/mpeg"))
+    d[Str.to_c_str(Str(".mpg"))] = Str.to_c_str(Str("video/mpeg"))
+    d[Str.to_c_str(Str(".ogg"))] = Str.to_c_str(Str("audio/ogg"))
+    d[Str.to_c_str(Str(".pdb"))] = Str.to_c_str(Str("application/x-pilot"))
+    d[Str.to_c_str(Str(".pdf"))] = Str.to_c_str(Str("application/pdf"))
+    d[Str.to_c_str(Str(".pem"))] = Str.to_c_str(Str("application/x-x509-ca-cert"))
+    d[Str.to_c_str(Str(".pl"))] = Str.to_c_str(Str("application/x-perl"))
+    d[Str.to_c_str(Str(".pm"))] = Str.to_c_str(Str("application/x-perl"))
+    d[Str.to_c_str(Str(".png"))] = Str.to_c_str(Str("image/png"))
+    d[Str.to_c_str(Str(".ppt"))] = Str.to_c_str(Str("application/vnd.ms-powerpoint"))
+    d[Str.to_c_str(Str(".pptx"))] = Str.to_c_str(Str("application/vnd.openxmlformats-officedocument.presentationml.presentation"))
+    d[Str.to_c_str(Str(".prc"))] = Str.to_c_str(Str("application/x-pilot"))
+    d[Str.to_c_str(Str(".ps"))] = Str.to_c_str(Str("application/postscript"))
+    d[Str.to_c_str(Str(".ra"))] = Str.to_c_str(Str("audio/x-realaudio"))
+    d[Str.to_c_str(Str(".rar"))] = Str.to_c_str(Str("application/x-rar-compressed"))
+    d[Str.to_c_str(Str(".rpm"))] = Str.to_c_str(Str("application/x-redhat-package-manager"))
+    d[Str.to_c_str(Str(".rss"))] = Str.to_c_str(Str("application/rss+xml"))
+    d[Str.to_c_str(Str(".rtf"))] = Str.to_c_str(Str("application/rtf"))
+    d[Str.to_c_str(Str(".run"))] = Str.to_c_str(Str("application/x-makeself"))
+    d[Str.to_c_str(Str(".sea"))] = Str.to_c_str(Str("application/x-sea"))
+    d[Str.to_c_str(Str(".shtml"))] = Str.to_c_str(Str("text/html"))
+    d[Str.to_c_str(Str(".sit"))] = Str.to_c_str(Str("application/x-stuffit"))
+    d[Str.to_c_str(Str(".svg"))] = Str.to_c_str(Str("image/svg+xml"))
+    d[Str.to_c_str(Str(".svgz"))] = Str.to_c_str(Str("image/svg+xml"))
+    d[Str.to_c_str(Str(".swf"))] = Str.to_c_str(Str("application/x-shockwave-flash"))
+    d[Str.to_c_str(Str(".tcl"))] = Str.to_c_str(Str("application/x-tcl"))
+    d[Str.to_c_str(Str(".tif"))] = Str.to_c_str(Str("image/tiff"))
+    d[Str.to_c_str(Str(".tiff"))] = Str.to_c_str(Str("image/tiff"))
+    d[Str.to_c_str(Str(".tk"))] = Str.to_c_str(Str("application/x-tcl"))
+    d[Str.to_c_str(Str(".ts"))] = Str.to_c_str(Str("video/mp2t"))
+    d[Str.to_c_str(Str(".txt"))] = Str.to_c_str(Str("text/plain"))
+    d[Str.to_c_str(Str(".wasm"))] = Str.to_c_str(Str("application/wasm"))
+    d[Str.to_c_str(Str(".war"))] = Str.to_c_str(Str("application/java-archive"))
+    d[Str.to_c_str(Str(".wbmp"))] = Str.to_c_str(Str("image/vnd.wap.wbmp"))
+    d[Str.to_c_str(Str(".webm"))] = Str.to_c_str(Str("video/webm"))
+    d[Str.to_c_str(Str(".webp"))] = Str.to_c_str(Str("image/webp"))
+    d[Str.to_c_str(Str(".wml"))] = Str.to_c_str(Str("text/vnd.wap.wml"))
+    d[Str.to_c_str(Str(".wmlc"))] = Str.to_c_str(Str("application/vnd.wap.wmlc"))
+    d[Str.to_c_str(Str(".wmv"))] = Str.to_c_str(Str("video/x-ms-wmv"))
+    d[Str.to_c_str(Str(".woff"))] = Str.to_c_str(Str("application/font-woff"))
+    d[Str.to_c_str(Str(".woff2"))] = Str.to_c_str(Str("font/woff2"))
+    d[Str.to_c_str(Str(".xhtml"))] = Str.to_c_str(Str("application/xhtml+xml"))
+    d[Str.to_c_str(Str(".xls"))] = Str.to_c_str(Str("application/vnd.ms-excel"))
+    d[Str.to_c_str(Str(".xlsx"))] = Str.to_c_str(Str("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+    d[Str.to_c_str(Str(".xml"))] = Str.to_c_str(Str("text/xml"))
+    d[Str.to_c_str(Str(".xpi"))] = Str.to_c_str(Str("application/x-xpinstall"))
+    d[Str.to_c_str(Str(".xspf"))] = Str.to_c_str(Str("application/xspf+xml"))
+    d[Str.to_c_str(Str(".zip"))] = Str.to_c_str(Str("application/zip"))
+    d[Str.to_c_str(Str("apple-app-site-association"))] = Str.to_c_str(Str("application/pkc7-mime"))
+    d[Str.to_c_str(Str("crossdomain.xml"))] = Str.to_c_str(Str("text/x-cross-domain-policy"))
+
+    d[Str.to_c_str(Str(".3GP"))] = Str.to_c_str(Str("video/3gpp"))
+    d[Str.to_c_str(Str(".3GP"))] = Str.to_c_str(Str("video/3gpp"))
+    d[Str.to_c_str(Str(".3GPP"))] = Str.to_c_str(Str("video/3gpp"))
+    d[Str.to_c_str(Str(".7Z"))] = Str.to_c_str(Str("application/x-7z-compressed"))
+    d[Str.to_c_str(Str(".AI"))] = Str.to_c_str(Str("application/postscript"))
+    d[Str.to_c_str(Str(".ASF"))] = Str.to_c_str(Str("video/x-ms-asf"))
+    d[Str.to_c_str(Str(".ASX"))] = Str.to_c_str(Str("video/x-ms-asf"))
+    d[Str.to_c_str(Str(".ATOM"))] = Str.to_c_str(Str("application/atom+xml"))
+    d[Str.to_c_str(Str(".AVI"))] = Str.to_c_str(Str("video/x-msvideo"))
+    d[Str.to_c_str(Str(".BMP"))] = Str.to_c_str(Str("image/x-ms-bmp"))
+    d[Str.to_c_str(Str(".CCO"))] = Str.to_c_str(Str("application/x-cocoa"))
+    d[Str.to_c_str(Str(".CRT"))] = Str.to_c_str(Str("application/x-x509-ca-cert"))
+    d[Str.to_c_str(Str(".CSS"))] = Str.to_c_str(Str("text/css"))
+    d[Str.to_c_str(Str(".DER"))] = Str.to_c_str(Str("application/x-x509-ca-cert"))
+    d[Str.to_c_str(Str(".DOC"))] = Str.to_c_str(Str("application/msword"))
+    d[Str.to_c_str(Str(".DOCX"))] = Str.to_c_str(Str("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+    d[Str.to_c_str(Str(".EAR"))] = Str.to_c_str(Str("application/java-archive"))
+    d[Str.to_c_str(Str(".EOT"))] = Str.to_c_str(Str("application/vnd.ms-fontobject"))
+    d[Str.to_c_str(Str(".EPS"))] = Str.to_c_str(Str("application/postscript"))
+    d[Str.to_c_str(Str(".FLV"))] = Str.to_c_str(Str("video/x-flv"))
+    d[Str.to_c_str(Str(".GIF"))] = Str.to_c_str(Str("image/gif"))
+    d[Str.to_c_str(Str(".HQX"))] = Str.to_c_str(Str("application/mac-binhex40"))
+    d[Str.to_c_str(Str(".HTC"))] = Str.to_c_str(Str("text/x-component"))
+    d[Str.to_c_str(Str(".HTM"))] = Str.to_c_str(Str("text/html"))
+    d[Str.to_c_str(Str(".HTML"))] = Str.to_c_str(Str("text/html"))
+    d[Str.to_c_str(Str(".ICO"))] = Str.to_c_str(Str("image/x-icon"))
+    d[Str.to_c_str(Str(".JAD"))] = Str.to_c_str(Str("text/vnd.sun.j2me.app-descriptor"))
+    d[Str.to_c_str(Str(".JAR"))] = Str.to_c_str(Str("application/java-archive"))
+    d[Str.to_c_str(Str(".JARDIff"))] = Str.to_c_str(Str("application/x-java-archive-diff"))
+    d[Str.to_c_str(Str(".JNG"))] = Str.to_c_str(Str("image/x-jng"))
+    d[Str.to_c_str(Str(".JNLP"))] = Str.to_c_str(Str("application/x-java-jnlp-file"))
+    d[Str.to_c_str(Str(".JPEG"))] = Str.to_c_str(Str("image/jpeg"))
+    d[Str.to_c_str(Str(".JPG"))] = Str.to_c_str(Str("image/jpeg"))
+    d[Str.to_c_str(Str(".JS"))] = Str.to_c_str(Str("text/javascript"))
+    d[Str.to_c_str(Str(".JSON"))] = Str.to_c_str(Str("application/json"))
+    d[Str.to_c_str(Str(".KAR"))] = Str.to_c_str(Str("audio/midi"))
+    d[Str.to_c_str(Str(".KML"))] = Str.to_c_str(Str("application/vnd.google-earth.kml+xml"))
+    d[Str.to_c_str(Str(".KMZ"))] = Str.to_c_str(Str("application/vnd.google-earth.kmz"))
+    d[Str.to_c_str(Str(".M3U8"))] = Str.to_c_str(Str("application/vnd.apple.mpegurl"))
+    d[Str.to_c_str(Str(".M4A"))] = Str.to_c_str(Str("audio/x-m4a"))
+    d[Str.to_c_str(Str(".M4V"))] = Str.to_c_str(Str("video/x-m4v"))
+    d[Str.to_c_str(Str(".MD"))] = Str.to_c_str(Str("text/markdown"))
+    d[Str.to_c_str(Str(".MID"))] = Str.to_c_str(Str("audio/midi"))
+    d[Str.to_c_str(Str(".MIDI"))] = Str.to_c_str(Str("audio/midi"))
+    d[Str.to_c_str(Str(".MJS"))] = Str.to_c_str(Str("text/javascript"))
+    d[Str.to_c_str(Str(".MML"))] = Str.to_c_str(Str("text/mathml"))
+    d[Str.to_c_str(Str(".MNG"))] = Str.to_c_str(Str("video/x-mng"))
+    d[Str.to_c_str(Str(".MOV"))] = Str.to_c_str(Str("video/quicktime"))
+    d[Str.to_c_str(Str(".MP3"))] = Str.to_c_str(Str("audio/mpeg"))
+    d[Str.to_c_str(Str(".MP4"))] = Str.to_c_str(Str("video/mp4"))
+    d[Str.to_c_str(Str(".MPEG"))] = Str.to_c_str(Str("video/mpeg"))
+    d[Str.to_c_str(Str(".MPG"))] = Str.to_c_str(Str("video/mpeg"))
+    d[Str.to_c_str(Str(".OGG"))] = Str.to_c_str(Str("audio/ogg"))
+    d[Str.to_c_str(Str(".PDB"))] = Str.to_c_str(Str("application/x-pilot"))
+    d[Str.to_c_str(Str(".PDF"))] = Str.to_c_str(Str("application/pdf"))
+    d[Str.to_c_str(Str(".PEM"))] = Str.to_c_str(Str("application/x-x509-ca-cert"))
+    d[Str.to_c_str(Str(".PL"))] = Str.to_c_str(Str("application/x-perl"))
+    d[Str.to_c_str(Str(".PM"))] = Str.to_c_str(Str("application/x-perl"))
+    d[Str.to_c_str(Str(".PNG"))] = Str.to_c_str(Str("image/png"))
+    d[Str.to_c_str(Str(".PPT"))] = Str.to_c_str(Str("application/vnd.ms-powerpoint"))
+    d[Str.to_c_str(Str(".PPTX"))] = Str.to_c_str(Str("application/vnd.openxmlformats-officedocument.presentationml.presentation"))
+    d[Str.to_c_str(Str(".PRC"))] = Str.to_c_str(Str("application/x-pilot"))
+    d[Str.to_c_str(Str(".PS"))] = Str.to_c_str(Str("application/postscript"))
+    d[Str.to_c_str(Str(".RA"))] = Str.to_c_str(Str("audio/x-realaudio"))
+    d[Str.to_c_str(Str(".RAR"))] = Str.to_c_str(Str("application/x-rar-compressed"))
+    d[Str.to_c_str(Str(".RPM"))] = Str.to_c_str(Str("application/x-redhat-package-manager"))
+    d[Str.to_c_str(Str(".RSS"))] = Str.to_c_str(Str("application/rss+xml"))
+    d[Str.to_c_str(Str(".RTF"))] = Str.to_c_str(Str("application/rtf"))
+    d[Str.to_c_str(Str(".RUN"))] = Str.to_c_str(Str("application/x-makeself"))
+    d[Str.to_c_str(Str(".SEA"))] = Str.to_c_str(Str("application/x-sea"))
+    d[Str.to_c_str(Str(".SHTML"))] = Str.to_c_str(Str("text/html"))
+    d[Str.to_c_str(Str(".SIT"))] = Str.to_c_str(Str("application/x-stuffit"))
+    d[Str.to_c_str(Str(".SVG"))] = Str.to_c_str(Str("image/svg+xml"))
+    d[Str.to_c_str(Str(".SVGZ"))] = Str.to_c_str(Str("image/svg+xml"))
+    d[Str.to_c_str(Str(".SWF"))] = Str.to_c_str(Str("application/x-shockwave-flash"))
+    d[Str.to_c_str(Str(".TCL"))] = Str.to_c_str(Str("application/x-tcl"))
+    d[Str.to_c_str(Str(".TIF"))] = Str.to_c_str(Str("image/tiff"))
+    d[Str.to_c_str(Str(".TIFF"))] = Str.to_c_str(Str("image/tiff"))
+    d[Str.to_c_str(Str(".TK"))] = Str.to_c_str(Str("application/x-tcl"))
+    d[Str.to_c_str(Str(".TS"))] = Str.to_c_str(Str("video/mp2t"))
+    d[Str.to_c_str(Str(".TXT"))] = Str.to_c_str(Str("text/plain"))
+    d[Str.to_c_str(Str(".WASM"))] = Str.to_c_str(Str("application/wasm"))
+    d[Str.to_c_str(Str(".WAR"))] = Str.to_c_str(Str("application/java-archive"))
+    d[Str.to_c_str(Str(".WBMP"))] = Str.to_c_str(Str("image/vnd.wap.wbmp"))
+    d[Str.to_c_str(Str(".WEBM"))] = Str.to_c_str(Str("video/webm"))
+    d[Str.to_c_str(Str(".WEBP"))] = Str.to_c_str(Str("image/webp"))
+    d[Str.to_c_str(Str(".WML"))] = Str.to_c_str(Str("text/vnd.wap.wml"))
+    d[Str.to_c_str(Str(".WMLC"))] = Str.to_c_str(Str("application/vnd.wap.wmlc"))
+    d[Str.to_c_str(Str(".WMV"))] = Str.to_c_str(Str("video/x-ms-wmv"))
+    d[Str.to_c_str(Str(".WOFF"))] = Str.to_c_str(Str("application/font-woff"))
+    d[Str.to_c_str(Str(".WOFF2"))] = Str.to_c_str(Str("font/woff2"))
+    d[Str.to_c_str(Str(".XHTML"))] = Str.to_c_str(Str("application/xhtml+xml"))
+    d[Str.to_c_str(Str(".XLS"))] = Str.to_c_str(Str("application/vnd.ms-excel"))
+    d[Str.to_c_str(Str(".XLSX"))] = Str.to_c_str(Str("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+    d[Str.to_c_str(Str(".XML"))] = Str.to_c_str(Str("text/xml"))
+    d[Str.to_c_str(Str(".XPI"))] = Str.to_c_str(Str("application/x-xpinstall"))
+    d[Str.to_c_str(Str(".XSPF"))] = Str.to_c_str(Str("application/xspf+xml"))
+    d[Str.to_c_str(Str(".ZIP"))] = Str.to_c_str(Str("application/zip"))
+    d[Str.to_c_str(Str("APPLE-APP-SITE-ASSOCIATION"))] = Str.to_c_str(Str("application/pkc7-mime"))
+    d[Str.to_c_str(Str("CROSSDOMAIN.XML"))] = Str.to_c_str(Str("text/x-cross-domain-policy"))
+
+    return d
+
+
+# def default_types():
+#     """
+#     We use our own set of default media types rather than the system-supplied
+#     ones. This ensures consistent media type behaviour across varied
+#     environments.  The defaults are based on those shipped with nginx, with
+#     some custom additions.
+#     """
+#
+#     return {
+#         ".3gp": "video/3gpp",
+#         ".3gpp": "video/3gpp",
+#         ".7z": "application/x-7z-compressed",
+#         ".ai": "application/postscript",
+#         ".asf": "video/x-ms-asf",
+#         ".asx": "video/x-ms-asf",
+#         ".atom": "application/atom+xml",
+#         ".avi": "video/x-msvideo",
+#         ".bmp": "image/x-ms-bmp",
+#         ".cco": "application/x-cocoa",
+#         ".crt": "application/x-x509-ca-cert",
+#         ".css": "text/css",
+#         ".der": "application/x-x509-ca-cert",
+#         ".doc": "application/msword",
+#         ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+#         ".ear": "application/java-archive",
+#         ".eot": "application/vnd.ms-fontobject",
+#         ".eps": "application/postscript",
+#         ".flv": "video/x-flv",
+#         ".gif": "image/gif",
+#         ".hqx": "application/mac-binhex40",
+#         ".htc": "text/x-component",
+#         ".htm": "text/html",
+#         ".html": "text/html",
+#         ".ico": "image/x-icon",
+#         ".jad": "text/vnd.sun.j2me.app-descriptor",
+#         ".jar": "application/java-archive",
+#         ".jardiff": "application/x-java-archive-diff",
+#         ".jng": "image/x-jng",
+#         ".jnlp": "application/x-java-jnlp-file",
+#         ".jpeg": "image/jpeg",
+#         ".jpg": "image/jpeg",
+#         ".js": "text/javascript",
+#         ".json": "application/json",
+#         ".kar": "audio/midi",
+#         ".kml": "application/vnd.google-earth.kml+xml",
+#         ".kmz": "application/vnd.google-earth.kmz",
+#         ".m3u8": "application/vnd.apple.mpegurl",
+#         ".m4a": "audio/x-m4a",
+#         ".m4v": "video/x-m4v",
+#         ".md": "text/markdown",
+#         ".mid": "audio/midi",
+#         ".midi": "audio/midi",
+#         ".mjs": "text/javascript",
+#         ".mml": "text/mathml",
+#         ".mng": "video/x-mng",
+#         ".mov": "video/quicktime",
+#         ".mp3": "audio/mpeg",
+#         ".mp4": "video/mp4",
+#         ".mpeg": "video/mpeg",
+#         ".mpg": "video/mpeg",
+#         ".ogg": "audio/ogg",
+#         ".pdb": "application/x-pilot",
+#         ".pdf": "application/pdf",
+#         ".pem": "application/x-x509-ca-cert",
+#         ".pl": "application/x-perl",
+#         ".pm": "application/x-perl",
+#         ".png": "image/png",
+#         ".ppt": "application/vnd.ms-powerpoint",
+#         ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+#         ".prc": "application/x-pilot",
+#         ".ps": "application/postscript",
+#         ".ra": "audio/x-realaudio",
+#         ".rar": "application/x-rar-compressed",
+#         ".rpm": "application/x-redhat-package-manager",
+#         ".rss": "application/rss+xml",
+#         ".rtf": "application/rtf",
+#         ".run": "application/x-makeself",
+#         ".sea": "application/x-sea",
+#         ".shtml": "text/html",
+#         ".sit": "application/x-stuffit",
+#         ".svg": "image/svg+xml",
+#         ".svgz": "image/svg+xml",
+#         ".swf": "application/x-shockwave-flash",
+#         ".tcl": "application/x-tcl",
+#         ".tif": "image/tiff",
+#         ".tiff": "image/tiff",
+#         ".tk": "application/x-tcl",
+#         ".ts": "video/mp2t",
+#         ".txt": "text/plain",
+#         ".wasm": "application/wasm",
+#         ".war": "application/java-archive",
+#         ".wbmp": "image/vnd.wap.wbmp",
+#         ".webm": "video/webm",
+#         ".webp": "image/webp",
+#         ".wml": "text/vnd.wap.wml",
+#         ".wmlc": "application/vnd.wap.wmlc",
+#         ".wmv": "video/x-ms-wmv",
+#         ".woff": "application/font-woff",
+#         ".woff2": "font/woff2",
+#         ".xhtml": "application/xhtml+xml",
+#         ".xls": "application/vnd.ms-excel",
+#         ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+#         ".xml": "text/xml",
+#         ".xpi": "application/x-xpinstall",
+#         ".xspf": "application/xspf+xml",
+#         ".zip": "application/zip",
+#         "apple-app-site-association": "application/pkc7-mime",
+#         # Adobe Products - see:
+#         # https://www.adobe.com/devnet-docs/acrobatetk/tools/AppSec/xdomain.html#policy-file-host-basics
+#         "crossdomain.xml": "text/x-cross-domain-policy",
+#     }
