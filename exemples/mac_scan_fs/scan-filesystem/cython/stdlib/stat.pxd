@@ -6,23 +6,18 @@
 #   because cypclass wrapping triggers the generation of a conversion
 #   function for the stat structure which references this field.
 #
-# - the absent declaration in posix.time of struct timespec was added.
+# no - the absent declaration in posix.time of struct timespec was added.
 #
-# - the declarations for the time_t fields st_atime, st_mtime, st_ctime
+# no - the declarations for the time_t fields st_atime, st_mtime, st_ctime
 #   were replaced by the fields st_atim, st_mtim, st_ctim
 #   of type struct timespec.
+
+from stdlib.string cimport string
+from stdlib.fmt cimport sprintf
 
 from posix.types cimport (blkcnt_t, blksize_t, dev_t, gid_t, ino_t, mode_t,
                           nlink_t, off_t, time_t, uid_t)
 
-from stdlib.string cimport Str
-from stdlib.fmt cimport sprintf
-
-
-cdef extern from "<sys/time.h>" nogil:
-    cdef struct struct_timespec "timespec":
-        time_t tv_sec
-        long int tv_nsec
 
 
 cdef extern from "<sys/stat.h>" nogil:
@@ -37,9 +32,9 @@ cdef extern from "<sys/stat.h>" nogil:
         off_t   st_size
         blksize_t st_blksize
         blkcnt_t st_blocks
-        struct_timespec  st_atim
-        struct_timespec  st_mtim
-        struct_timespec  st_ctim
+        time_t  st_atime
+        time_t  st_mtime
+        time_t  st_ctime
 
 # POSIX prescribes including both <sys/stat.h> and <unistd.h> for these
 cdef extern from "<unistd.h>" nogil:
@@ -94,9 +89,9 @@ cdef extern from "<unistd.h>" nogil:
 cdef cypclass Stat:
     struct_stat st_data
 
-    Stat __new__(alloc, Str path):
+    Stat __new__(alloc, string path):
         instance = alloc()
-        if not lstat(Str.to_c_str(path), &instance.st_data):
+        if not lstat(path.c_str(), &instance.st_data):
             return instance
 
     bint is_regular(self):
@@ -108,14 +103,9 @@ cdef cypclass Stat:
     bint is_dir(self):
         return S_ISDIR(self.st_data.st_mode)
 
-    Str toto(self):
-        cdef int x = 4
-        with nogil:
-            return sprintf('test %d', x)
-
-    Str to_json(self):
-        sprintf("""{
-        "st_dev": %ld,
+    string to_json(self):
+        return sprintf("""{
+        "st_dev": %lu,
         "st_ino": %lu,
         "st_mode": %lu,
         "st_nlink": %lu,
@@ -127,25 +117,19 @@ cdef cypclass Stat:
         "st_blocks": %ld,
         "st_atime": %ld,
         "st_mtime": %ld,
-        "st_ctime": %ld,
-        "st_atime_ns": %ld,
-        "st_mtime_ns": %ld,
-        "st_ctime_ns": %ld
+        "st_ctime": %ld
       }""",
-            <long*> self.st_data.st_dev,
-            <unsigned long*> self.st_data.st_ino,
-            <unsigned long*> self.st_data.st_mode,
-            <unsigned long*> self.st_data.st_nlink,
-            <int*> self.st_data.st_uid,
-            <int*> self.st_data.st_gid,
-            <unsigned long*> self.st_data.st_rdev,
-            <long*> self.st_data.st_size,
-            <long*> self.st_data.st_blksize,
-            <long*> self.st_data.st_blocks,
-            <long*> self.st_data.st_atim.tv_sec,
-            <long*> self.st_data.st_mtim.tv_sec,
-            <long*> self.st_data.st_ctim.tv_sec,
-            <long*> self.st_data.st_atim.tv_nsec,
-            <long*> self.st_data.st_mtim.tv_nsec,
-            <long*> self.st_data.st_ctim.tv_nsec,
+            self.st_data.st_dev,
+            self.st_data.st_ino,
+            self.st_data.st_mode,
+            self.st_data.st_nlink,
+            self.st_data.st_uid,
+            self.st_data.st_gid,
+            self.st_data.st_rdev,
+            self.st_data.st_size,
+            self.st_data.st_blksize,
+            self.st_data.st_blocks,
+            self.st_data.st_atime,
+            self.st_data.st_mtime,
+            self.st_data.st_ctime
         )
