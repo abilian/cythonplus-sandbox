@@ -1,8 +1,11 @@
 #!/bin/bash -v
 
+. make_libfmt.sh
+
 name="string_exp"
 
-[ -f ${name}.cpp ] && rm ${name}.cpp
+rm -f *.cpp
+rm -f *.so
 
 python setup.py build_ext --inplace
 

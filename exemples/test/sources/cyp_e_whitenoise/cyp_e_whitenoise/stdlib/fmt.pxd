@@ -1,4 +1,4 @@
-from stdlib.string cimport string
+from stdlib._string cimport string
 
 cdef extern from "<fmt/printf.h>" namespace "fmt" nogil:
 
