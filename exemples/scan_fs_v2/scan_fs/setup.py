@@ -14,6 +14,12 @@ scan = Extension(
         "-Wno-deprecated-declarations",
     ],
     libraries=["fmt"],
+    include_dirs=[
+        "libfmt",
+    ],
+    library_dirs=[
+        "libfmt",
+    ],
 )
 
 setup(
@@ -21,6 +27,6 @@ setup(
     ext_modules=cythonize(
         [scan],
         language_level="3str",
-        include_path=[".", "stdlib", "pthread", "scheduler"],
+        # include_path=[".", "stdlib", "pthread", "scheduler"],
     ),
 )

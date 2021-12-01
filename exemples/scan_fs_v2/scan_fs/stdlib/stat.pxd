@@ -16,7 +16,7 @@ from posix.types cimport (blkcnt_t, blksize_t, dev_t, gid_t, ino_t, mode_t,
                           nlink_t, off_t, time_t, uid_t)
 
 from stdlib.string cimport Str
-from stdlib.fmt cimport sprintf
+from stdlib.format cimport format
 
 
 cdef extern from "<sys/time.h>" nogil:
@@ -94,9 +94,10 @@ cdef extern from "<unistd.h>" nogil:
 cdef cypclass Stat:
     struct_stat st_data
 
-    Stat __new__(alloc, Str path):
+    # Stat __new__(alloc, Str path):
+    Stat __new__(alloc, const char * path):
         instance = alloc()
-        if not lstat(Str.to_c_str(path), &instance.st_data):
+        if not lstat(path, &instance.st_data):
             return instance
 
     bint is_regular(self):
@@ -108,44 +109,41 @@ cdef cypclass Stat:
     bint is_dir(self):
         return S_ISDIR(self.st_data.st_mode)
 
-    Str toto(self):
-        cdef int x = 4
-        with nogil:
-            return sprintf('test %d', x)
-
     Str to_json(self):
-        sprintf("""{
-        "st_dev": %ld,
-        "st_ino": %lu,
-        "st_mode": %lu,
-        "st_nlink": %lu,
-        "st_uid": %d,
-        "st_gid": %d,
-        "st_rdev": %lu,
-        "st_size": %ld,
-        "st_blksize": %ld,
-        "st_blocks": %ld,
-        "st_atime": %ld,
-        "st_mtime": %ld,
-        "st_ctime": %ld,
-        "st_atime_ns": %ld,
-        "st_mtime_ns": %ld,
-        "st_ctime_ns": %ld
-      }""",
-            <long*> self.st_data.st_dev,
-            <unsigned long*> self.st_data.st_ino,
-            <unsigned long*> self.st_data.st_mode,
-            <unsigned long*> self.st_data.st_nlink,
-            <int*> self.st_data.st_uid,
-            <int*> self.st_data.st_gid,
-            <unsigned long*> self.st_data.st_rdev,
-            <long*> self.st_data.st_size,
-            <long*> self.st_data.st_blksize,
-            <long*> self.st_data.st_blocks,
-            <long*> self.st_data.st_atim.tv_sec,
-            <long*> self.st_data.st_mtim.tv_sec,
-            <long*> self.st_data.st_ctim.tv_sec,
-            <long*> self.st_data.st_atim.tv_nsec,
-            <long*> self.st_data.st_mtim.tv_nsec,
-            <long*> self.st_data.st_ctim.tv_nsec,
+        # return Str("stat_result")
+        return format("""{{
+        "st_dev": {},
+        "st_ino": {},
+        "st_mode": {},
+        "st_nlink": {},
+        "st_uid": {},
+        "st_gid": {},
+        "st_rdev": {},
+        "st_size": {},
+        "st_blksize": {},
+        "st_blocks": {},
+        "st_atime": {},
+        "st_mtime": {},
+        "st_ctime": {},
+        "st_atime_ns": {},
+        "st_mtime_ns": {},
+        "st_ctime_ns": {}
+      }}""",
+
+            self.st_data.st_dev,
+            self.st_data.st_ino,
+            self.st_data.st_mode,
+            self.st_data.st_nlink,
+            self.st_data.st_uid,
+            self.st_data.st_gid,
+            self.st_data.st_rdev,
+            self.st_data.st_size,
+            self.st_data.st_blksize,
+            self.st_data.st_blocks,
+            self.st_data.st_atim.tv_sec,
+            self.st_data.st_mtim.tv_sec,
+            self.st_data.st_ctim.tv_sec,
+            self.st_data.st_atim.tv_nsec,
+            self.st_data.st_mtim.tv_nsec,
+            self.st_data.st_ctim.tv_nsec,
         )

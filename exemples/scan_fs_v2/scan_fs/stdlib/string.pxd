@@ -2,7 +2,6 @@ from stdlib._string cimport string, string_view, hash_string, stoi, transform
 from libcythonplus.list cimport cyplist
 
 
-
 cdef extern from "<cctype>" namespace "std" nogil:
 
     int isalnum(int c)
@@ -19,7 +18,6 @@ cdef extern from "<cctype>" namespace "std" nogil:
     int isxdigit(int c)
     int tolower(int c)
     int toupper(int c)
-
 
 
 cdef cypclass Str "Cy_Str":
@@ -140,9 +138,22 @@ cdef cypclass Str "Cy_Str":
     string_view __string_view__(self):
         return string_view(self._str.data(), self._str.size())
 
+    const char * bytes(self):
+        return self._str.c_str()
+
+    Str copy(self):
+        cdef Str result = new Str()
+        result._str = self._str
+        return result
+
     @staticmethod
     const char * to_c_str(Str s):
         if s is NULL:
             return NULL
         return s._str.data()
 
+    @staticmethod
+    Str copy_iso(iso Str s):
+        cdef Str result = new Str()
+        result._str = s._str
+        return result

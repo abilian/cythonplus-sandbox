@@ -1,4 +1,8 @@
 *.cpp
+*.a
+*.h
+/scan_fs/build_fmt
+/build
 cython/*.c
 cython/*.h
 *.html
