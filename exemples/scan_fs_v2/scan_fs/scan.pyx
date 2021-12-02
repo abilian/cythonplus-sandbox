@@ -8,6 +8,7 @@ from libcythonplus.list cimport cyplist
 from scheduler.scheduler cimport BatchMailBox, NullResult, Scheduler
 # from scheduler.scheduler cimport SequentialMailBox, NullResult, Scheduler
 
+from stdlib._string cimport string
 from stdlib.string cimport Str
 from stdlib.format cimport format
 
@@ -17,7 +18,7 @@ from stdlib.dirent cimport DIR, struct_dirent, opendir, readdir, closedir
 
 # Use global for scheduler:
 cdef lock Scheduler scheduler
-
+cdef cyplist[string] collector
 
 cdef cypclass Node activable:
     iso Str path
@@ -86,21 +87,24 @@ cdef cypclass Node activable:
         )
 
     void write_node(self, FILE * stream):
-        if self.kind == 1:
-            self.write_node_file(stream)
-        if self.kind == 2:
-            self.write_node_dir(stream)
-
-    void write_node_file(self, FILE * stream):
         fwrite(self.formatted.bytes(), 1, self.formatted._str.size(), stream)
-
-    void write_node_dir(self, FILE * stream):
-        fwrite(self.formatted._str.data(), 1, self.formatted._str.size(), stream)
+        if self.kind == 1:  # File
+            return
+        # other case is Directory:
         while self.children.__len__() > 0:
             active_child = self.children[self.children.__len__() -1]
             del self.children[self.children.__len__() -1]
             child = consume active_child
             child.write_node(stream)
+
+    void collect(self):
+        collector.append(self.formatted._str)
+        if self.kind == 2:
+            while self.children.__len__() > 0:
+                active_child = self.children[self.children.__len__() -1]
+                del self.children[self.children.__len__() -1]
+                child = consume active_child
+                child.collect()
 
 
 cdef iso Node make_node(iso Str path, iso Str name) nogil:
@@ -141,6 +145,44 @@ cdef int scan_fs(Str path) nogil:
     return 0
 
 
+cdef Str concat_strings(cyplist[string] strings) nogil:
+    cdef Str result = Str()
+    cdef int total = 0
+
+    if strings is NULL or strings.__len__() == 0:
+        return result
+    for s in strings:
+        total += s.size()
+    result._str.reserve(total)
+    for s in strings:
+        result._str.append(s)
+    return result
+
+
+cdef Str scan_fs_str(Str path) nogil:
+    global scheduler
+    scheduler = Scheduler()
+    global collector
+    collector = cyplist[string]()
+
+    path2 = path.copy()
+    node = make_node(consume path, consume path2)
+    if node is NULL:
+        return Str("")
+
+    active_node = activate(consume node)
+    active_node.build_node(NULL)
+
+    scheduler.finish()
+    node = consume active_node
+    collector.append(string("[\n"))
+    node.collect()
+    collector.append(string("\n]\n"))
+
+    del scheduler
+    return concat_strings(collector)
+
+
 cdef Str to_str(s):
     return Str(s.encode("utf8"))
 
@@ -155,3 +197,9 @@ def python_scan_fs(path=None):
     scan_result = scan_fs(to_str(path))
     if scan_result:
         print("Error scan_fs():", scan_result)
+
+
+def python_scan_fs_str(path=None):
+    if path is None:
+        path = '.'
+    print(from_str(scan_fs_str(to_str(path))))
