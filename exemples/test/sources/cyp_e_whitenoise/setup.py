@@ -34,25 +34,29 @@ def pypyx_ext(*pathname):
     return Extension(
         ".".join(pathname),
         sources=[src],
-        include_dirs=["stdlib"],
         language="c++",
         extra_compile_args=[
+            "-pthread",
             "-std=c++17",
             "-O3",
+            "-Wno-unused-function",
             "-Wno-deprecated-declarations",
         ],
+        libraries=["fmt"],
+        include_dirs=["libfmt", "stdlib"],
+        library_dirs=["libfmt"],
     )
 
 
 extensions = [
-    pypyx_ext(NAME, "base"),
-    pypyx_ext(NAME, "compress"),
-    pypyx_ext(NAME, "django"),
-    pypyx_ext(NAME, "media_types"),
-    pypyx_ext(NAME, "middleware"),
-    pypyx_ext(NAME, "responders"),
-    pypyx_ext(NAME, "storage"),
-    pypyx_ext(NAME, "string_utils"),
+    # pypyx_ext(NAME, "base"),
+    pypyx_ext(NAME, "scan"),
+    # pypyx_ext(NAME, "compress"),
+    # pypyx_ext(NAME, "media_types"),
+    # pypyx_ext(NAME, "middleware"),
+    # pypyx_ext(NAME, "responders"),
+    # pypyx_ext(NAME, "storage"),
+    # pypyx_ext(NAME, "string_utils"),
 ]
 
 

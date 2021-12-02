@@ -148,10 +148,10 @@ class WhiteNoise():
             relative_path = path[len(root) :]
             relative_url = relative_path.replace("\\", "/")
             url = prefix + relative_url
-            self.add_file_to_dictionary(url, path, stat_cache=stat_cache)
+            self.add_file_to_dictionary(url, path, stat_cache)
 
-    def add_file_to_dictionary(self, url, path, stat_cache=None):
-        if self.is_compressed_variant(path, stat_cache=stat_cache):
+    def add_file_to_dictionary(self, url, path, stat_cache):
+        if self.is_compressed_variant_cache(path, stat_cache):
             return
         if self.index_file and url.endswith("/" + self.index_file):
             index_url = url[: -len(self.index_file)]
@@ -159,7 +159,7 @@ class WhiteNoise():
             self.files[url] = self.redirect(url, index_url)
             self.files[index_no_slash] = self.redirect(index_no_slash, index_url)
             url = index_url
-        static_file = self.get_static_file(path, url, stat_cache=stat_cache)
+        static_file = self.get_static_file_cache(path, url, stat_cache)
         self.files[url] = static_file
 
     def find_file(self, url):
@@ -218,18 +218,22 @@ class WhiteNoise():
         return normalised == url
 
     @staticmethod
-    def is_compressed_variant(path, stat_cache=None):
+    def is_compressed_variant(path):
         if path[-3:] in (".gz", ".br"):
             uncompressed_path = path[:-3]
-            if stat_cache is None:
-                return os.path.isfile(uncompressed_path)
-            else:
-                return uncompressed_path in stat_cache
+            return os.path.isfile(uncompressed_path)
         return False
 
-    def get_static_file(self, path, url, stat_cache=None):
+    @staticmethod
+    def is_compressed_variant_cache(path, stat_cache):
+        if path[-3:] in (".gz", ".br"):
+            uncompressed_path = path[:-3]
+            return uncompressed_path in stat_cache
+        return False
+
+    def get_static_file(self, path, url):
         # Optimization: bail early if file does not exist
-        if stat_cache is None and not os.path.exists(path):
+        if not os.path.exists(path):
             raise MissingFileError(path)
         headers = Headers([])
         self.add_mime_headers(headers, path, url)
@@ -241,8 +245,21 @@ class WhiteNoise():
         return StaticFile(
             path,
             headers.items(),
+            stat_cache=None,
+        )
+
+    def get_static_file_cache(self, path, url, stat_cache):
+        headers = Headers([])
+        self.add_mime_headers(headers, path, url)
+        self.add_cache_headers(headers, path, url)
+        if self.allow_all_origins:
+            headers["Access-Control-Allow-Origin"] = "*"
+        if self.add_headers_function:
+            self.add_headers_function(headers, path, url)
+        return StaticFile(
+            path,
+            headers.items(),
             stat_cache=stat_cache,
-            encodings={"gzip": path + ".gz", "br": path + ".br"},
         )
 
     def add_mime_headers(self, headers, path, url):
@@ -319,6 +336,10 @@ cdef Str to_str(byte_or_string):
         return Str(bytes(byte_or_string))
 
 
+cdef from_str(Str s):
+    return s.bytes().decode("utf8", 'replace')
+
+
 cdef const char* to_c_str(byte_or_string):
     """(need gil)
     """
@@ -345,12 +366,8 @@ cdef dict from_str_dict(Sdict sd):
     (need gil)
     """
     return {
-        decoded(i.first): decoded(i.second) for i in sd.items()
+        from_str(i.first): from_str(i.second) for i in sd.items()
     }
-
-
-cdef decoded(Str s):
-    return s._str.data().decode("utf8", 'replace')
 
 
 cdef class WrapMediaTypes():
@@ -366,7 +383,7 @@ cdef class WrapMediaTypes():
         self.mt[0] = MediaTypes(c_mt)
 
     def get_type(self, path):
-        return decoded(self.mt[0].get_type(to_str(path)))
+        return from_str(self.mt[0].get_type(to_str(path)))
 
 
 #

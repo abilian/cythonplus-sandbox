@@ -30,8 +30,9 @@ NOT_MODIFIED_HEADERS = (
 )
 
 
-class StaticFile(object):
-    def __init__(self, path, headers, encodings=None, stat_cache=None):
+class StaticFile:
+    def __init__(self, path, headers, stat_cache=None):
+        encodings = {"gzip": path + ".gz", "br": path + ".br"}
         files = self.get_file_stats(path, encodings, stat_cache)
         headers = self.get_headers(headers, files)
         self.last_modified = parsedate(headers["Last-Modified"])
@@ -195,7 +196,7 @@ class StaticFile(object):
                 return path, headers
 
 
-class Redirect(object):
+class Redirect:
     def __init__(self, location, headers=None):
         headers = list(headers.items()) if headers else []
         headers.append(("Location", quote(location.encode("utf8"))))
@@ -217,30 +218,35 @@ class IsDirectoryError(MissingFileError):
     pass
 
 
-class FileEntry(object):
-    def __init__(self, path, stat_cache=None):
-        stat_function = os.stat if stat_cache is None else stat_cache.__getitem__
-        self.stat = self.stat_regular_file(path, stat_function)
-        self.path = path
+class FileEntry:
+    """Wrap `stat_function` to raise appropriate errors if `path` is not a
+    regular file
+    """
 
-    @staticmethod
-    def stat_regular_file(path, stat_function):
-        """
-        Wrap `stat_function` to raise appropriate errors if `path` is not a
-        regular file
-        """
-        try:
-            stat_result = stat_function(path)
-        except KeyError:
-            raise MissingFileError(path)
-        except OSError as e:
-            if e.errno in (errno.ENOENT, errno.ENAMETOOLONG):
+    def __init__(self, path, stat_cache=None):
+        self.path = path
+        if stat_cache:
+            try:
+                stat_result = stat_cache[path]
+            except KeyError:
                 raise MissingFileError(path)
-            else:
-                raise
-        if not stat.S_ISREG(stat_result.st_mode):
-            if stat.S_ISDIR(stat_result.st_mode):
-                raise IsDirectoryError(u"Path is a directory: {0}".format(path))
-            else:
-                raise NotARegularFileError(u"Not a regular file: {0}".format(path))
-        return stat_result
+            if not stat.S_ISREG(stat_result.st_mode):
+                if stat.S_ISDIR(stat_result.st_mode):
+                    raise IsDirectoryError(u"Path is a directory: {0}".format(path))
+                else:
+                    raise NotARegularFileError(u"Not a regular file: {0}".format(path))
+            self.stat = stat_result
+        else:
+            try:
+                stat_result = os.stat(path)
+            except OSError as e:
+                if e.errno in (errno.ENOENT, errno.ENAMETOOLONG):
+                    raise MissingFileError(path)
+                else:
+                    raise
+            if not stat.S_ISREG(stat_result.st_mode):
+                if stat.S_ISDIR(stat_result.st_mode):
+                    raise IsDirectoryError(u"Path is a directory: {0}".format(path))
+                else:
+                    raise NotARegularFileError(u"Not a regular file: {0}".format(path))
+            self.stat = stat_result

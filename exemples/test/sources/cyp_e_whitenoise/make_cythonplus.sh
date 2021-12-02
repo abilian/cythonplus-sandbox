@@ -3,16 +3,15 @@
 NAME="cyp_e_whitenoise"
 [ -f "make_cythonplus.sh" ] || exit 1  # security
 
+. make_libfmt.sh
+
 [ -d build ] && rm -fr build
 mkdir build
+cp -a libfmt build
 cp -a ${NAME} build
-cp setup.py build
-cp gcc_macports_alias.sh build
-cd build
 
-# for MacOS environment using MacPorts, need to select some gcc compiler:
-# required for c++17:
-[[ "$OSTYPE" == "darwin"* ]] && source ./gcc_macports_alias.sh
+cp setup.py build
+cd build
 
 python setup.py build_ext --inplace
 find ${NAME} -type f -name "*.c" -delete
