@@ -29,8 +29,14 @@ cdef class WNCache:
     cdef void scan_tree(self, root):
         self.stat_cache = scan_fs_dic(to_str(root))
 
-    cdef c_make_static_file(self, str path, dict headers):
-        return make_static_file(path, headers, self.stat_cache)
+    cdef c_make_static_file(self, str path, list headers_list):
+        return make_static_file(path, headers_list, self.stat_cache)
+
+    cdef list stat_cache_keys(self):
+        return list(s.c_str().decode("utf8", 'replace') for s in self.stat_cache.keys())
+
+    cdef bint stat_cache_known_key(self, string key):
+        return key in self.stat_cache
 
 
 # cdef class WhiteNoise():
@@ -161,9 +167,8 @@ class WhiteNoise(WNCache):
         # so we only have to touch the filesystem once
         cdef string s_path
 
-        self.scan_tree(root)
-        for s_path in self.stat_cache.keys():
-            path = string_to_py(s_path)
+        WNCache.scan_tree(self, root)
+        for path in WNCache.stat_cache_keys(self):
             relative_path = path[len(root) :]
             relative_url = relative_path.replace("\\", "/")
             url = prefix + relative_url
@@ -247,7 +252,8 @@ class WhiteNoise(WNCache):
         if path[-3:] in (".gz", ".br"):
             uncompressed_path = path[:-3]
 
-            return py_to_string(uncompressed_path) in self.stat_cache
+            # return py_to_string(uncompressed_path) in self.stat_cache_key_set(self)
+            return WNCache.stat_cache_known_key(self, py_to_string(uncompressed_path))
         return False
 
     def get_static_file(self, path, url):
@@ -261,7 +267,7 @@ class WhiteNoise(WNCache):
             headers["Access-Control-Allow-Origin"] = "*"
         if self.add_headers_function:
             self.add_headers_function(headers, path, url)
-        return self.c_make_static_file(path, headers)
+        return WNCache.c_make_static_file(self, path, headers.items())
 
     def get_static_file_cache(self, path, url):
         headers = Headers([])
@@ -271,7 +277,7 @@ class WhiteNoise(WNCache):
             headers["Access-Control-Allow-Origin"] = "*"
         if self.add_headers_function:
             self.add_headers_function(headers, path, url)
-        return self.c_make_static_file(path, headers)
+        return WNCache.c_make_static_file(self, path, headers.items())
 
     def add_mime_headers(self, headers, path, url):
         ## error: cyp_a_whitenoise/base.pyx:235:37:

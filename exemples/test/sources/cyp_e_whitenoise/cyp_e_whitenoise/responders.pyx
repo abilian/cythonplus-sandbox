@@ -34,17 +34,17 @@ NOT_MODIFIED_HEADERS = (
 )
 
 
-cdef make_static_file(str path, dict headers, Fdict stat_cache):
+cdef make_static_file(str path, list headers_list, Fdict stat_cache):
     files = file_stats(to_str(path), stat_cache)
-    return StaticFile(path, headers.items(), files)
+    return StaticFile(path, headers_list, files)
 
 
 class StaticFile:
-    def __init__(self, path, headers, files):
+    def __init__(self, path, headers_list, files):
         # self.stat_cache = stat_cache
         # encodings = {"gzip": path + ".gz", "br": path + ".br"}
         # files = self.get_file_stats(path, encodings)
-        headers = self.get_headers(headers, files)
+        headers = self.get_headers(headers_list, files)
         self.last_modified = parsedate(headers["Last-Modified"])
         self.etag = headers["ETag"]
         self.not_modified_response = self.get_not_modified_response(headers)

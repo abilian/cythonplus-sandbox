@@ -17,7 +17,7 @@ from stdlib.string cimport Str
 from .scan cimport Finfo, Fdict, from_str, to_str
 
 
-cdef make_static_file(str, dict, Fdict)
+cdef make_static_file(str, list, Fdict)
 
 
 cdef file_stats(Str, Fdict)
