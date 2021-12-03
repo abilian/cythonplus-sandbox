@@ -7,10 +7,15 @@ from wsgiref.headers import Headers
 from wsgiref.util import FileWrapper
 
 from libcythonplus.dict cimport cypdict
+from stdlib._string cimport string
 from stdlib.string cimport Str
+from .scan cimport Finfo, Fdict, scan_fs_dic, from_str, to_str, py_to_string, string_to_py
 
 from .media_types cimport MediaTypes, Sdict#, c_wrap_get_type
-from .responders import StaticFile, MissingFileError, IsDirectoryError, Redirect
+
+from .responders cimport make_static_file
+from .responders import MissingFileError, IsDirectoryError, Redirect, StaticFile
+
 from .string_utils import (
     decode_if_byte_string,
     decode_path_info,
@@ -18,8 +23,18 @@ from .string_utils import (
 )
 
 
+cdef class WNCache:
+    cdef Fdict stat_cache
+
+    cdef void scan_tree(self, root):
+        self.stat_cache = scan_fs_dic(to_str(root))
+
+    cdef c_make_static_file(self, str path, dict headers):
+        return make_static_file(path, headers, self.stat_cache)
+
+
 # cdef class WhiteNoise():
-class WhiteNoise():
+class WhiteNoise(WNCache):
     ## we need a cdef to ba able of manage a MediaTypes attribute...
     ## => no **kwargs in __ini__
     ## => will need some wrapper to keep API, TODO
@@ -100,6 +115,7 @@ class WhiteNoise():
             self.immutable_file_test = lambda path, url: bool(regex.search(url))
         if root is not None:
             self.add_files(root, prefix)
+        # self.stat_cache = Fdict()
 
     def __call__(self, environ, start_response):
         path = decode_path_info(environ.get("PATH_INFO", ""))
@@ -143,15 +159,18 @@ class WhiteNoise():
     def update_files_dictionary(self, root, prefix):
         # Build a mapping from paths to the results of `os.stat` calls
         # so we only have to touch the filesystem once
-        stat_cache = dict(scantree(root))
-        for path in stat_cache.keys():
+        cdef string s_path
+
+        self.scan_tree(root)
+        for s_path in self.stat_cache.keys():
+            path = string_to_py(s_path)
             relative_path = path[len(root) :]
             relative_url = relative_path.replace("\\", "/")
             url = prefix + relative_url
-            self.add_file_to_dictionary(url, path, stat_cache)
+            self.add_file_to_dictionary(url, path)
 
-    def add_file_to_dictionary(self, url, path, stat_cache):
-        if self.is_compressed_variant_cache(path, stat_cache):
+    def add_file_to_dictionary(self, url, path):
+        if self.is_compressed_variant_cache(path):
             return
         if self.index_file and url.endswith("/" + self.index_file):
             index_url = url[: -len(self.index_file)]
@@ -159,7 +178,7 @@ class WhiteNoise():
             self.files[url] = self.redirect(url, index_url)
             self.files[index_no_slash] = self.redirect(index_no_slash, index_url)
             url = index_url
-        static_file = self.get_static_file_cache(path, url, stat_cache)
+        static_file = self.get_static_file_cache(path, url)
         self.files[url] = static_file
 
     def find_file(self, url):
@@ -224,11 +243,11 @@ class WhiteNoise():
             return os.path.isfile(uncompressed_path)
         return False
 
-    @staticmethod
-    def is_compressed_variant_cache(path, stat_cache):
+    def is_compressed_variant_cache(self, path):
         if path[-3:] in (".gz", ".br"):
             uncompressed_path = path[:-3]
-            return uncompressed_path in stat_cache
+
+            return py_to_string(uncompressed_path) in self.stat_cache
         return False
 
     def get_static_file(self, path, url):
@@ -242,13 +261,9 @@ class WhiteNoise():
             headers["Access-Control-Allow-Origin"] = "*"
         if self.add_headers_function:
             self.add_headers_function(headers, path, url)
-        return StaticFile(
-            path,
-            headers.items(),
-            stat_cache=None,
-        )
+        return self.c_make_static_file(path, headers)
 
-    def get_static_file_cache(self, path, url, stat_cache):
+    def get_static_file_cache(self, path, url):
         headers = Headers([])
         self.add_mime_headers(headers, path, url)
         self.add_cache_headers(headers, path, url)
@@ -256,11 +271,7 @@ class WhiteNoise():
             headers["Access-Control-Allow-Origin"] = "*"
         if self.add_headers_function:
             self.add_headers_function(headers, path, url)
-        return StaticFile(
-            path,
-            headers.items(),
-            stat_cache=stat_cache,
-        )
+        return self.c_make_static_file(path, headers)
 
     def add_mime_headers(self, headers, path, url):
         ## error: cyp_a_whitenoise/base.pyx:235:37:
@@ -316,28 +327,12 @@ class WhiteNoise():
         return Redirect(relative_url, headers=headers)
 
 
-def scantree(root):
-    """
-    Recurse the given directory yielding (pathname, os.stat(pathname)) pairs
-    """
-    for entry in os.scandir(root):
-        if entry.is_dir():
-            yield from scantree(entry.path)
-        else:
-            yield entry.path, entry.stat()
-
-
-cdef Str to_str(byte_or_string):
-    """(need gil)
-    """
-    if isinstance(byte_or_string, str):
-        return Str(bytes(byte_or_string.encode("utf8")))
-    else:
-        return Str(bytes(byte_or_string))
-
-
-cdef from_str(Str s):
-    return s.bytes().decode("utf8", 'replace')
+#
+# cdef Str to_str2(byte_or_string):
+#     if isinstance(byte_or_string, str):
+#         return Str(byte_or_string.encode("utf8"))
+#     else:
+#         return Str(bytes(byte_or_string))
 
 
 cdef const char* to_c_str(byte_or_string):

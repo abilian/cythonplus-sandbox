@@ -1,7 +1,8 @@
 # distutils: language = c++
+from posix.types cimport off_t, time_t
 from libc.stdio cimport (printf, puts, fprintf, fopen, fclose, fread,
                          fwrite, FILE, stdout, ferror)
-from posix.unistd cimport readlink
+# from posix.unistd cimport readlink
 
 from libcythonplus.list cimport cyplist
 from libcythonplus.dict cimport cypdict
@@ -11,56 +12,57 @@ from scheduler.scheduler cimport BatchMailBox, NullResult, Scheduler
 
 from stdlib._string cimport string
 from stdlib.string cimport Str
-from stdlib.format cimport format
 
-from stdlib.stat cimport Stat, dev_t
+from stdlib.stat cimport Stat
 from stdlib.dirent cimport DIR, struct_dirent, opendir, readdir, closedir
-from stdlib.intlist cimport Intlist
 
-# Use global for scheduler:
+
+ctypedef cypdict[string, Finfo] Fdict
+
+# Use global for scheduler and collector:
 cdef lock Scheduler scheduler
+cdef Fdict collector
 
-# ctypedef cypdict[string, Intlist] Fdict
 
-cdef cyplist[string] collector
-cdef Fdict collector2
+cdef cypclass Finfo:
+    # bint is_reg
+    # bint is_dir
+    off_t size
+    time_t mtime
 
-cdef cypclass Fdict:
-    cypdict[string, Intlist] dic
-
-    __init__(self):
-        self.dic = cypdict[string, Intlist]()
+    __init__(self, off_t size, time_t mtime):
+        # self.is_reg = is_reg
+        # self.is_dir = is_dir
+        self.size = size
+        self.mtime = mtime
 
 
 cdef cypclass Node activable:
     iso Str path
     iso Str name
-    Stat st
-    string path_key
-    int stat_size
-    int kind
+    bint is_reg
+    bint is_dir
+    off_t size
+    time_t mtime
     cyplist[active Node] children
 
-    __init__(self, iso Str path, iso Str name, int kind, Stat st):
+    __init__(self, iso Str path, iso Str name, Stat st):
         self._active_result_class = NullResult
         self._active_queue_class = consume BatchMailBox(scheduler)
         # self._active_queue_class = consume SequentialMailBox(scheduler)
         self.path = consume path
         self.name = consume name
-        self.st = st
-        self.kind = kind
-        if self.kind == 2:  # DirNode
+        self.size = st.st_data.st_size
+        self.mtime = st.st_data.st_mtim.tv_sec
+        self.is_reg = st.is_regular()
+        self.is_dir = st.is_dir()
+        if self.is_dir:
             self.children = new cyplist[active Node]()
             self.children.__init__()
 
     void build_node(self):
-        if self.kind == 1:
-            self.build_node_file()
-        if self.kind == 2:
+        if self.is_dir:
             self.build_node_dir()
-
-    void build_node_file(self):
-        self.format_node()
 
     void build_node_dir(self):
         cdef DIR *d
@@ -87,17 +89,14 @@ cdef cypclass Node activable:
                 active_entry = activate(consume entry_node)
                 self.children.append(active_entry)
             closedir(d)
-
-        self.format_node()
         for active_child in self.children:
             active_child.build_node(NULL)
 
-    void format_node(self):
-        pass
-
     void collect(self):
-        # collector2[self.path._str] = Intlist()
-        if self.kind == 2:
+        "Collect size and mtime for regular files"
+        if self.is_reg:
+            collector[self.path._str] = Finfo(self.size, self.mtime)
+        else:
             while self.children.__len__() > 0:
                 active_child = self.children[self.children.__len__() -1]
                 del self.children[self.children.__len__() -1]
@@ -105,9 +104,9 @@ cdef cypclass Node activable:
                 child.collect()
 
 
-
 cdef iso Node make_node(iso Str, iso Str) nogil
-# cdef Fdict scan_fs_dic(Str) nogil
-cdef void scan_fs_dic(Str) nogil
-cdef Str to_str(s)
-cdef from_str(Str s)
+cdef Fdict scan_fs_dic(Str) nogil
+cdef Str to_str(str)
+cdef from_str(Str)
+cdef string py_to_string(str)
+cdef string_to_py(string)

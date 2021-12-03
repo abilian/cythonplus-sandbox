@@ -11,6 +11,10 @@ from urllib.parse import quote
 
 from wsgiref.headers import Headers
 
+from libcythonplus.dict cimport cypdict
+from stdlib._string cimport string
+from stdlib.string cimport Str
+from .scan cimport Finfo, Fdict, from_str, to_str
 
 Response = namedtuple("Response", ("status", "headers", "file"))
 
@@ -30,10 +34,16 @@ NOT_MODIFIED_HEADERS = (
 )
 
 
+cdef make_static_file(str path, dict headers, Fdict stat_cache):
+    files = file_stats(to_str(path), stat_cache)
+    return StaticFile(path, headers.items(), files)
+
+
 class StaticFile:
-    def __init__(self, path, headers, stat_cache=None):
-        encodings = {"gzip": path + ".gz", "br": path + ".br"}
-        files = self.get_file_stats(path, encodings, stat_cache)
+    def __init__(self, path, headers, files):
+        # self.stat_cache = stat_cache
+        # encodings = {"gzip": path + ".gz", "br": path + ".br"}
+        # files = self.get_file_stats(path, encodings)
         headers = self.get_headers(headers, files)
         self.last_modified = parsedate(headers["Last-Modified"])
         self.etag = headers["ETag"]
@@ -115,25 +125,27 @@ class StaticFile:
             None,
         )
 
-    @staticmethod
-    def get_file_stats(path, encodings, stat_cache):
-        # Primary file has an encoding of None
-        files = {None: FileEntry(path, stat_cache)}
-        if encodings:
-            for encoding, alt_path in encodings.items():
-                try:
-                    files[encoding] = FileEntry(alt_path, stat_cache)
-                except MissingFileError:
-                    continue
-        return files
+    # def get_file_stats(self, path, encodings):
+    #     # Primary file has an encoding of None
+    #
+    #     pass
+
+        # files = {None: FileEntry(path, self.stat_cache)}
+        # if encodings:
+        #     for encoding, alt_path in encodings.items():
+        #         try:
+        #             files[encoding] = FileEntry(alt_path, self.stat_cache)
+        #         except MissingFileError:
+        #             continue
+        # return files
 
     def get_headers(self, headers_list, files):
         headers = Headers(headers_list)
-        main_file = files[None]
+        main_file = files[""]
         if len(files) > 1:
             headers["Vary"] = "Accept-Encoding"
         if "Last-Modified" not in headers:
-            mtime = main_file.stat.st_mtime
+            mtime = main_file[1]
             # Not all filesystems report mtimes, and sometimes they report an
             # mtime of 0 which we know is incorrect
             if mtime:
@@ -143,7 +155,7 @@ class StaticFile:
             if last_modified:
                 timestamp = int(mktime(last_modified))
                 headers["ETag"] = '"{:x}-{:x}"'.format(
-                    timestamp, main_file.stat.st_size
+                    timestamp, main_file[0]
                 )
         return headers
 
@@ -161,16 +173,16 @@ class StaticFile:
     def get_alternatives(base_headers, files):
         # Sort by size so that the smallest compressed alternative matches first
         alternatives = []
-        files_by_size = sorted(files.items(), key=lambda i: i[1].stat.st_size)
-        for encoding, file_entry in files_by_size:
+        # files_by_size = sorted(files.items(), key=lambda i: i[1].stat.st_size)
+        for encoding, file_entry in files.items():
             headers = Headers(base_headers.items())
-            headers["Content-Length"] = str(file_entry.stat.st_size)
+            headers["Content-Length"] = str(file_entry[0])
             if encoding:
                 headers["Content-Encoding"] = encoding
                 encoding_re = re.compile(r"\b%s\b" % encoding)
             else:
                 encoding_re = re.compile("")
-            alternatives.append((encoding_re, file_entry.path, headers.items()))
+            alternatives.append((encoding_re, file_entry[2], headers.items()))
         return alternatives
 
     def is_not_modified(self, request_headers):
@@ -218,35 +230,80 @@ class IsDirectoryError(MissingFileError):
     pass
 
 
-class FileEntry:
-    """Wrap `stat_function` to raise appropriate errors if `path` is not a
-    regular file
-    """
+cdef file_stats(Str path, Fdict stat_cache):
+    cdef Finfo info
+    cdef Str zpath
 
-    def __init__(self, path, stat_cache=None):
-        self.path = path
-        if stat_cache:
-            try:
-                stat_result = stat_cache[path]
-            except KeyError:
-                raise MissingFileError(path)
-            if not stat.S_ISREG(stat_result.st_mode):
-                if stat.S_ISDIR(stat_result.st_mode):
-                    raise IsDirectoryError(u"Path is a directory: {0}".format(path))
-                else:
-                    raise NotARegularFileError(u"Not a regular file: {0}".format(path))
-            self.stat = stat_result
-        else:
-            try:
-                stat_result = os.stat(path)
-            except OSError as e:
-                if e.errno in (errno.ENOENT, errno.ENAMETOOLONG):
-                    raise MissingFileError(path)
-                else:
-                    raise
-            if not stat.S_ISREG(stat_result.st_mode):
-                if stat.S_ISDIR(stat_result.st_mode):
-                    raise IsDirectoryError(u"Path is a directory: {0}".format(path))
-                else:
-                    raise NotARegularFileError(u"Not a regular file: {0}".format(path))
-            self.stat = stat_result
+    if path._str in stat_cache:
+        info = stat_cache[path._str]
+        files = [(info.size, info.mtime, from_str(path), "")]
+    else:
+        # with gil:
+        raise MissingFileError(from_str(path))
+    zpath = path + Str(".gz")
+    if zpath._str in stat_cache:
+        info = stat_cache[zpath._str]
+        files.append((info.size, info.mtime, from_str(zpath), "gzip"))
+    zpath = path + Str(".br")
+    if zpath._str in stat_cache:
+        info = stat_cache[zpath._str]
+        files.append((info.size, info.mtime, from_str(zpath), "br"))
+
+    return {f[3]: (f[0], f[1], f[2]) for f in sorted(files)}
+
+
+    # encodings = {"gzip": path + ".gz", "br": path + ".br"}
+    # Primary file has an encoding of None
+
+    # files = {None: FileEntry(path, self.stat_cache)}
+    # if encodings:
+    #     for encoding, alt_path in encodings.items():
+    #         try:
+    #             files[encoding] = FileEntry(alt_path, self.stat_cache)
+    #         except MissingFileError:
+    #             continue
+    # return files
+
+# cdef Finfo file_entry(Str path, Fdict stat_cache) nogil:
+#     cdef Finfo info
+#
+#     if path._str in stat_cache:
+#         info = stat_cache[path._str]
+#     else:
+#         with gil:
+#             raise MissingFileError(from_str(path))
+
+
+# cdef class FileEntry:
+#     """Wrap `stat_function` to raise appropriate errors if `path` is not a
+#     regular file
+#     """
+#
+#     def __init__(self, path, Fdict stat_cache):
+#         pass
+#         self.path = path
+#         if stat_cache:
+#             try:
+#                 stat_result = stat_cache[path]
+#             except KeyError:
+#                 raise MissingFileError(path)
+#             if not stat.S_ISREG(stat_result.st_mode):
+#                 if stat.S_ISDIR(stat_result.st_mode):
+#                     raise IsDirectoryError(u"Path is a directory: {0}".format(path))
+#                 else:
+#                     raise NotARegularFileError(u"Not a regular file: {0}".format(path))
+#             self.stat = stat_result
+        # else:
+        #     try:
+        #         stat_result = os.stat(path)
+        #     except OSError as e:
+        #         if e.errno in (errno.ENOENT, errno.ENAMETOOLONG):
+        #             raise MissingFileError(path)
+        #         else:
+        #             raise
+        #     if not stat.S_ISREG(stat_result.st_mode):
+        #         if stat.S_ISDIR(stat_result.st_mode):
+        #             raise IsDirectoryError(u"Path is a directory: {0}".format(path))
+        #         else:
+        #             raise NotARegularFileError(u"Not a regular file: {0}".format(path))
+        #     self.stat = stat_result

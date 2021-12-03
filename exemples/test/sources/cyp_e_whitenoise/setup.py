@@ -49,14 +49,13 @@ def pypyx_ext(*pathname):
 
 
 extensions = [
-    # pypyx_ext(NAME, "base"),
     pypyx_ext(NAME, "scan"),
-    # pypyx_ext(NAME, "compress"),
-    # pypyx_ext(NAME, "media_types"),
-    # pypyx_ext(NAME, "middleware"),
-    # pypyx_ext(NAME, "responders"),
-    # pypyx_ext(NAME, "storage"),
-    # pypyx_ext(NAME, "string_utils"),
+    pypyx_ext(NAME, "responders"),
+    pypyx_ext(NAME, "base"),
+    pypyx_ext(NAME, "compress"),
+    pypyx_ext(NAME, "media_types"),
+    pypyx_ext(NAME, "storage"),
+    pypyx_ext(NAME, "string_utils"),
 ]
 
 
