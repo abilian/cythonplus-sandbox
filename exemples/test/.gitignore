@@ -3,3 +3,9 @@
 /cyp_a_whitenoise/
 /cyp_b_whitenoise/
 /cyp_min_whitenoise/
+/cyp_e_whitenoise/
+/cyp_f_whitenoise/
+sources/cyp_e_whitenoise/build_fmt/
+sources/cyp_e_whitenoise/libfmt/
+sources/cyp_f_whitenoise/build_fmt/
+sources/cyp_f_whitenoise/libfmt/
