@@ -208,14 +208,14 @@ class StaticFile:
                 return path, headers
 
 
-class Redirect:
-    def __init__(self, location, headers=None):
-        headers = list(headers.items()) if headers else []
-        headers.append(("Location", quote(location.encode("utf8"))))
-        self.response = Response(HTTPStatus.FOUND, headers, None)
-
-    def get_response(self, method, request_headers):
-        return self.response
+# class Redirect:
+#     def __init__(self, location, headers=None):
+#         headers = list(headers.items()) if headers else []
+#         headers.append(("Location", quote(location.encode("utf8"))))
+#         self.response = Response(HTTPStatus.FOUND, headers, None)
+#
+#     def get_response(self, method, request_headers):
+#         return self.response
 
 
 class NotARegularFileError(Exception):

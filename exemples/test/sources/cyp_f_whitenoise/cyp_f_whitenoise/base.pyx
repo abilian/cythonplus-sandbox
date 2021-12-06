@@ -1,5 +1,6 @@
 # distutils: language = c++
 import os
+from os.path import isdir, abspath, sep, join, commonprefix, isfile, exists
 from posixpath import normpath
 import re
 import warnings
@@ -11,17 +12,19 @@ from stdlib._string cimport string
 from stdlib.string cimport Str
 from .scan cimport Finfo, Fdict, scan_fs_dic, from_str, to_str, py_to_string, string_to_py
 
-from .media_types cimport MediaTypes, Sdict#, c_wrap_get_type
+from .media_types cimport MediaTypes, Sdict
 
 from .responders cimport make_static_file
-from .responders import MissingFileError, IsDirectoryError, Redirect, StaticFile
+# from .responders import MissingFileError, IsDirectoryError, Redirect, StaticFile
+from .responders import StaticFile
 
-from .string_utils import (
-    decode_if_byte_string,
-    decode_path_info,
-    ensure_leading_trailing_slash,
-)
+from .string_utils import decode_if_byte_string, ensure_leading_trailing_slash
+    # decode_path_info,
 
+# remove options:
+# autorefresh
+# index_file
+# immutable_file_test
 
 cdef class WNCache:
     cdef Fdict stat_cache
@@ -66,7 +69,7 @@ class WhiteNoise(WNCache):
     # Re-check the filesystem on every request so that any changes are
     # automatically picked up. NOTE: For use in development only, not supported
     # in production
-    autorefresh = False
+    # autorefresh = False
 
     ## BUG AttributeError: 'cyp_a_whitenoise.base.WhiteNoise' object attribute 'max_age' is read-only
     ## => cant be so "dynamic"
@@ -86,7 +89,7 @@ class WhiteNoise(WNCache):
     # Callback for adding custom logic when setting headers
     add_headers_function = None
     # Name of index file (None to disable index support)
-    index_file = None
+    # index_file = None
 
     # def __init__(self, application, root=None, prefix=None, **kwargs):
     def __init__(self, application, root=None, prefix=None, max_age=60):
@@ -114,53 +117,56 @@ class WhiteNoise(WNCache):
         self.application = application
         self.files = {}
         self.directories = []
-        if self.index_file is True:
-            self.index_file = "index.html"
-        if not callable(self.immutable_file_test):
-            regex = re.compile(self.immutable_file_test)
-            self.immutable_file_test = lambda path, url: bool(regex.search(url))
+        # no index_file
+        # if self.index_file is True:
+            # self.index_file = "index.html"
+        # if not callable(self.immutable_file_test):
+        #     regex = re.compile(self.immutable_file_test)
+        #     self.immutable_file_test = lambda path, url: bool(regex.search(url))
         if root is not None:
             self.add_files(root, prefix)
         # self.stat_cache = Fdict()
 
     def __call__(self, environ, start_response):
-        path = decode_path_info(environ.get("PATH_INFO", ""))
-        if self.autorefresh:
-            static_file = self.find_file(path)
-        else:
-            static_file = self.files.get(path)
+        # # Follow Django in treating URLs as UTF-8 encoded (which requires undoing the
+        # # implicit ISO-8859-1 decoding applied in Python 3). Strictly speaking, URLs
+        # # should only be ASCII anyway, but UTF-8 can be found in the wild.
+        # def decode_path_info(path_info):
+        #     return path_info.encode("iso-8859-1", "replace").decode("utf-8", "replace")
+        # path = decode_path_info(environ.get("PATH_INFO", ""))
+        path = environ.get("PATH_INFO", "")
+        # no autorefresh
+        # if self.autorefresh:
+            # static_file = self.find_file(path)
+        # else:
+        static_file = self.files.get(path)
         if static_file is None:
             return self.application(environ, start_response)
-        else:
-            return self.serve(static_file, environ, start_response)
-
-    @staticmethod
-    def serve(static_file, environ, start_response):
+        # def serve(static_file, environ, start_response):
         response = static_file.get_response(environ["REQUEST_METHOD"], environ)
-        status_line = "{} {}".format(response.status, response.status.phrase)
+        status_line = f"{response.status} {response.status.phrase}"
         start_response(status_line, list(response.headers))
-        if response.file is not None:
-            file_wrapper = environ.get("wsgi.file_wrapper", FileWrapper)
-            return file_wrapper(response.file)
-        else:
+        if response.file is None:
             return []
+        file_wrapper = environ.get("wsgi.file_wrapper", FileWrapper)
+        return file_wrapper(response.file)
 
     def add_files(self, root, prefix=None):
         root = decode_if_byte_string(root, force_text=True)
-        root = os.path.abspath(root)
-        root = root.rstrip(os.path.sep) + os.path.sep
+        root = abspath(root)
+        root = root.rstrip(sep) + sep
         prefix = decode_if_byte_string(prefix)
         prefix = ensure_leading_trailing_slash(prefix)
-        if self.autorefresh:
-            # Later calls to `add_files` overwrite earlier ones, hence we need
-            # to store the list of directories in reverse order so later ones
-            # match first when they're checked in "autorefresh" mode
-            self.directories.insert(0, (root, prefix))
+        # if self.autorefresh:
+        #     # Later calls to `add_files` overwrite earlier ones, hence we need
+        #     # to store the list of directories in reverse order so later ones
+        #     # match first when they're checked in "autorefresh" mode
+        #     self.directories.insert(0, (root, prefix))
+        # else:
+        if isdir(root):
+            self.update_files_dictionary(root, prefix)
         else:
-            if os.path.isdir(root):
-                self.update_files_dictionary(root, prefix)
-            else:
-                warnings.warn("No directory at: {}".format(root))
+            warnings.warn(f"No directory at: {root}")
 
     def update_files_dictionary(self, root, prefix):
         # Build a mapping from paths to the results of `os.stat` calls
@@ -169,105 +175,107 @@ class WhiteNoise(WNCache):
 
         WNCache.scan_tree(self, root)
         for path in WNCache.stat_cache_keys(self):
-            relative_path = path[len(root) :]
+            if self.is_compressed_variant_cache(path):
+                continue
+            relative_path = path[len(root):]
             relative_url = relative_path.replace("\\", "/")
             url = prefix + relative_url
-            self.add_file_to_dictionary(url, path)
+            self.files[url] = self.get_static_file_cache(path, url)
 
-    def add_file_to_dictionary(self, url, path):
-        if self.is_compressed_variant_cache(path):
-            return
-        if self.index_file and url.endswith("/" + self.index_file):
-            index_url = url[: -len(self.index_file)]
-            index_no_slash = index_url.rstrip("/")
-            self.files[url] = self.redirect(url, index_url)
-            self.files[index_no_slash] = self.redirect(index_no_slash, index_url)
-            url = index_url
-        static_file = self.get_static_file_cache(path, url)
-        self.files[url] = static_file
+    # def add_file_to_dictionary(self, url, path):
+    #     if self.is_compressed_variant_cache(path):
+    #         return
+    #     # if self.index_file and url.endswith("/" + self.index_file):
+    #     #     index_url = url[: -len(self.index_file)]
+    #     #     index_no_slash = index_url.rstrip("/")
+    #     #     self.files[url] = self.redirect(url, index_url)
+    #     #     self.files[index_no_slash] = self.redirect(index_no_slash, index_url)
+    #     #     url = index_url
+    #     # static_file = self.get_static_file_cache(path, url)
+    #     # self.files[url] = static_file
+    #     self.files[url] = self.get_static_file_cache(path, url)
 
-    def find_file(self, url):
-        # Optimization: bail early if the URL can never match a file
-        if not self.index_file and url.endswith("/"):
-            return
-        if not self.url_is_canonical(url):
-            return
-        for path in self.candidate_paths_for_url(url):
-            try:
-                return self.find_file_at_path(path, url)
-            except MissingFileError:
-                pass
+    # def find_file(self, url):
+    #     # Optimization: bail early if the URL can never match a file
+    #     if not self.index_file and url.endswith("/"):
+    #         return
+    #     if not self.url_is_canonical(url):
+    #         return
+    #     for path in self.candidate_paths_for_url(url):
+    #         try:
+    #             return self.find_file_at_path(path, url)
+    #         except MissingFileError:
+    #             pass
 
-    def candidate_paths_for_url(self, url):
-        for root, prefix in self.directories:
-            if url.startswith(prefix):
-                path = os.path.join(root, url[len(prefix) :])
-                if os.path.commonprefix((root, path)) == root:
-                    yield path
+    # def candidate_paths_for_url(self, url):
+    #     for root, prefix in self.directories:
+    #         if url.startswith(prefix):
+    #             path = join(root, url[len(prefix) :])
+    #             if commonprefix((root, path)) == root:
+    #                 yield path
 
-    def find_file_at_path(self, path, url):
-        if self.is_compressed_variant(path):
-            raise MissingFileError(path)
-        if self.index_file:
-            return self.find_file_at_path_with_indexes(path, url)
-        else:
-            return self.get_static_file(path, url)
+    # def find_file_at_path(self, path, url):
+    #     if self.is_compressed_variant(path):
+    #         raise MissingFileError(path)
+    #     # if self.index_file:
+    #     #     return self.find_file_at_path_with_indexes(path, url)
+    #     # else:
+    #     return self.get_static_file(path, url)
 
-    def find_file_at_path_with_indexes(self, path, url):
-        if url.endswith("/"):
-            path = os.path.join(path, self.index_file)
-            return self.get_static_file(path, url)
-        elif url.endswith("/" + self.index_file):
-            if os.path.isfile(path):
-                return self.redirect(url, url[: -len(self.index_file)])
-        else:
-            try:
-                return self.get_static_file(path, url)
-            except IsDirectoryError:
-                if os.path.isfile(os.path.join(path, self.index_file)):
-                    return self.redirect(url, url + "/")
-        raise MissingFileError(path)
+    # def find_file_at_path_with_indexes(self, path, url):
+    #     if url.endswith("/"):
+    #         path = os.path.join(path, self.index_file)
+    #         return self.get_static_file(path, url)
+    #     elif url.endswith("/" + self.index_file):
+    #         if os.path.isfile(path):
+    #             return self.redirect(url, url[: -len(self.index_file)])
+    #     else:
+    #         try:
+    #             return self.get_static_file(path, url)
+    #         except IsDirectoryError:
+    #             if os.path.isfile(os.path.join(path, self.index_file)):
+    #                 return self.redirect(url, url + "/")
+    #     raise MissingFileError(path)
 
-    @staticmethod
-    def url_is_canonical(url):
-        """
-        Check that the URL path is in canonical format i.e. has normalised
-        slashes and no path traversal elements
-        """
-        if "\\" in url:
-            return False
-        normalised = normpath(url)
-        if url.endswith("/") and url != "/":
-            normalised += "/"
-        return normalised == url
+    # @staticmethod
+    # def url_is_canonical(url):
+    #     """
+    #     Check that the URL path is in canonical format i.e. has normalised
+    #     slashes and no path traversal elements
+    #     """
+    #     if "\\" in url:
+    #         return False
+    #     normalised = normpath(url)
+    #     if url.endswith("/") and url != "/":
+    #         normalised += "/"
+    #     return normalised == url
 
-    @staticmethod
-    def is_compressed_variant(path):
-        if path[-3:] in (".gz", ".br"):
-            uncompressed_path = path[:-3]
-            return os.path.isfile(uncompressed_path)
-        return False
+    # @staticmethod
+    # def is_compressed_variant(path):
+    #     if path[-3:] in (".gz", ".br"):
+    #         uncompressed_path = path[:-3]
+    #         return isfile(uncompressed_path)
+    #     return False
 
     def is_compressed_variant_cache(self, path):
         if path[-3:] in (".gz", ".br"):
             uncompressed_path = path[:-3]
-
             # return py_to_string(uncompressed_path) in self.stat_cache_key_set(self)
             return WNCache.stat_cache_known_key(self, py_to_string(uncompressed_path))
         return False
 
-    def get_static_file(self, path, url):
-        # Optimization: bail early if file does not exist
-        if not os.path.exists(path):
-            raise MissingFileError(path)
-        headers = Headers([])
-        self.add_mime_headers(headers, path, url)
-        self.add_cache_headers(headers, path, url)
-        if self.allow_all_origins:
-            headers["Access-Control-Allow-Origin"] = "*"
-        if self.add_headers_function:
-            self.add_headers_function(headers, path, url)
-        return WNCache.c_make_static_file(self, path, headers.items())
+    # def get_static_file(self, path, url):
+    #     # Optimization: bail early if file does not exist
+    #     if not exists(path):
+    #         raise MissingFileError(path)
+    #     headers = Headers([])
+    #     self.add_mime_headers(headers, path, url)
+    #     self.add_cache_headers(headers, path, url)
+    #     if self.allow_all_origins:
+    #         headers["Access-Control-Allow-Origin"] = "*"
+    #     if self.add_headers_function:
+    #         self.add_headers_function(headers, path, url)
+    #     return WNCache.c_make_static_file(self, path, headers.items())
 
     def get_static_file_cache(self, path, url):
         headers = Headers([])
@@ -299,38 +307,39 @@ class WhiteNoise(WNCache):
             headers.add_header("Content-Type", media_type)
 
     def add_cache_headers(self, headers, path, url):
-        if self.immutable_file_test(path, url):
-            headers["Cache-Control"] = "max-age={0}, public, immutable".format(
-                self.FOREVER
-            )
-        elif self.max_age is not None:
-            headers["Cache-Control"] = "max-age={0}, public".format(self.max_age)
-
-    def immutable_file_test(self, path, url):
-        """
-        This should be implemented by sub-classes (see e.g. WhiteNoiseMiddleware)
-        or by setting the `immutable_file_test` config option
-        """
-        return False
-
-    def redirect(self, from_url, to_url):
-        """
-        Return a relative 302 redirect
-
-        We use relative redirects as we don't know the absolute URL the app is
-        being hosted under
-        """
-        if to_url == from_url + "/":
-            relative_url = from_url.split("/")[-1] + "/"
-        elif from_url == to_url + self.index_file:
-            relative_url = "./"
-        else:
-            raise ValueError("Cannot handle redirect: {} > {}".format(from_url, to_url))
+        # if self.immutable_file_test(path, url):
+        #     headers["Cache-Control"] = "max-age={0}, public, immutable".format(
+        #         self.FOREVER
+        #     )
+        # elif self.max_age is not None:
         if self.max_age is not None:
-            headers = {"Cache-Control": "max-age={0}, public".format(self.max_age)}
-        else:
-            headers = {}
-        return Redirect(relative_url, headers=headers)
+            headers["Cache-Control"] = f"max-age={self.max_age}, public"
+
+    # def immutable_file_test(self, path, url):
+    #     """
+    #     This should be implemented by sub-classes (see e.g. WhiteNoiseMiddleware)
+    #     or by setting the `immutable_file_test` config option
+    #     """
+    #     return False
+
+    # def redirect(self, from_url, to_url):
+    #     """
+    #     Return a relative 302 redirect
+    #
+    #     We use relative redirects as we don't know the absolute URL the app is
+    #     being hosted under
+    #     """
+    #     if to_url == from_url + "/":
+    #         relative_url = from_url.split("/")[-1] + "/"
+    #     # elif from_url == to_url + self.index_file:
+    #     #     relative_url = "./"
+    #     else:
+    #         raise ValueError("Cannot handle redirect: {} > {}".format(from_url, to_url))
+    #     if self.max_age is not None:
+    #         headers = {"Cache-Control": "max-age={0}, public".format(self.max_age)}
+    #     else:
+    #         headers = {}
+    #     return Redirect(relative_url, headers=headers)
 
 
 #

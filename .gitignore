@@ -62,3 +62,4 @@ MANIFEST
 /*.komodoproject
 
 .DS_Store
+._.DS_Store
