@@ -4,7 +4,6 @@ import errno
 
 from http import HTTPStatus
 import os
-import re
 import stat
 from time import mktime
 from urllib.parse import quote
@@ -14,24 +13,84 @@ from wsgiref.headers import Headers
 from libcythonplus.dict cimport cypdict
 from stdlib._string cimport string
 from stdlib.string cimport Str
+
+from stdlib.regex cimport regex_t, regmatch_t, regcomp, regexec, regfree
+from stdlib.regex cimport REG_EXTENDED
+
 from .scan cimport Finfo, Fdict, from_str, to_str
+from .http_status cimport HttpStatus, HttpStatusDict, generate_http_status_dict
 
-Response = namedtuple("Response", ("status", "headers", "file"))
 
-NOT_ALLOWED_RESPONSE = Response(
-    status=HTTPStatus.METHOD_NOT_ALLOWED, headers=[("Allow", "GET, HEAD")], file=None
+# Response = namedtuple("Response", ("status", "headers", "file"))
+cdef HttpStatusDict HSD
+HSD = generate_http_status_dict()
+
+
+cdef Response NOT_ALLOWED_RESPONSE = Response(
+    HSD(Str("METHOD_NOT_ALLOWED"), gen_header_list(Str("Allow"), Str("GET, HEAD")), STR(""))
 )
 
+cdef StrList NOT_MODIFIED_HEADERS
 # Headers which should be returned with a 304 Not Modified response as
 # specified here: https://tools.ietf.org/html/rfc7232#section-4.1
-NOT_MODIFIED_HEADERS = (
-    "Cache-Control",
-    "Content-Location",
-    "Date",
-    "ETag",
-    "Expires",
-    "Vary",
-)
+NOT_MODIFIED_HEADERS = gen_not_modified_headers()
+
+
+cdef HeaderList gen_header_list(Str a, Str b) nogil:
+    cdef HeaderList header_list
+
+    header_list = HeaderList()
+    header_list.append(StrPair(a, b))
+    return header_list
+
+
+cdef StrList gen_not_modified_headers() nogil:
+    cdef StrList nmh
+
+    nmh = StrList()
+    nmh.append(Str("Cache-Control"))
+    nmh.append(Str("Content-Location"))
+    nmh.append(Str("Date"))
+    nmh.append(Str("ETag"))
+    nmh.append(Str("Expires"))
+    nmh.append(Str("Vary"))
+    return nmh
+
+
+cdef Str re_bound = Str("[ :,;?()\"']")
+
+
+cdef bint re_match(Str pattern, Str target) nogil:
+    cdef regex_t regex
+    cdef int result
+    # cdef regmatch_t  pmatch[1]
+
+    if regcomp(&regex, pattern.bytes(), REG_EXTENDED):
+        with gil:
+            raise ValueError(f"regcomp failed on {pattern.bytes()}")
+
+    if not regexec(&regex, target.bytes(), 0, NULL, 0):
+        return 1
+    return 0
+
+
+cdef AlternativeList get_alternatives(base_headers, files) nogil:
+    cdef Str encoding_pattern, encoding
+    cdef AlternativeList alternatives
+    # Sort by size so that the smallest compressed alternative matches first
+    alternatives = AlternativeList()
+    # files_by_size = sorted(files.items(), key=lambda i: i[1].stat.st_size)
+    for encoding, file_entry in files.items():
+        headers = Headers(base_headers.items())
+        headers["Content-Length"] = str(file_entry[0])
+        if encoding:
+            headers["Content-Encoding"] = encoding
+            #encoding_re = re.compile(r"\b%s\b" % encoding)
+            encoding_pattern = re_bound + encoding + re_bound
+        else:
+            encoding_pattern = Str("")
+        alternatives.append((encoding_pattern, file_entry[2], headers.items()))
+    return alternatives
 
 
 cdef make_static_file(str path, list headers_list, Fdict stat_cache):
@@ -48,7 +107,7 @@ class StaticFile:
         self.last_modified = parsedate(headers["Last-Modified"])
         self.etag = headers["ETag"]
         self.not_modified_response = self.get_not_modified_response(headers)
-        self.alternatives = self.get_alternatives(headers, files)
+        self.alternatives = get_alternatives(headers, files)
 
     def get_response(self, method, request_headers):
         if method not in ("GET", "HEAD"):
@@ -125,20 +184,6 @@ class StaticFile:
             None,
         )
 
-    # def get_file_stats(self, path, encodings):
-    #     # Primary file has an encoding of None
-    #
-    #     pass
-
-        # files = {None: FileEntry(path, self.stat_cache)}
-        # if encodings:
-        #     for encoding, alt_path in encodings.items():
-        #         try:
-        #             files[encoding] = FileEntry(alt_path, self.stat_cache)
-        #         except MissingFileError:
-        #             continue
-        # return files
-
     def get_headers(self, headers_list, files):
         headers = Headers(headers_list)
         main_file = files[""]
@@ -169,21 +214,6 @@ class StaticFile:
             status=HTTPStatus.NOT_MODIFIED, headers=not_modified_headers, file=None
         )
 
-    @staticmethod
-    def get_alternatives(base_headers, files):
-        # Sort by size so that the smallest compressed alternative matches first
-        alternatives = []
-        # files_by_size = sorted(files.items(), key=lambda i: i[1].stat.st_size)
-        for encoding, file_entry in files.items():
-            headers = Headers(base_headers.items())
-            headers["Content-Length"] = str(file_entry[0])
-            if encoding:
-                headers["Content-Encoding"] = encoding
-                encoding_re = re.compile(r"\b%s\b" % encoding)
-            else:
-                encoding_re = re.compile("")
-            alternatives.append((encoding_re, file_entry[2], headers.items()))
-        return alternatives
 
     def is_not_modified(self, request_headers):
         previous_etag = request_headers.get("HTTP_IF_NONE_MATCH")
@@ -203,19 +233,11 @@ class StaticFile:
     def get_path_and_headers(self, request_headers):
         accept_encoding = request_headers.get("HTTP_ACCEPT_ENCODING", "")
         # These are sorted by size so first match is the best
-        for encoding_re, path, headers in self.alternatives:
-            if encoding_re.search(accept_encoding):
+        for encoding_pattern, path, headers in self.alternatives:
+            # if encoding_re.search(accept_encoding):
+            #     return path, headers
+            if re_match(encoding_pattern, Str(accept_encoding.encode("utf8"))):
                 return path, headers
-
-
-# class Redirect:
-#     def __init__(self, location, headers=None):
-#         headers = list(headers.items()) if headers else []
-#         headers.append(("Location", quote(location.encode("utf8"))))
-#         self.response = Response(HTTPStatus.FOUND, headers, None)
-#
-#     def get_response(self, method, request_headers):
-#         return self.response
 
 
 class NotARegularFileError(Exception):
@@ -243,67 +265,10 @@ cdef file_stats(Str path, Fdict stat_cache):
     zpath = path + Str(".gz")
     if zpath._str in stat_cache:
         info = stat_cache[zpath._str]
-        files.append((info.size, info.mtime, from_str(zpath), "gzip"))
+        files.append((info.size, info.mtime, from_str(zpath), Str("gzip")))
     zpath = path + Str(".br")
     if zpath._str in stat_cache:
         info = stat_cache[zpath._str]
-        files.append((info.size, info.mtime, from_str(zpath), "br"))
+        files.append((info.size, info.mtime, from_str(zpath), Str("br")))
 
     return {f[3]: (f[0], f[1], f[2]) for f in sorted(files)}
-
-
-    # encodings = {"gzip": path + ".gz", "br": path + ".br"}
-    # Primary file has an encoding of None
-
-    # files = {None: FileEntry(path, self.stat_cache)}
-    # if encodings:
-    #     for encoding, alt_path in encodings.items():
-    #         try:
-    #             files[encoding] = FileEntry(alt_path, self.stat_cache)
-    #         except MissingFileError:
-    #             continue
-    # return files
-
-# cdef Finfo file_entry(Str path, Fdict stat_cache) nogil:
-#     cdef Finfo info
-#
-#     if path._str in stat_cache:
-#         info = stat_cache[path._str]
-#     else:
-#         with gil:
-#             raise MissingFileError(from_str(path))
-
-
-# cdef class FileEntry:
-#     """Wrap `stat_function` to raise appropriate errors if `path` is not a
-#     regular file
-#     """
-#
-#     def __init__(self, path, Fdict stat_cache):
-#         pass
-#         self.path = path
-#         if stat_cache:
-#             try:
-#                 stat_result = stat_cache[path]
-#             except KeyError:
-#                 raise MissingFileError(path)
-#             if not stat.S_ISREG(stat_result.st_mode):
-#                 if stat.S_ISDIR(stat_result.st_mode):
-#                     raise IsDirectoryError(u"Path is a directory: {0}".format(path))
-#                 else:
-#                     raise NotARegularFileError(u"Not a regular file: {0}".format(path))
-#             self.stat = stat_result
-        # else:
-        #     try:
-        #         stat_result = os.stat(path)
-        #     except OSError as e:
-        #         if e.errno in (errno.ENOENT, errno.ENAMETOOLONG):
-        #             raise MissingFileError(path)
-        #         else:
-        #             raise
-        #     if not stat.S_ISREG(stat_result.st_mode):
-        #         if stat.S_ISDIR(stat_result.st_mode):
-        #             raise IsDirectoryError(u"Path is a directory: {0}".format(path))
-        #         else:
-        #             raise NotARegularFileError(u"Not a regular file: {0}".format(path))
-        #     self.stat = stat_result

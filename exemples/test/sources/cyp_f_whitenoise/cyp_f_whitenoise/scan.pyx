@@ -1,7 +1,6 @@
 # distutils: language = c++
 from libc.stdio cimport (printf, puts, fprintf, fopen, fclose, fread,
                          fwrite, FILE, stdout, ferror)
-# from posix.unistd cimport readlink
 
 from scheduler.scheduler cimport BatchMailBox, NullResult, Scheduler
 # from scheduler.scheduler cimport SequentialMailBox, NullResult, Scheduler
@@ -40,7 +39,6 @@ cdef Fdict scan_fs_dic(Str path) nogil:
 
     del scheduler
     return collector
-
 
 
 cdef Str to_str(str s):

@@ -11,7 +11,6 @@ cdef cypclass MediaTypes:
 
     __init__(self, Sdict extra_types):
         self.types_map = default_types()
-        # self.default_type = Str("application/octet-stream")
         self.types_map.update(extra_types)
 
     Str get_type(self, Str path):
@@ -27,8 +26,6 @@ cdef cypclass MediaTypes:
             return self.types_map[ext]
         return Str("application/octet-stream")
 
-
-# cdef const char* c_wrap_get_type(MediaTypes mt, Str path) nogil
 
 cdef Str extension(Str filename) nogil
 
