@@ -10,11 +10,14 @@ from wsgiref.util import FileWrapper
 from libcythonplus.dict cimport cypdict
 from stdlib._string cimport string
 from stdlib.string cimport Str
-from .common cimport StrList, StrPair, HeaderList, Sdict, getdefault
+from stdlib.format cimport format
+
+from .common cimport StrList, Sdict, getdefault
+from .header_list cimport HeaderList
+from .startswith cimport startswith, endswith
+from .abspath cimport abspath
 from .scan cimport Finfo, Fdict, scan_fs_dic, from_str, to_str, py_to_string, string_to_py
-
 from .media_types cimport MediaTypes
-
 from .responders cimport make_static_file
 from .responders cimport StaticFile, Response
 # from .responders import MissingFileError, IsDirectoryError, Redirect, StaticFile
@@ -169,10 +172,10 @@ class WhiteNoise(WNCache):
         # media_type = self.media_types.get_type(path)
         # media_type = c_wrap_get_type(self.media_types, path)
         media_type = self.media_types.get_type(path)
-        if media_type.startswith("text/"):
-            headers.add_header("Content-Type", media_type, charset=self.charset)
+        if media_type.startswith(Str("text/")):
+            headers.add_header_charset(Str("Content-Type"), media_type, self.charset)
         else:
-            headers.add_header("Content-Type", media_type)
+            headers.add_header(Str("Content-Type"), media_type)
 
     def add_cache_headers(self, headers, path, url):
         if self.max_age is not None:

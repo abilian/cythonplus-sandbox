@@ -14,6 +14,8 @@ from libcythonplus.dict cimport cypdict
 from stdlib._string cimport string
 from stdlib.string cimport Str
 
+from .common cimport StrList
+from .header_list cimport HeaderList
 from stdlib.regex cimport regex_t, regmatch_t, regcomp, regexec, regfree
 from stdlib.regex cimport REG_EXTENDED
 
@@ -36,11 +38,11 @@ cdef StrList NOT_MODIFIED_HEADERS
 NOT_MODIFIED_HEADERS = gen_not_modified_headers()
 
 
-cdef HeaderList gen_header_list(Str a, Str b) nogil:
+cdef HeaderList gen_header_list(Str k, Str v) nogil:
     cdef HeaderList header_list
 
     header_list = HeaderList()
-    header_list.append(StrPair(a, b))
+    header_list.add_header(k, v)
     return header_list
 
 
@@ -93,7 +95,7 @@ cdef AlternativeList get_alternatives(base_headers, files) nogil:
     return alternatives
 
 
-cdef make_static_file(str path, list headers_list, Fdict stat_cache):
+cdef StaticFile make_static_file(Str path, HeaderList headers_list, Fdict stat_cache) nogil:
     files = file_stats(to_str(path), stat_cache)
     return StaticFile(path, headers_list, files)
 

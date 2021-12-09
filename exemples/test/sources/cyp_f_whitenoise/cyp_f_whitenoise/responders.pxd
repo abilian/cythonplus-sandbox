@@ -15,7 +15,8 @@ from libcythonplus.dict cimport cypdict
 from libcythonplus.list cimport cyplist
 from stdlib._string cimport string
 from stdlib.string cimport Str
-from .common cimport StrList, StrPair, HeaderList
+from .header_list cimport HeaderList
+from .common cimport StrList
 from .scan cimport Finfo, Fdict, from_str, to_str
 from .http_status cimport HttpStatus, HttpStatusDict, generate_http_status_dict
 

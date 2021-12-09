@@ -52,11 +52,7 @@ extensions = [
     pypyx_ext(NAME, "abspath"),
     pypyx_ext(NAME, "startswith"),
     pypyx_ext(NAME, "scan"),
-    pypyx_ext(NAME, "responders"),
-    pypyx_ext(NAME, "base"),
-    pypyx_ext(NAME, "compress"),
     pypyx_ext(NAME, "media_types"),
-    pypyx_ext(NAME, "storage"),
     pypyx_ext(NAME, "string_utils"),
 ]
 
@@ -69,7 +65,7 @@ setup(
             os.path.join(PROJECT_ROOT, NAME),
         ],
     ),
-    name=NAME,
+    name="test_scan",
     version=version,
     # orig author="David Evans",
     # orig author_email="d@evans.io",
