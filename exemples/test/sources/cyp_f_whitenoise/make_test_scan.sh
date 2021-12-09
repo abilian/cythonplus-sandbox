@@ -6,7 +6,7 @@ NAME="cyp_f_whitenoise"
 . make_libfmt.sh
 
 [ -d build ] && rm -fr build
-mkdir build
+mkdir -p build
 cp -a libfmt build
 cp -a ${NAME} build
 
@@ -20,6 +20,8 @@ find ${NAME} -type f -name "*.py" ! -name "__init__.py" -delete
 rm -fr ${NAME}/__pycache__
 
 echo "-----------------------------------------------------------"
-pythonc -c "import test_scan as t; t.main()"
+python -c "import ${NAME}; \
+           print(${NAME}, 'version', ${NAME}.__version__)"
+python -c "from ${NAME} import test_scan as t; t.main()"
 
 cd ..

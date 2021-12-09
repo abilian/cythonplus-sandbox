@@ -18,7 +18,7 @@ cdef cypclass HeaderList:
     PairList plist
 
     __init__(self):
-    self.plist = PairList()
+        self.plist = PairList()
 
     void add_header(self, Str key, Str value):
         cdef StrPair p
@@ -29,5 +29,5 @@ cdef cypclass HeaderList:
     void add_header_charset(self, Str key, Str value, Str charset):
         cdef StrPair p
 
-        p = StrPair(key, value + Str("; charset=" + charset)
+        p = StrPair(key, value + Str("; charset=") + charset)
         self.plist.append(p)

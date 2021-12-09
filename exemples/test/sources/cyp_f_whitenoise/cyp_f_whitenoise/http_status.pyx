@@ -59,7 +59,7 @@ cdef HttpStatusDict generate_http_status_dict() nogil:
     d[Str("FAILED_DEPENDENCY")] = HttpStatus(424, Str("Failed Dependency"), Str(""))
     d[Str("UPGRADE_REQUIRED")] = HttpStatus(426, Str("Upgrade Required"), Str(""))
     d[Str("PRECONDITION_REQUIRED")] = HttpStatus(428, Str("Precondition Required"), Str("The origin server requires the request to be conditional"))
-    d[Str("TOO_MANY_REQUESTS")] = HttpStatus(429, Str("Too Many Requests"), Str("The user has sent too many requests in a given amount of time ("rate limiting")"))
+    d[Str("TOO_MANY_REQUESTS")] = HttpStatus(429, Str("Too Many Requests"), Str("The user has sent too many requests in a given amount of time (\"rate limiting\")"))
     d[Str("REQUEST_HEADER_FIELDS_TOO_LARGE")] = HttpStatus(431, Str("Request Header Fields Too Large"), Str("The server is unwilling to process the request because its header fields are too large"))
     d[Str("UNAVAILABLE_FOR_LEGAL_REASONS")] = HttpStatus(451, Str("Unavailable For Legal Reasons"), Str("The server is denying access to the resource as a consequence of a legal demand"))
     d[Str("INTERNAL_SERVER_ERROR")] = HttpStatus(500, Str("Internal Server Error"), Str("Server got itself in trouble"))

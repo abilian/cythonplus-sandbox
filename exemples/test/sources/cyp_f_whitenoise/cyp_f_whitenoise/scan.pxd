@@ -17,7 +17,7 @@ from stdlib.stat cimport Stat
 from stdlib.dirent cimport DIR, struct_dirent, opendir, readdir, closedir
 
 
-ctypedef cypdict[string, Finfo] Fdict
+ctypedef cypdict[Str, Finfo] Fdict
 
 # Use global for scheduler and collector:
 cdef lock Scheduler scheduler
@@ -95,7 +95,7 @@ cdef cypclass Node activable:
     void collect(self):
         "Collect size and mtime for regular files"
         if self.is_reg:
-            collector[self.path._str] = Finfo(self.size, self.mtime)
+            collector[Str.copy_iso(consume self.path)] = Finfo(self.size, self.mtime)
         else:
             while self.children.__len__() > 0:
                 active_child = self.children[self.children.__len__() -1]

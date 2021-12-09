@@ -10,6 +10,11 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
 
+#
+# add test module
+#
+TEST_MOD = "test_scan"
+
 NAME = "cyp_f_whitenoise"
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 VERSION_RE = re.compile(r"__version__\s+=\s+(.*)")
@@ -49,10 +54,18 @@ def pypyx_ext(*pathname):
 
 
 extensions = [
+    pypyx_ext(NAME, TEST_MOD),
+    pypyx_ext(NAME, "common"),
     pypyx_ext(NAME, "abspath"),
     pypyx_ext(NAME, "startswith"),
-    pypyx_ext(NAME, "scan"),
+    # pypyx_ext(NAME, "header_list"),
+    pypyx_ext(NAME, "http_status"),
     pypyx_ext(NAME, "media_types"),
+    pypyx_ext(NAME, "scan"),
+    pypyx_ext(NAME, "responders"),
+    pypyx_ext(NAME, "base"),
+    pypyx_ext(NAME, "compress"),
+    pypyx_ext(NAME, "storage"),
     pypyx_ext(NAME, "string_utils"),
 ]
 
@@ -65,7 +78,7 @@ setup(
             os.path.join(PROJECT_ROOT, NAME),
         ],
     ),
-    name="test_scan",
+    name=NAME,
     version=version,
     # orig author="David Evans",
     # orig author_email="d@evans.io",

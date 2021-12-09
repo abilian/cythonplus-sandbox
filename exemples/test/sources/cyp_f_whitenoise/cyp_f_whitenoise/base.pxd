@@ -1,6 +1,6 @@
 # distutils: language = c++
 import os
-from os.path import isdir, abspath, sep, join, commonprefix, isfile, exists
+from os.path import isdir, sep, join, commonprefix, isfile, exists
 from posixpath import normpath
 import re
 import warnings
@@ -46,6 +46,12 @@ from .responders cimport StaticFile, Response
 
 ctypedef cypdict[Str, StaticFile] StaticFileCache
 
+#
+# cdef inline StaticFile getdefault_sf(StaticFileCache d, Str key, StaticFile default) nogil:
+#     if key in d:
+#         return d[key]
+#     return default
+
 
 cdef cypclass WhiteNoise:
     Fdict stat_cache
@@ -85,15 +91,14 @@ cdef cypclass WhiteNoise:
         cdef StaticFile static_file
         cdef Response response  # fixme a str list ?
 
-        if Str("PATH_INFO") in environ:
-            path = environ[""]
         path = getdefault(environ, Str("PATH_INFO"), Str(""))
         # no autorefresh
-        static_file = getdefault(self.files, path, NULL)
-        if static_file == NULL:
+        # static_file = getdefault_sf(self.files, path, NULL)
+        if path not in self.files:
             # return self.application(environ, start_response)
             return Str("404")  # fixme
-        response = static_file.get_response(environ["REQUEST_METHOD"], environ)
+        static_file = self.files[path]
+        response = static_file.get_response(environ[Str("REQUEST_METHOD")], environ)
         # return response
         return response.status_line()
 
@@ -105,7 +110,8 @@ cdef cypclass WhiteNoise:
         #  return file_wrapper(response.file)
 
     void add_files(self):
-        cdef Str url
+        cdef Str url, path
+
         if self.root == NULL or self.root.__len__() == 0:
             return
         self.root = abspath(self.root)
@@ -114,7 +120,7 @@ cdef cypclass WhiteNoise:
 
         while startswith(self.prefix, Str("/")):
             self.prefix = self.prefix.substr(1)
-        while endsswith(self.prefix, Str("/")):
+        while endswith(self.prefix, Str("/")):
             self.prefix = self.prefix.substr(-1)
         if self.prefix.__len__() == 0:
             self.prefix = Str("/")
@@ -126,10 +132,12 @@ cdef cypclass WhiteNoise:
         # cdef string s_path
         self.stat_cache = scan_fs_dic(self.root)
 
+        # for item in self.stat_cache.items():
+        #     path = <Str> item.first
         for path in self.stat_cache.keys():
             if self.is_compressed_variant_cache(path):
                 continue
-            relative_path = path.substr(root.__len__()]
+            relative_path = path.substr(root.__len__())
             # relative_url = relative_path.replace("\\", "/")
             # url = prefix + relative_url
             url = prefix + relative_path
@@ -155,9 +163,10 @@ cdef cypclass WhiteNoise:
         self.add_cache_headers(headers, path, url)
         if self.allow_all_origins:
             headers.add_header(Str("Access-Control-Allow-Origin"), Str("*"))
-        if self.add_headers_function:
-            self.add_headers_function(headers, path, url)
-        return make_static_file(path, headers_list, self.stat_cache)
+        # FIXME: see later:
+        # if self.add_headers_function:
+        #     self.add_headers_function(headers, path, url)
+        return make_static_file(path, headers, self.stat_cache)
 
     void add_mime_headers(self, HeaderList headers, Str path, Str url):
         ## error: cyp_a_whitenoise/base.pyx:235:37:
@@ -166,7 +175,7 @@ cdef cypclass WhiteNoise:
         # media_type = self.media_types.get_type(path)
         # media_type = c_wrap_get_type(self.media_types, path)
         media_type = self.media_types.get_type(path)
-        if media_type.startswith(Str("text/")):
+        if startswith(media_type, Str("text/")):
             headers.add_header_charset(Str("Content-Type"), media_type, self.charset)
         else:
             headers.add_header(Str("Content-Type"), media_type)

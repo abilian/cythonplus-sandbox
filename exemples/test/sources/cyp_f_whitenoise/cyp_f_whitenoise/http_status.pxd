@@ -3,6 +3,7 @@
 """
 from libcythonplus.dict cimport cypdict
 from stdlib.string cimport Str
+from stdlib.format cimport format
 
 
 cdef cypclass HttpStatus:
@@ -16,9 +17,10 @@ cdef cypclass HttpStatus:
         self.description = description
 
     Str status_line(self):
-        return Str(self.value) + Str(" ") + self.phrase
+        return format("{} {}", self.value, self.phrase)
 
 
-ctypedef HttpStatusDict cypdict[Str, HttpStatus]
+ctypedef cypdict[Str, HttpStatus] HttpStatusDict
+
 
 cdef HttpStatusDict generate_http_status_dict() nogil
