@@ -14,9 +14,9 @@ cp setup_split.py build
 cd build
 
 python setup_split.py build_ext --inplace
-find ${NAME} -type f -name "*.c" -delete
-find ${NAME} -type f -name "*.cpp" -delete
-find ${NAME} -type f -name "*.py" ! -name "__init__.py" -delete
+# find ${NAME} -type f -name "*.c" -delete
+# find ${NAME} -type f -name "*.cpp" -delete
+# find ${NAME} -type f -name "*.py" ! -name "__init__.py" -delete
 rm -fr ${NAME}/__pycache__
 
 echo "-----------------------------------------------------------"

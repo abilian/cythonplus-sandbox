@@ -53,16 +53,17 @@ def pypyx_ext(*pathname):
             "-Wno-deprecated-declarations",
         ],
         libraries=["fmt"],
-        include_dirs=["libfmt", "stdlib"],
+        include_dirs=["libfmt"],
         library_dirs=["libfmt"],
     )
 
 
 extensions = [
+    pypyx_ext(NAME, "stdlib", "startswith"),
+    pypyx_ext(NAME, "stdlib", "abspath"),
+    pypyx_ext(NAME, "stdlib", "regex"),
     pypyx_ext(NAME, TEST_MOD),
-    # pypyx_ext(NAME, "common"),
-    pypyx_ext(NAME, "abspath"),
-    pypyx_ext(NAME, "startswith"),
+    pypyx_ext(NAME, "common"),
     pypyx_ext(NAME, "http_status"),
     # pypyx_ext(NAME, "header_list"),
     # pypyx_ext(NAME, "media_types"),

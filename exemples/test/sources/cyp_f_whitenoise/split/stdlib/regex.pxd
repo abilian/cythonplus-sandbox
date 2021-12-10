@@ -1,4 +1,5 @@
 # distutils: language = c++
+from stdlib.string cimport Str
 
 cdef extern from "<regex.h>" nogil:
 
@@ -21,3 +22,6 @@ cdef extern from "<regex.h>" nogil:
     int regcomp(regex_t * regex, const char * pattern, int flag)
     int regexec(const regex_t * regex, const char * target, size_t nmatch, regmatch_t pmatch[], int flag)
     void regfree(regex_t * regex)
+
+
+cdef bint re_is_match(Str, Str) nogil

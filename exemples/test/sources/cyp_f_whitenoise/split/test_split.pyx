@@ -1,28 +1,14 @@
 # distutils: language = c++
 from libc.stdio cimport printf, puts
-from stdlib._string cimport string
 from stdlib.string cimport Str
 
-from .abspath cimport abspath
-from .startswith cimport startswith, endswith
-from stdlib.regex cimport regex_t, regmatch_t, regcomp, regexec, regfree
-from stdlib.regex cimport REG_EXTENDED
+from .stdlib.abspath cimport abspath
+from .stdlib.startswith cimport startswith, endswith
+from .stdlib.regex cimport re_is_match
 
+from .common cimport Sdict, getdefault, StrList
 from .http_status cimport HttpStatus, HttpStatusDict, generate_http_status_dict
 
-
-cdef bint re_match(Str pattern, Str target) nogil:
-    cdef regex_t regex
-    cdef int result
-    # cdef regmatch_t  pmatch[1]
-
-    if regcomp(&regex, pattern.bytes(), REG_EXTENDED):
-        with gil:
-            raise ValueError(f"regcomp failed on {pattern.bytes()}")
-
-    if not regexec(&regex, target.bytes(), 0, NULL, 0):
-        return 1
-    return 0
 
 cdef void test_http_status():
     cdef HttpStatusDict hsd
@@ -35,6 +21,47 @@ cdef void test_http_status():
     print(s.status_line().bytes())
 
 
+cdef void test_strlist():
+    cdef StrList lst
+    cdef Str s
+
+    lst = StrList()
+    lst.append(Str("a"))
+    lst.append(Str("b"))
+    print("StrList:")
+    print(lst.__len__())
+    print(Str("a") in lst)
+    # for i in lst:
+    for i in range(lst.__len__()):
+        s = lst[i]
+        puts(s._str.c_str())
+        puts(s.bytes())
+
+
+cdef void test_sdict():
+    cdef Sdict d
+    cdef Str s
+
+    d = Sdict()
+    d[Str("a")] = Str("A")
+    d[Str("b")] = Str("B")
+    d[Str("c")] = Str("C")
+    del d[Str("c")]
+    print("Sdict:")
+    print(d.__len__())
+    s = d[Str("b")]
+    print(s.bytes())
+    s = getdefault(d, Str("k"), Str("no k"))
+    print(s.bytes())
+    for i in d.items():
+        puts(i.first.bytes())
+        puts(i.second.bytes())
+    for s in d.keys():
+        puts(s.bytes())
+    print(Str("a") in d)
+    print(Str("x") in d)
+
+
 def main():
     root = abspath(Str("."))
     print("split2")
@@ -42,6 +69,8 @@ def main():
     print("endswith :", endswith(root, Str('toto')))
     print("startswith :", startswith(Str("abc"), Str('ab')))
     print("startswith :", startswith(root, Str('toto')))
-    print("regex :", re_match(Str("abc"), Str("cccccabccccc")))
-    print("regex :", re_match(Str("abcxxx"), Str("cccccabccccc")))
+    print("regex :", re_is_match(Str("abc"), Str("cccccabccccc")))
+    print("regex :", re_is_match(Str("abcxxx"), Str("cccccabccccc")))
     test_http_status()
+    test_strlist()
+    test_sdict()

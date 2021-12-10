@@ -1,6 +1,7 @@
 # distutils: language = c++
 from stdlib.string cimport Str
 
+
 cdef bint startswith(Str target, Str search) nogil:
     if target is NULL or search is NULL:
         return 0
