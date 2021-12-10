@@ -4,6 +4,7 @@ from stdlib.string cimport Str
 
 from .stdlib.abspath cimport abspath
 from .stdlib.startswith cimport startswith, endswith
+from .stdlib.strip cimport stripped
 from .stdlib.regex cimport re_is_match
 
 from .common cimport Sdict, getdefault, StrList
@@ -36,6 +37,32 @@ cdef void test_strlist():
         s = lst[i]
         puts(s._str.c_str())
         puts(s.bytes())
+
+
+cdef void test_stripped():
+    cdef Str s, s2
+    cdef Str t = Str("-")
+
+    s = Str("bold")
+    s2 = t + s + t + Str("   ") + t + stripped(s) + t
+    print(s2.bytes())
+
+    s = Str("right  ")
+    s2 = t + s + t + Str("   ") + t + stripped(s) + t
+    print(s2.bytes())
+
+    s = Str("  left")
+    s2 = t + s + t + Str("   ") + t + stripped(s) + t
+    print(s2.bytes())
+
+    s = Str("    both  ")
+    s2 = t + s + t + Str("   ") + t + stripped(s) + t
+    print(s2.bytes())
+
+    s = Str("      ")
+    s2 = t + s + t + Str("   ") + t + stripped(s) + t
+    print(s2.bytes())
+
 
 
 cdef void test_sdict():
@@ -74,3 +101,4 @@ def main():
     test_http_status()
     test_strlist()
     test_sdict()
+    test_stripped()

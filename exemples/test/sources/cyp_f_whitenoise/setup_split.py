@@ -62,6 +62,7 @@ extensions = [
     pypyx_ext(NAME, "stdlib", "startswith"),
     pypyx_ext(NAME, "stdlib", "abspath"),
     pypyx_ext(NAME, "stdlib", "regex"),
+    pypyx_ext(NAME, "stdlib", "strip"),
     pypyx_ext(NAME, TEST_MOD),
     pypyx_ext(NAME, "common"),
     pypyx_ext(NAME, "http_status"),
