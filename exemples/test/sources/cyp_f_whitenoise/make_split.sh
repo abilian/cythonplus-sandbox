@@ -5,10 +5,10 @@ NAME="split"
 
 . make_libfmt.sh
 
-[ -d build ] && rm -fr build
+# [ -d build ] && rm -fr build
 mkdir -p build
-cp -a libfmt build
-cp -a ${NAME} build
+rsync -a libfmt build/
+rsync -a ${NAME} build/
 
 cp setup_split.py build
 cd build

@@ -133,16 +133,19 @@ cdef void test_mediatypes():
 cdef void test_scan(Str root):
     cdef Fdict scanned
     cdef Finfo info
+    # cdef Str x
 
-    print("---------------- scan ---------------")
+    print("Scan:")
     print(root.bytes())
     scanned = scan_fs_dic(root)
     i = 0
-    for item in scanned:
+    for item in scanned.items():
         i += 1
         if i > 10:
             return
-        print(item.first.c_str(), item.second.size, item.second.mtime)
+        # x = Str(item.first.c_str())
+        # print(x.bytes())
+        print(item.first, item.second.size, item.second.mtime)
 
 
 def main():
