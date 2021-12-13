@@ -10,6 +10,7 @@ from .stdlib.regex cimport re_is_match
 from .common cimport Sdict, getdefault, StrList
 from .http_status cimport HttpStatus, HttpStatusDict, generate_http_status_dict
 from .http_headers cimport HttpHeaders
+from .media_types cimport MediaTypes
 
 
 cdef void test_http_status():
@@ -118,6 +119,16 @@ cdef void test_HttpHeaders():
     print("v4:", resu._str.c_str())
 
 
+cdef void test_mediatypes():
+    cdef MediaTypes mt
+    cdef Sdict extratypes = Sdict()
+
+    mt = MediaTypes(extratypes)
+    print(mt.get_type(Str("aaa")).bytes())
+    print(mt.get_type(Str("bbb.css")).bytes())
+    print(mt.get_type(Str("ccc.HTML")).bytes())
+
+
 def main():
     root = abspath(Str("."))
     print("split2")
@@ -132,3 +143,4 @@ def main():
     test_sdict()
     test_stripped()
     test_HttpHeaders()
+    test_mediatypes()
