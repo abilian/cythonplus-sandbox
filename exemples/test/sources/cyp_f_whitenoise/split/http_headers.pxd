@@ -8,46 +8,104 @@ from stdlib.format cimport format
 from .stdlib.strip cimport stripped
 
 
-cdef cypclass HttpHeaderLine:
-    Str key
-    Str value
+cdef cypclass HttpHeaderValue:
+    Str content
 
-    __init__(self, Str key, Str value):
-        self.key = key
-        self.value = value
+    __init__(self, Str content):
+        self.content = stripped(content)
 
     cyplist[Str] splitted(self):
         cdef cyplist[Str] lst, lst_result
         cdef Str s, r
 
-        lst = self.value.split(Str(","))
+        lst = self.content.split(Str(","))
         lst_result = cyplist[Str]()
         for s in lst:
             r = stripped(s)
             if r is not NULL and r.__len__() > 0:
                 lst_result.append(r)
+        return lst_result
 
-    void add(self, Str value)
-        cdef Str s, comma
+    void add(self, Str content):
+        cdef Str scontent, comma
         cdef cyplist[Str] lst
 
-        if value is NULL:
+        if content is NULL:
             return
-        s = stripped(value)
-        if s.__len__() == 0:
+        scontent = stripped(content)
+        if scontent.__len__() == 0:
             return
 
         lst = self.splitted()
-        lst.append(s)
+        lst.append(scontent)
         comma = Str(", ")
-        self.value = comma.join(lst)
+        self.content = comma.join(lst)
 
-    void set(self, Str value)
-        self.value = value
+    void set(self, Str content):
+        self.content = content
 
 
 cdef cypclass HttpHeaders:
-    cypdict[HttpHeaderLine] headers
+    cypdict[Str, HttpHeaderValue] headers
 
     __init__(self):
-        self.headers = cypdict[HttpHeaderLine]()
+        self.headers = cypdict[Str, HttpHeaderValue]()
+
+    void append(self, Str key, Str content):
+        cdef Str skey
+        cdef Str scontent
+        cdef HttpHeaderValue hhv
+
+        skey = stripped(key)
+        scontent = stripped(content)
+        if skey in self.headers:
+            # mix new content with current one
+            hhv = self.headers[skey]
+            hhv.add(scontent)
+        else:
+            hhv = HttpHeaderValue(scontent)
+        self.headers[skey] = hhv
+
+    void set(self, Str key, Str content):
+        self.headers[stripped(key)] = HttpHeaderValue(stripped(content))
+
+    void remove(self, Str key):
+        cdef Str skey
+
+        skey = stripped(key)
+        if skey in self.headers:
+            del self.headers[skey]
+
+    Str get_content(self, Str key):
+        cdef Str skey
+        cdef HttpHeaderValue hhv
+
+        skey = stripped(key)
+        if skey in self.headers:
+            hhv = self.headers[skey]
+            return hhv.content
+        return NULL
+
+    cyplist[Str] get_list(self, Str key):
+        cdef Str skey
+        cdef HttpHeaderValue hhv
+
+        skey = stripped(key)
+        if skey not in self.headers:
+            return cyplist[Str]()
+        hhv = self.headers[skey]
+        return hhv.splitted()
+
+    Str get_text(self):
+        cdef Str result
+        cdef cyplist[Str] lst
+        cdef Str comma
+
+        if self.headers.__len__() == 0:
+            return Str("")
+        lst = cyplist[Str]()
+        for item in self.headers.items():
+            lst.append(format("{}: {}", <Str>item.first, <Str>item.second.content))
+        comma = Str("\r\n")
+        result = comma.join(lst) + comma
+        return result

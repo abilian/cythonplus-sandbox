@@ -9,6 +9,7 @@ from .stdlib.regex cimport re_is_match
 
 from .common cimport Sdict, getdefault, StrList
 from .http_status cimport HttpStatus, HttpStatusDict, generate_http_status_dict
+from .http_headers cimport HttpHeaders
 
 
 cdef void test_http_status():
@@ -89,6 +90,34 @@ cdef void test_sdict():
     print(Str("x") in d)
 
 
+cdef void test_HttpHeaders():
+    cdef HttpHeaders hh
+    cdef Str resu
+
+    hh = HttpHeaders()
+    print("HttpHeaders:")
+    empty = hh.get_text().bytes()
+    print("empty:", empty)
+
+    hh.set(Str("SomeKey"), Str("SomeValue1"))
+    resu = hh.get_text()
+    print("v1:", resu._str.c_str())
+
+    hh.append(Str("AnotherKey "), Str("SomeValue2"))
+    hh.append(Str("AnotherKey"), Str("SomeValue3"))
+    hh.append(Str("thirdkey"), Str(" CCCCCC"))
+    resu = hh.get_text()
+    print("v2:", resu._str.c_str())
+
+    resu = hh.get_content(Str("AnotherKey"))
+    print("v3:", resu._str.c_str())
+
+    hh.set(Str("SomeKey"), Str("Other"))
+    hh.remove(Str("AnotherKey"))
+    resu = hh.get_text()
+    print("v4:", resu._str.c_str())
+
+
 def main():
     root = abspath(Str("."))
     print("split2")
@@ -102,3 +131,4 @@ def main():
     test_strlist()
     test_sdict()
     test_stripped()
+    test_HttpHeaders()
