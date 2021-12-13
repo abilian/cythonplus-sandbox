@@ -67,7 +67,7 @@ extensions = [
     pypyx_ext(NAME, "common"),
     pypyx_ext(NAME, "http_status"),
     pypyx_ext(NAME, "media_types"),
-    # pypyx_ext(NAME, "scan"),
+    pypyx_ext(NAME, "scan"),
     # pypyx_ext(NAME, "responders"),
     # pypyx_ext(NAME, "base"),
     # pypyx_ext(NAME, "compress"),

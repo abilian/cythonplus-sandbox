@@ -7,10 +7,11 @@ from .stdlib.startswith cimport startswith, endswith
 from .stdlib.strip cimport stripped
 from .stdlib.regex cimport re_is_match
 
-from .common cimport Sdict, getdefault, StrList
+from .common cimport Sdict, getdefault, StrList, Finfo, Fdict
 from .http_status cimport HttpStatus, HttpStatusDict, generate_http_status_dict
 from .http_headers cimport HttpHeaders
 from .media_types cimport MediaTypes
+from .scan cimport scan_fs_dic
 
 
 cdef void test_http_status():
@@ -129,6 +130,21 @@ cdef void test_mediatypes():
     print(mt.get_type(Str("ccc.HTML")).bytes())
 
 
+cdef void test_scan(Str root):
+    cdef Fdict scanned
+    cdef Finfo info
+
+    print("---------------- scan ---------------")
+    print(root.bytes())
+    scanned = scan_fs_dic(root)
+    i = 0
+    for item in scanned:
+        i += 1
+        if i > 10:
+            return
+        print(item.first.c_str(), item.second.size, item.second.mtime)
+
+
 def main():
     root = abspath(Str("."))
     print("split2")
@@ -144,3 +160,4 @@ def main():
     test_stripped()
     test_HttpHeaders()
     test_mediatypes()
+    test_scan(root)
