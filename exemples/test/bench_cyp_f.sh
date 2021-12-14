@@ -17,7 +17,7 @@ grep -q 'initialization' <(tail -f ${LOG})
 sleep 3
 echo "start requests"
 WRK=~/tmp/wntest/wrk/wrk
-${WRK} -c10 -d20s -t1 http://localhost:${PORT}/random_image
+${WRK} -c10 -d20s -t1 -s ./rnd.lua http://localhost:${PORT}
 
 kill $(cat ${PID})
 exit
