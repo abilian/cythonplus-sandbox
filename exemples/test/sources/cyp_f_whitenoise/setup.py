@@ -1,6 +1,6 @@
 import ast
-import codecs
 import os
+from os.path import join
 import re
 import sys
 
@@ -12,21 +12,25 @@ from Cython.Build import cythonize
 
 NAME = "cyp_f_whitenoise"
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
-VERSION_RE = re.compile(r"__version__\s+=\s+(.*)")
 
 
 def read(*path):
-    full_path = os.path.join(PROJECT_ROOT, *path)
-    with codecs.open(full_path, "r", encoding="utf-8") as f:
+    full_path = join(PROJECT_ROOT, *path)
+    with open(full_path, "r", encoding="utf-8") as f:
         return f.read()
 
 
-version_string = VERSION_RE.search(read(os.path.join(NAME, "__init__.py"))).group(1)
-version = str(ast.literal_eval(version_string))
+def read_version():
+    version_re = re.compile(r"__version__\s+=\s+(.*)")
+    version_string = version_re.search(read(join(NAME, "__init__.py"))).group(1)
+    return str(ast.literal_eval(version_string))
+
+
+version = read_version()
 
 
 def pypyx_ext(*pathname):
-    src = os.path.join(*pathname) + ".py"
+    src = join(*pathname) + ".py"
     if not os.path.exists(src):
         src += "x"
     if not os.path.exists(src):
@@ -43,21 +47,28 @@ def pypyx_ext(*pathname):
             "-Wno-deprecated-declarations",
         ],
         libraries=["fmt"],
-        include_dirs=["libfmt", "stdlib"],
+        include_dirs=["libfmt"],
         library_dirs=["libfmt"],
     )
 
 
 extensions = [
-    pypyx_ext(NAME, "abspath"),
-    pypyx_ext(NAME, "startswith"),
-    pypyx_ext(NAME, "scan"),
-    pypyx_ext(NAME, "responders"),
-    pypyx_ext(NAME, "base"),
-    pypyx_ext(NAME, "compress"),
+    pypyx_ext(NAME, "stdlib", "startswith"),
+    pypyx_ext(NAME, "stdlib", "abspath"),
+    pypyx_ext(NAME, "stdlib", "regex"),
+    pypyx_ext(NAME, "stdlib", "strip"),
+    pypyx_ext(NAME, "stdlib", "formatdate"),
+    pypyx_ext(NAME, "stdlib", "parsedate"),
+    pypyx_ext(NAME, "common"),
+    pypyx_ext(NAME, "http_status"),
+    pypyx_ext(NAME, "http_headers"),
     pypyx_ext(NAME, "media_types"),
-    pypyx_ext(NAME, "storage"),
-    pypyx_ext(NAME, "string_utils"),
+    pypyx_ext(NAME, "scan"),
+    pypyx_ext(NAME, "base"),
+    # pypyx_ext(NAME, "responders"),
+    # pypyx_ext(NAME, "compress"),
+    # pypyx_ext(NAME, "storage"),
+    # pypyx_ext(NAME, "string_utils"),
 ]
 
 

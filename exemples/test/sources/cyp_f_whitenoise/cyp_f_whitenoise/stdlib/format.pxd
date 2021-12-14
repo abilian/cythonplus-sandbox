@@ -30,4 +30,3 @@ cdef extern from * nogil:
     """
 
     Str format "format<Cy_Str>" (const char *, ...) except +
-

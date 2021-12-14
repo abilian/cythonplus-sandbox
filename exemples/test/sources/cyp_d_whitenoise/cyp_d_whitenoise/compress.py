@@ -12,7 +12,7 @@ except ImportError:
     brotli_installed = False
 
 
-class Compressor(object):
+class Compressor:
 
     # Extensions that it's not worth trying to compress
     SKIP_COMPRESS_EXTENSIONS = (

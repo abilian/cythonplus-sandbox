@@ -17,7 +17,7 @@ python setup_split.py build_ext --inplace
 # find ${NAME} -type f -name "*.c" -delete
 # find ${NAME} -type f -name "*.cpp" -delete
 # find ${NAME} -type f -name "*.py" ! -name "__init__.py" -delete
-rm -fr ${NAME}/__pycache__
+# rm -fr ${NAME}/__pycache__
 
 echo "-----------------------------------------------------------"
 python -c "import ${NAME}; \

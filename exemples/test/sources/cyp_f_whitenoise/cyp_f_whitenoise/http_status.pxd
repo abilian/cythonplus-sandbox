@@ -1,9 +1,13 @@
-#!/usr/bin/env python
 """python's http status table
 """
 from libcythonplus.dict cimport cypdict
 from stdlib.string cimport Str
+from stdlib._string cimport string
 from stdlib.format cimport format
+
+
+ctypedef cypdict[Str, HttpStatus] HttpStatusDict
+ctypedef cypdict[Str, string] StatusLinesDict
 
 
 cdef cypclass HttpStatus:
@@ -20,7 +24,6 @@ cdef cypclass HttpStatus:
         return format("{} {}", self.value, self.phrase)
 
 
-ctypedef cypdict[Str, HttpStatus] HttpStatusDict
-
-
 cdef HttpStatusDict generate_http_status_dict() nogil
+cdef StatusLinesDict generate_status_lines() nogil
+cdef string get_status_line(Str) nogil

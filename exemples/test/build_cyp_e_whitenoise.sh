@@ -1,8 +1,9 @@
 #!/bin/bash -v
 
-[ -f "build_cyp_e_whitenoise.sh" ] || exit 1
-[ -d cyp_e_whitenoise ] && rm -fr cyp_e_whitenoise
-cd sources/cyp_e_whitenoise
+S="cyp_e"
+[ -f "build_${S}_whitenoise.sh" ] || exit 1
+[ -d ${S}_whitenoise ] && rm -fr ${S}_whitenoise
+cd sources/${S}_whitenoise
 ./make_cythonplus.sh
 cd ../..
-mv sources/cyp_e_whitenoise/build/cyp_e_whitenoise .
+rsync -a sources/${S}_whitenoise/build/${S}_whitenoise .

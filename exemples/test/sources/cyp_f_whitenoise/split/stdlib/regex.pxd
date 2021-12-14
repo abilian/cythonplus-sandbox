@@ -1,6 +1,7 @@
 # distutils: language = c++
 from stdlib.string cimport Str
 
+
 cdef extern from "<regex.h>" nogil:
 
     ctypedef struct regex_t:

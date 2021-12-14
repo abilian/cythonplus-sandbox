@@ -1,40 +1,22 @@
 # distutils: language = c++
 from posix.types cimport off_t, time_t
-from libc.stdio cimport (printf, puts, fprintf, fopen, fclose, fread,
-                         fwrite, FILE, stdout, ferror)
-# from posix.unistd cimport readlink
-
+# from libc.stdio cimport (printf, puts, fprintf, fopen, fclose, fread,
+#                          fwrite, FILE, stdout, ferror)
 from libcythonplus.list cimport cyplist
-from libcythonplus.dict cimport cypdict
-
-from scheduler.scheduler cimport BatchMailBox, NullResult, Scheduler
-# from scheduler.scheduler cimport SequentialMailBox, NullResult, Scheduler
-
-from stdlib._string cimport string
 from stdlib.string cimport Str
+from stdlib._string cimport string
 
 from stdlib.stat cimport Stat
 from stdlib.dirent cimport DIR, struct_dirent, opendir, readdir, closedir
+# from scheduler.scheduler cimport BatchMailBox, NullResult, Scheduler
+from scheduler.scheduler cimport SequentialMailBox, NullResult, Scheduler
 
+from .common cimport Finfo, Fdict
 
-ctypedef cypdict[Str, Finfo] Fdict
 
 # Use global for scheduler and collector:
 cdef lock Scheduler scheduler
 cdef Fdict collector
-
-
-cdef cypclass Finfo:
-    # bint is_reg
-    # bint is_dir
-    off_t size
-    time_t mtime
-
-    __init__(self, off_t size, time_t mtime):
-        # self.is_reg = is_reg
-        # self.is_dir = is_dir
-        self.size = size
-        self.mtime = mtime
 
 
 cdef cypclass Node activable:
@@ -48,8 +30,8 @@ cdef cypclass Node activable:
 
     __init__(self, iso Str path, iso Str name, Stat st):
         self._active_result_class = NullResult
-        self._active_queue_class = consume BatchMailBox(scheduler)
-        # self._active_queue_class = consume SequentialMailBox(scheduler)
+        # self._active_queue_class = consume BatchMailBox(scheduler)
+        self._active_queue_class = consume SequentialMailBox(scheduler)
         self.path = consume path
         self.name = consume name
         self.size = st.st_data.st_size
@@ -95,7 +77,8 @@ cdef cypclass Node activable:
     void collect(self):
         "Collect size and mtime for regular files"
         if self.is_reg:
-            collector[Str.copy_iso(consume self.path)] = Finfo(self.size, self.mtime)
+            # collector[Str.copy_iso(consume self.path)] = Finfo(self.size, self.mtime)
+            collector[self.path._str] = Finfo(self.size, self.mtime)
         else:
             while self.children.__len__() > 0:
                 active_child = self.children[self.children.__len__() -1]
@@ -106,7 +89,3 @@ cdef cypclass Node activable:
 
 cdef iso Node make_node(iso Str, iso Str) nogil
 cdef Fdict scan_fs_dic(Str) nogil
-cdef Str to_str(str)
-cdef from_str(Str)
-cdef string py_to_string(str)
-cdef string_to_py(string)

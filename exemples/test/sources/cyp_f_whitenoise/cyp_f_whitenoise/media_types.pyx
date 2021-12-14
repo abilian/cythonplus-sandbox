@@ -1,12 +1,12 @@
 # distutils: language = c++
-
 from libcythonplus.dict cimport cypdict
 from stdlib.string cimport Str
+from .common cimport Sdict
 
 
 cdef Str extension(Str filename) nogil:
     cdef size_t pos = filename._str.find_last_of(".")
-    return filename.substr(pos + 1)
+    return filename.substr(pos)
 
 
 cdef Sdict default_types() nogil:

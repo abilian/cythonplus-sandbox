@@ -23,6 +23,9 @@ from .string_utils import (
     ensure_leading_trailing_slash,
 )
 
+# def xlog(*msg):
+#     with open("/tmp/a.log", "a+") as f:
+#         f.write(" ".join(list(str(x) for x in msg))+"\n")
 
 cdef class WNCache:
     cdef Fdict stat_cache
@@ -91,6 +94,8 @@ class WhiteNoise(WNCache):
 
     # def __init__(self, application, root=None, prefix=None, **kwargs):
     def __init__(self, application, root=None, prefix=None, max_age=60):
+        # xlog("=============================================================")
+        # xlog("init of WN")
 
         # for attr in self.config_attrs:
         #     try:
@@ -120,7 +125,9 @@ class WhiteNoise(WNCache):
         if not callable(self.immutable_file_test):
             regex = re.compile(self.immutable_file_test)
             self.immutable_file_test = lambda path, url: bool(regex.search(url))
+        self.last_ok = {}
         if root is not None:
+            # xlog("add files", root)
             self.add_files(root, prefix)
         # self.stat_cache = Fdict()
 
@@ -129,84 +136,76 @@ class WhiteNoise(WNCache):
         #     for k, v in environ.items():
         #         f.write(f"{k}:{v}\n")
         # sys.exit()
-        path = decode_path_info(environ.get("PATH_INFO", ""))
-        if self.autorefresh:
-            static_file = self.find_file(path)
-        else:
-            static_file = self.files.get(path)
+        # path = decode_path_info(environ.get("PATH_INFO", ""))
+        path = environ.get("PATH_INFO", "")
+        # xlog("--->", path)
+        ##last_ok = self.last_ok.get(path)
+        # xlog(last_ok)
+        # if last_ok and environ["REQUEST_METHOD"] == "GET":
+        #     start_response(last_ok[0], last_ok[1])
+        #     file_wrapper = environ.get("wsgi.file_wrapper", FileWrapper)
+        #     # xlog("ok", path)
+        #     return file_wrapper(open(last_ok[2], "rb"))
+        if environ["REQUEST_METHOD"] == "GET":
+            cache = self.last_ok.get(path)
+            if cache:
+                start_response(cache[0], cache[1])
+                file_wrapper = environ.get("wsgi.file_wrapper", FileWrapper)
+                return file_wrapper(open(cache[2], "rb"))
+        static_file = self.files.get(path)
         if static_file is None:
             return self.application(environ, start_response)
         else:
-            return self.serve(path, static_file, environ, start_response)
+            return self.serve(static_file, environ, start_response)
 
     @staticmethod
-    def serve2(path, static_file, environ, start_response):
-        method = environ["REQUEST_METHOD"]
-        if not static_file.last_ok or method != "GET":
-            response = static_file.get_response(method, environ)
-            status_line = "{} {}".format(response.status, response.status.phrase)
-            start_response(status_line, list(response.headers))
-            if response.file is not None:
-                file_wrapper = environ.get("wsgi.file_wrapper", FileWrapper)
-                return file_wrapper(response.file)
-            else:
-                return []
-        else:
-            cache = static_file.last_ok
-            start_response(cache[0], cache[1])
+    def serve(static_file, environ, start_response):
+        response = static_file.get_response(environ["REQUEST_METHOD"], environ)
+        status_line = "{} {}".format(response.status, response.status.phrase)
+        start_response(status_line, list(response.headers))
+        if response.file is not None:
             file_wrapper = environ.get("wsgi.file_wrapper", FileWrapper)
-            return file_wrapper(open(cache[2], "rb"))
-
-    # @staticmethod
-    # def serve(static_file, environ, start_response):
-    #     response = static_file.get_response(environ["REQUEST_METHOD"], environ)
-    #     status_line = "{} {}".format(response.status, response.status.phrase)
-    #     start_response(status_line, list(response.headers))
-    #     if response.file is not None:
-    #         file_wrapper = environ.get("wsgi.file_wrapper", FileWrapper)
-    #         return file_wrapper(response.file)
-    #     else:
-    #         return []
+            return file_wrapper(response.file)
+        else:
+            return []
 
     def add_files(self, root, prefix=None):
         root = decode_if_byte_string(root, force_text=True)
         root = os.path.abspath(root)
-        root = root.rstrip(os.path.sep) + os.path.sep
+        root = root.rstrip(os.path.sep)
         prefix = decode_if_byte_string(prefix)
         prefix = ensure_leading_trailing_slash(prefix)
-        if self.autorefresh:
-            # Later calls to `add_files` overwrite earlier ones, hence we need
-            # to store the list of directories in reverse order so later ones
-            # match first when they're checked in "autorefresh" mode
-            self.directories.insert(0, (root, prefix))
+        # xlog("in add_files", root)
+        if os.path.isdir(root):
+            self.update_files_dictionary(root, prefix)
         else:
-            if os.path.isdir(root):
-                self.update_files_dictionary(root, prefix)
-            else:
-                warnings.warn("No directory at: {}".format(root))
+            # xlog("No directory at:", root)
+            warnings.warn("No directory at: {}".format(root))
 
     def update_files_dictionary(self, root, prefix):
         # Build a mapping from paths to the results of `os.stat` calls
         # so we only have to touch the filesystem once
         cdef string s_path
+        # xlog("in update_files_dictionary")
 
         WNCache.scan_tree(self, root)
+        # xlog(len(WNCache.stat_cache_keys(self)))
         for path in WNCache.stat_cache_keys(self):
+            # xlog('--', path)
             relative_path = path[len(root) :]
             relative_url = relative_path.replace("\\", "/")
+            while relative_url.startswith('/'):
+                relative_url = relative_url[1:]
             url = prefix + relative_url
             self.add_file_to_dictionary(url, path)
 
     def add_file_to_dictionary(self, url, path):
+        # xlog("add_file_to_dictionary", url, path)
         if self.is_compressed_variant_cache(path):
             return
-        if self.index_file and url.endswith("/" + self.index_file):
-            index_url = url[: -len(self.index_file)]
-            index_no_slash = index_url.rstrip("/")
-            self.files[url] = self.redirect(url, index_url)
-            self.files[index_no_slash] = self.redirect(index_no_slash, index_url)
-            url = index_url
         static_file = self.get_static_file_cache(path, url)
+        # xlog("static_file is", static_file)
+        self.last_ok[url] = static_file.check_response()
         self.files[url] = static_file
 
     def find_file(self, url):

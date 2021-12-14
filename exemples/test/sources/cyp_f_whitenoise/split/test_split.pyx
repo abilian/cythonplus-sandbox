@@ -1,28 +1,34 @@
 # distutils: language = c++
 from libc.stdio cimport printf, puts
+from libc.time cimport time_t, time
+from libcythonplus.dict cimport cypdict
+from stdlib._string cimport string
 from stdlib.string cimport Str
+from stdlib.format cimport format
 
 from .stdlib.abspath cimport abspath
 from .stdlib.startswith cimport startswith, endswith
 from .stdlib.strip cimport stripped
 from .stdlib.regex cimport re_is_match
+from .stdlib.formatdate cimport formatdate
+from .stdlib.parsedate cimport parsedate
 
 from .common cimport Sdict, getdefault, StrList, Finfo, Fdict
-from .http_status cimport HttpStatus, HttpStatusDict, generate_http_status_dict
-from .http_headers cimport HttpHeaders
+from .http_status cimport get_status_line
+from .http_headers cimport HttpHeaders, py_environ_headers, make_header
 from .media_types cimport MediaTypes
 from .scan cimport scan_fs_dic
+from .response cimport Response
+from .static_file cimport StaticFile
 
 
 cdef void test_http_status():
-    cdef HttpStatusDict hsd
-    cdef HttpStatus s
-
-    hsd = generate_http_status_dict()
+    cdef string s
     puts("HttpStatusDict:")
-    print(hsd.__len__())
-    s = hsd[Str("OK")]
-    print(s.status_line().bytes())
+    s = get_status_line(Str("OK"))
+    print(s.c_str())
+    s = get_status_line(Str("NOT_MODIFIED"))
+    print(s.c_str())
 
 
 cdef void test_strlist():
@@ -93,8 +99,9 @@ cdef void test_sdict():
 
 
 cdef void test_HttpHeaders():
-    cdef HttpHeaders hh
+    cdef HttpHeaders hh, h2
     cdef Str resu
+    cdef cypdict[string, string] str_headers,
 
     hh = HttpHeaders()
     print("HttpHeaders:")
@@ -118,6 +125,23 @@ cdef void test_HttpHeaders():
     hh.remove(Str("AnotherKey"))
     resu = hh.get_text()
     print("v4:", resu._str.c_str())
+    h2 = hh.copy()
+    resu = h2.get_text()
+    print("copy:", resu._str.c_str())
+    print('env conversion:')
+    env = {
+        "REQUEST_METHOD": "GET",
+        "QUERY_STRING": b"some bytes",
+        "strange": [1, 2, 3]
+        }
+    str_headers = py_environ_headers(env)
+    for item in str_headers.items():
+        print(item.first.c_str(), item.second.c_str())
+    print('--------------')
+    hh = make_header(Str("Key"), Str("Value"))
+    resu = hh.get_text()
+    print("make_header:", resu._str.c_str())
+    print('--------------')
 
 
 cdef void test_mediatypes():
@@ -148,6 +172,32 @@ cdef void test_scan(Str root):
         print(item.first, item.second.size, item.second.mtime)
 
 
+cdef test_formatdate():
+    cdef time_t t = time(NULL)
+    cdef time_t p
+    cdef Str dt
+
+    print("--------- formatdate ----------")
+    dt = formatdate(t)
+    print(dt._str)
+    p = parsedate(dt)
+    print(p)
+    dt = formatdate(p)
+    print(dt._str)
+
+
+cdef test_response():
+    cdef Response r
+
+    # r = NOT_ALLOWED_RESPONSE
+    print("-- responses: ---------")
+    # print(r.status_line._str.c_str())
+    # resu = r.headers.get_text()
+    # print(resu._str.c_str())
+    # if r.file_path:
+    #     print(r.file_path._str.c_str())
+
+
 def main():
     root = abspath(Str("."))
     print("split2")
@@ -164,3 +214,6 @@ def main():
     test_HttpHeaders()
     test_mediatypes()
     test_scan(root)
+    test_formatdate()
+    print("test format:", format("x: {:x}", 1234)._str)
+    test_response()

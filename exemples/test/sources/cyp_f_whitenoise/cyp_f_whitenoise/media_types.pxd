@@ -1,26 +1,21 @@
 from libcythonplus.dict cimport cypdict
 from stdlib.string cimport Str
-
-ctypedef cypdict[Str, Str] Sdict
+from .common cimport Sdict
 
 
 cdef cypclass MediaTypes:
     Sdict types_map
-    ## BUG 'default' not valid attribute name here
-    ## => simplify code
 
     __init__(self, Sdict extra_types):
         self.types_map = default_types()
-        self.types_map.update(extra_types)
+        if extra_types is not NULL:
+            self.types_map.update(extra_types)
 
     Str get_type(self, Str path):
         cdef Str ext
 
-        # name = os.path.basename(path).lower()  # no lower, duplicete keys in dict
-        # media_type = self.types_map.get(path)
         if path in self.types_map:
             return self.types_map[path]
-        # extension = os.path.splitext(path)[1]
         ext = extension(path)
         if ext in self.types_map:
             return self.types_map[ext]
@@ -28,5 +23,4 @@ cdef cypclass MediaTypes:
 
 
 cdef Str extension(Str filename) nogil
-
 cdef Sdict default_types() nogil

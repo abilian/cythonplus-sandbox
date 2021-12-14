@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NAME="t11_cyp_e"
+NAME="t14_cyp_g"
 echo "start app: ${NAME}"
 
 PID="gun11.pid"
@@ -10,6 +10,7 @@ LOG="g.log"
 
 PORT=5011
 gunicorn "${NAME}:create_app()" --preload --disable-redirect-access-to-syslog --log-file ${LOG} --capture-output -D -b 127.0.0.1:${PORT} -p ${PID}
+# gunicorn "${NAME}:create_app()" --preload --disable-redirect-access-to-syslog --log-file ${LOG} --capture-output --threads 2 -D -b 127.0.0.1:${PORT} -p ${PID}
 sleep 1
 tail -f ${LOG} &
 grep -q 'initialization' <(tail -f ${LOG})

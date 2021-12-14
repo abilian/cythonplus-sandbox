@@ -42,7 +42,6 @@ cdef Fdict scan_fs_dic(Str path) nogil:
     return collector
 
 
-
 cdef Str to_str(str s):
     return Str(s.encode("utf8"))
 

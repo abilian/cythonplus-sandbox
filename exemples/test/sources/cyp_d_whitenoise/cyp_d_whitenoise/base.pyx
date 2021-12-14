@@ -2,15 +2,21 @@
 import os
 from posixpath import normpath
 import re
+import sys
 import warnings
 from wsgiref.headers import Headers
 from wsgiref.util import FileWrapper
 
 from libcythonplus.dict cimport cypdict
+from stdlib._string cimport string
 from stdlib.string cimport Str
+from .scan cimport Finfo, Fdict, scan_fs_dic, from_str, to_str, py_to_string, string_to_py
 
 from .media_types cimport MediaTypes, Sdict#, c_wrap_get_type
-from .responders import StaticFile, MissingFileError, IsDirectoryError, Redirect
+
+from .responders cimport make_static_file
+from .responders import MissingFileError, IsDirectoryError, Redirect, StaticFile
+
 from .string_utils import (
     decode_if_byte_string,
     decode_path_info,
@@ -18,8 +24,24 @@ from .string_utils import (
 )
 
 
+cdef class WNCache:
+    cdef Fdict stat_cache
+
+    cdef void scan_tree(self, root):
+        self.stat_cache = scan_fs_dic(to_str(root))
+
+    cdef c_make_static_file(self, str path, list headers_list):
+        return make_static_file(path, headers_list, self.stat_cache)
+
+    cdef list stat_cache_keys(self):
+        return list(s.c_str().decode("utf8", 'replace') for s in self.stat_cache.keys())
+
+    cdef bint stat_cache_known_key(self, string key):
+        return key in self.stat_cache
+
+
 # cdef class WhiteNoise():
-class WhiteNoise():
+class WhiteNoise(WNCache):
     ## we need a cdef to ba able of manage a MediaTypes attribute...
     ## => no **kwargs in __ini__
     ## => will need some wrapper to keep API, TODO
@@ -100,8 +122,13 @@ class WhiteNoise():
             self.immutable_file_test = lambda path, url: bool(regex.search(url))
         if root is not None:
             self.add_files(root, prefix)
+        # self.stat_cache = Fdict()
 
     def __call__(self, environ, start_response):
+        # with open("/tmp/aaa.txt", "w", encoding="utf8") as f:
+        #     for k, v in environ.items():
+        #         f.write(f"{k}:{v}\n")
+        # sys.exit()
         path = decode_path_info(environ.get("PATH_INFO", ""))
         if self.autorefresh:
             static_file = self.find_file(path)
@@ -110,18 +137,36 @@ class WhiteNoise():
         if static_file is None:
             return self.application(environ, start_response)
         else:
-            return self.serve(static_file, environ, start_response)
+            return self.serve(path, static_file, environ, start_response)
 
     @staticmethod
-    def serve(static_file, environ, start_response):
-        response = static_file.get_response(environ["REQUEST_METHOD"], environ)
-        status_line = "{} {}".format(response.status, response.status.phrase)
-        start_response(status_line, list(response.headers))
-        if response.file is not None:
-            file_wrapper = environ.get("wsgi.file_wrapper", FileWrapper)
-            return file_wrapper(response.file)
+    def serve2(path, static_file, environ, start_response):
+        method = environ["REQUEST_METHOD"]
+        if not static_file.last_ok or method != "GET":
+            response = static_file.get_response(method, environ)
+            status_line = "{} {}".format(response.status, response.status.phrase)
+            start_response(status_line, list(response.headers))
+            if response.file is not None:
+                file_wrapper = environ.get("wsgi.file_wrapper", FileWrapper)
+                return file_wrapper(response.file)
+            else:
+                return []
         else:
-            return []
+            cache = static_file.last_ok
+            start_response(cache[0], cache[1])
+            file_wrapper = environ.get("wsgi.file_wrapper", FileWrapper)
+            return file_wrapper(open(cache[2], "rb"))
+
+    # @staticmethod
+    # def serve(static_file, environ, start_response):
+    #     response = static_file.get_response(environ["REQUEST_METHOD"], environ)
+    #     status_line = "{} {}".format(response.status, response.status.phrase)
+    #     start_response(status_line, list(response.headers))
+    #     if response.file is not None:
+    #         file_wrapper = environ.get("wsgi.file_wrapper", FileWrapper)
+    #         return file_wrapper(response.file)
+    #     else:
+    #         return []
 
     def add_files(self, root, prefix=None):
         root = decode_if_byte_string(root, force_text=True)
@@ -138,20 +183,22 @@ class WhiteNoise():
             if os.path.isdir(root):
                 self.update_files_dictionary(root, prefix)
             else:
-                warnings.warn(u"No directory at: {}".format(root))
+                warnings.warn("No directory at: {}".format(root))
 
     def update_files_dictionary(self, root, prefix):
         # Build a mapping from paths to the results of `os.stat` calls
         # so we only have to touch the filesystem once
-        stat_cache = dict(scantree(root))
-        for path in stat_cache.keys():
+        cdef string s_path
+
+        WNCache.scan_tree(self, root)
+        for path in WNCache.stat_cache_keys(self):
             relative_path = path[len(root) :]
             relative_url = relative_path.replace("\\", "/")
             url = prefix + relative_url
-            self.add_file_to_dictionary(url, path, stat_cache=stat_cache)
+            self.add_file_to_dictionary(url, path)
 
-    def add_file_to_dictionary(self, url, path, stat_cache=None):
-        if self.is_compressed_variant(path, stat_cache=stat_cache):
+    def add_file_to_dictionary(self, url, path):
+        if self.is_compressed_variant_cache(path):
             return
         if self.index_file and url.endswith("/" + self.index_file):
             index_url = url[: -len(self.index_file)]
@@ -159,7 +206,7 @@ class WhiteNoise():
             self.files[url] = self.redirect(url, index_url)
             self.files[index_no_slash] = self.redirect(index_no_slash, index_url)
             url = index_url
-        static_file = self.get_static_file(path, url, stat_cache=stat_cache)
+        static_file = self.get_static_file_cache(path, url)
         self.files[url] = static_file
 
     def find_file(self, url):
@@ -218,18 +265,23 @@ class WhiteNoise():
         return normalised == url
 
     @staticmethod
-    def is_compressed_variant(path, stat_cache=None):
+    def is_compressed_variant(path):
         if path[-3:] in (".gz", ".br"):
             uncompressed_path = path[:-3]
-            if stat_cache is None:
-                return os.path.isfile(uncompressed_path)
-            else:
-                return uncompressed_path in stat_cache
+            return os.path.isfile(uncompressed_path)
         return False
 
-    def get_static_file(self, path, url, stat_cache=None):
+    def is_compressed_variant_cache(self, path):
+        if path[-3:] in (".gz", ".br"):
+            uncompressed_path = path[:-3]
+
+            # return py_to_string(uncompressed_path) in self.stat_cache_key_set(self)
+            return WNCache.stat_cache_known_key(self, py_to_string(uncompressed_path))
+        return False
+
+    def get_static_file(self, path, url):
         # Optimization: bail early if file does not exist
-        if stat_cache is None and not os.path.exists(path):
+        if not os.path.exists(path):
             raise MissingFileError(path)
         headers = Headers([])
         self.add_mime_headers(headers, path, url)
@@ -238,12 +290,17 @@ class WhiteNoise():
             headers["Access-Control-Allow-Origin"] = "*"
         if self.add_headers_function:
             self.add_headers_function(headers, path, url)
-        return StaticFile(
-            path,
-            headers.items(),
-            stat_cache=stat_cache,
-            encodings={"gzip": path + ".gz", "br": path + ".br"},
-        )
+        return WNCache.c_make_static_file(self, path, headers.items())
+
+    def get_static_file_cache(self, path, url):
+        headers = Headers([])
+        self.add_mime_headers(headers, path, url)
+        self.add_cache_headers(headers, path, url)
+        if self.allow_all_origins:
+            headers["Access-Control-Allow-Origin"] = "*"
+        if self.add_headers_function:
+            self.add_headers_function(headers, path, url)
+        return WNCache.c_make_static_file(self, path, headers.items())
 
     def add_mime_headers(self, headers, path, url):
         ## error: cyp_a_whitenoise/base.pyx:235:37:
@@ -299,24 +356,12 @@ class WhiteNoise():
         return Redirect(relative_url, headers=headers)
 
 
-def scantree(root):
-    """
-    Recurse the given directory yielding (pathname, os.stat(pathname)) pairs
-    """
-    for entry in os.scandir(root):
-        if entry.is_dir():
-            yield from scantree(entry.path)
-        else:
-            yield entry.path, entry.stat()
-
-
-cdef Str to_str(byte_or_string):
-    """(need gil)
-    """
-    if isinstance(byte_or_string, str):
-        return Str(bytes(byte_or_string.encode("utf8")))
-    else:
-        return Str(bytes(byte_or_string))
+#
+# cdef Str to_str2(byte_or_string):
+#     if isinstance(byte_or_string, str):
+#         return Str(byte_or_string.encode("utf8"))
+#     else:
+#         return Str(bytes(byte_or_string))
 
 
 cdef const char* to_c_str(byte_or_string):
@@ -335,7 +380,7 @@ cdef Sdict to_str_dict(python_dict):
     """
     sd = Sdict()
     for key, value in python_dict.items():
-        sd[to_c_str(key)] = to_c_str(value)
+        sd[Str(key)] = Str(value)
     return sd
 
 
@@ -345,10 +390,8 @@ cdef dict from_str_dict(Sdict sd):
     (need gil)
     """
     return {
-        i.first.decode("utf8", 'replace'): i.second.decode("utf8", 'replace')
-        for i in sd.items()
+        from_str(i.first): from_str(i.second) for i in sd.items()
     }
-
 
 
 cdef class WrapMediaTypes():
@@ -364,20 +407,4 @@ cdef class WrapMediaTypes():
         self.mt[0] = MediaTypes(c_mt)
 
     def get_type(self, path):
-        return self.mt[0].get_type(to_str(path)).decode("utf8", 'replace')
-
-
-#
-# cdef Toto make_media_types(dict mimetypes):
-# # cdef MediaTypes make_media_types(dict mimetypes):
-#     cdef Sdict c_mt
-#     cdef Toto response
-#     # cdef MediaTypes response
-#
-#     if mimetypes:
-#         c_mt = to_str_dict(mimetypes)
-#     else:
-#         c_mt = Sdict()
-#
-#     # return MediaTypes(c_mt)
-#     return Toto(c_mt)
+        return from_str(self.mt[0].get_type(to_str(path)))

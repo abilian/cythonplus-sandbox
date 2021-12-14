@@ -49,7 +49,6 @@ class StaticFile:
         self.etag = headers["ETag"]
         self.not_modified_response = self.get_not_modified_response(headers)
         self.alternatives = self.get_alternatives(headers, files)
-        self.last_ok = None
 
     def get_response(self, method, request_headers):
         if method not in ("GET", "HEAD"):
@@ -70,10 +69,11 @@ class StaticFile:
                 # just ignore it and return the standard response (this
                 # behaviour is allowed by the spec)
                 pass
-        ok = HTTPStatus.OK
-        if method == "GET":
-            self.last_ok = (f"{ok} {ok.phrase}", list(headers), path)
-        return Response(ok, headers, file_handle)
+        return Response(HTTPStatus.OK, headers, file_handle)
+
+    def check_response(self):
+        path, headers = self.get_path_and_headers({})
+        return (f"{HTTPStatus.OK} {HTTPStatus.OK.phrase}", list(headers), path)
 
     def get_range_response(self, range_header, base_headers, file_handle):
         headers = []

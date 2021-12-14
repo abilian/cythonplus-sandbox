@@ -12,7 +12,7 @@ from django.contrib.staticfiles.storage import (
 from .compress import Compressor
 
 
-class CompressedStaticFilesMixin(object):
+class CompressedStaticFilesMixin:
     """
     Wraps a StaticFilesStorage instance to compress output files
     """
@@ -59,7 +59,7 @@ class CompressedStaticFilesStorage(CompressedStaticFilesMixin, StaticFilesStorag
     pass
 
 
-class HelpfulExceptionMixin(object):
+class HelpfulExceptionMixin:
     """
     If a CSS file contains references to images, fonts etc that can't be found
     then Django's `post_process` blows up with a not particularly helpful

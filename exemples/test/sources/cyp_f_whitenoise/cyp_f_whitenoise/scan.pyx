@@ -1,19 +1,24 @@
 # distutils: language = c++
-from libc.stdio cimport (printf, puts, fprintf, fopen, fclose, fread,
-                         fwrite, FILE, stdout, ferror)
-
-from scheduler.scheduler cimport BatchMailBox, NullResult, Scheduler
-# from scheduler.scheduler cimport SequentialMailBox, NullResult, Scheduler
-
-from stdlib._string cimport string
+from posix.types cimport off_t, time_t
+# from libc.stdio cimport (printf, puts, fprintf, fopen, fclose, fread,
+#                          fwrite, FILE, stdout, ferror)
+from libc.stdio cimport puts
+from libcythonplus.list cimport cyplist
 from stdlib.string cimport Str
+from stdlib._string cimport string
 
 from stdlib.stat cimport Stat
 from stdlib.dirent cimport DIR, struct_dirent, opendir, readdir, closedir
+# from scheduler.scheduler cimport BatchMailBox, NullResult, Scheduler
+from scheduler.scheduler cimport SequentialMailBox, NullResult, Scheduler
+
+from .common cimport Finfo, Fdict
 
 
 cdef iso Node make_node(iso Str path, iso Str name) nogil:
-    s = Stat(path.bytes())
+    # with gil:
+    #     print(path.bytes(), name.bytes())
+    s = Stat(path._str.c_str())
     if s is NULL:
         return NULL
     if s.is_regular() or s.is_dir():
@@ -21,15 +26,21 @@ cdef iso Node make_node(iso Str path, iso Str name) nogil:
     return NULL
 
 
+
 cdef Fdict scan_fs_dic(Str path) nogil:
     cdef iso Node node
+    cdef Str root_path, path1, path2
     global scheduler
     scheduler = Scheduler()
     global collector
     collector = Fdict()
 
+    # root_path = Str("/home/jd/bin")
+    # path1 = root_path.copy()
+    # path2 = root_path.copy()
+    path1 = path.copy()
     path2 = path.copy()
-    node = make_node(consume path, consume path2)
+    node = make_node(consume path1, consume path2)
     if node is not NULL:
         active_node = activate(consume node)
         active_node.build_node(NULL)
@@ -39,19 +50,3 @@ cdef Fdict scan_fs_dic(Str path) nogil:
 
     del scheduler
     return collector
-
-
-cdef Str to_str(str s):
-    return Str(s.encode("utf8"))
-
-
-cdef from_str(Str s):
-    return s.bytes().decode("utf8", 'replace')
-
-
-cdef string py_to_string(str s):
-    return Str(s.encode("utf8"))._str
-
-
-cdef string_to_py(string s):
-    return s.c_str().decode("utf8", 'replace')

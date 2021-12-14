@@ -1,9 +1,9 @@
-#!/usr/bin/env python
 """https headers, managed like flask Headers
 """
 from libcythonplus.dict cimport cypdict
 from libcythonplus.list cimport cyplist
 from stdlib.string cimport Str
+from stdlib._string cimport string
 from stdlib.format cimport format
 from .stdlib.strip cimport stripped
 
@@ -12,7 +12,7 @@ cdef cypclass HttpHeaderValue:
     Str content
 
     __init__(self, Str content):
-        self.content = stripped(content)
+        self.content = content
 
     cyplist[Str] splitted(self):
         cdef cyplist[Str] lst, lst_result
@@ -67,7 +67,14 @@ cdef cypclass HttpHeaders:
         self.headers[skey] = hhv
 
     void set(self, Str key, Str content):
-        self.headers[stripped(key)] = HttpHeaderValue(stripped(content))
+        # self.headers[stripped(key)] = HttpHeaderValue(stripped(content))
+        self.headers[key] = HttpHeaderValue(content)
+
+    void set_header(self, Str key, Str content):
+        self.headers[key] = HttpHeaderValue(content)
+
+    void set_header_charset(self, Str key, Str content, Str charset):
+        self.headers[key] = HttpHeaderValue(content + Str("; charset=") + charset)
 
     void remove(self, Str key):
         cdef Str skey
@@ -77,12 +84,10 @@ cdef cypclass HttpHeaders:
             del self.headers[skey]
 
     Str get_content(self, Str key):
-        cdef Str skey
         cdef HttpHeaderValue hhv
 
-        skey = stripped(key)
-        if skey in self.headers:
-            hhv = self.headers[skey]
+        if key in self.headers:
+            hhv = self.headers[key]
             return hhv.content
         return NULL
 
@@ -109,3 +114,15 @@ cdef cypclass HttpHeaders:
         comma = Str("\r\n")
         result = comma.join(lst) + comma
         return result
+
+    HttpHeaders copy(self):
+        cdef HttpHeaders result
+
+        result = HttpHeaders()
+        for item in self.headers.items():
+            result.set_header(item.first.copy(), item.second.content.copy())
+        return result
+
+
+cdef cypdict[string, string] py_environ_headers(environ)
+cdef HttpHeaders make_header(Str, Str) nogil

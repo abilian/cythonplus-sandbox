@@ -1,7 +1,7 @@
 from libcythonplus.dict cimport cypdict
 from stdlib.string cimport Str
 
-ctypedef cypdict[const char*, const char*] Sdict
+ctypedef cypdict[Str, Str] Sdict
 
 
 cdef cypclass MediaTypes:
@@ -14,22 +14,22 @@ cdef cypclass MediaTypes:
         # self.default_type = Str("application/octet-stream")
         self.types_map.update(extra_types)
 
-    const char* get_type(self, Str path):
-        cdef const char* ext
+    Str get_type(self, Str path):
+        cdef Str ext
 
         # name = os.path.basename(path).lower()  # no lower, duplicete keys in dict
         # media_type = self.types_map.get(path)
-        if Str.to_c_str(path) in self.types_map:
-            return self.types_map[Str.to_c_str(path)]
+        if path in self.types_map:
+            return self.types_map[path]
         # extension = os.path.splitext(path)[1]
         ext = extension(path)
         if ext in self.types_map:
             return self.types_map[ext]
-        return b"application/octet-stream"
+        return Str("application/octet-stream")
 
 
 # cdef const char* c_wrap_get_type(MediaTypes mt, Str path) nogil
 
-cdef const char* extension(Str filename) nogil
+cdef Str extension(Str filename) nogil
 
 cdef Sdict default_types() nogil

@@ -176,6 +176,8 @@ class WhiteNoise(WNCache):
         for path in WNCache.stat_cache_keys(self):
             relative_path = path[len(root) :]
             relative_url = relative_path.replace("\\", "/")
+            while relative_url.startswith('/'):
+                relative_url = relative_url[1:]
             url = prefix + relative_url
             self.add_file_to_dictionary(url, path)
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """python's http status table
 
 from http import HTTPStatus
@@ -8,12 +7,16 @@ for s in HTTPStatus:
         f'HttpStatus({s.value}, Str("{s.phrase}"), Str("{s.description}"))'
     )
 """
+from libcythonplus.dict cimport cypdict
 from stdlib.string cimport Str
+from stdlib._string cimport string
+from stdlib.format cimport format
 
 
 cdef HttpStatusDict generate_http_status_dict() nogil:
     cdef HttpStatusDict d
 
+    d = HttpStatusDict()
     d[Str("CONTINUE")] = HttpStatus(100, Str("Continue"), Str("Request received, please continue"))
     d[Str("SWITCHING_PROTOCOLS")] = HttpStatus(101, Str("Switching Protocols"), Str("Switching to new protocol; obey Upgrade header"))
     d[Str("PROCESSING")] = HttpStatus(102, Str("Processing"), Str(""))
@@ -75,3 +78,33 @@ cdef HttpStatusDict generate_http_status_dict() nogil:
     d[Str("NETWORK_AUTHENTICATION_REQUIRED")] = HttpStatus(511, Str("Network Authentication Required"), Str("The client needs to authenticate to gain network access"))
 
     return d
+
+
+cdef StatusLinesDict generate_status_lines() nogil:
+    cdef HttpStatusDict d
+    cdef HttpStatus status
+    cdef StatusLinesDict sdl
+
+    d = generate_http_status_dict()
+    sdl = StatusLinesDict()
+    status = d[Str("OK")]
+    sdl[Str("OK")] = status.status_line()._str
+    status = d[Str("METHOD_NOT_ALLOWED")]
+    sdl[Str("METHOD_NOT_ALLOWED")] = status.status_line()._str
+    status = d[Str("PARTIAL_CONTENT")]
+    sdl[Str("PARTIAL_CONTENT")] = status.status_line()._str
+    status = d[Str("REQUESTED_RANGE_NOT_SATISFIABLE")]
+    sdl[Str("REQUESTED_RANGE_NOT_SATISFIABLE")] = status.status_line()._str
+    status = d[Str("NOT_MODIFIED")]
+    sdl[Str("NOT_MODIFIED")] = status.status_line()._str
+    status = d[Str("FOUND")]
+    sdl[Str("FOUND")] = status.status_line()._str
+    return sdl
+
+
+
+cdef StatusLinesDict SLD = generate_status_lines()
+
+
+cdef string get_status_line(Str key) nogil:
+    return SLD[key]
