@@ -2,6 +2,7 @@
 import os
 from posixpath import normpath
 import re
+import sys
 import warnings
 from wsgiref.headers import Headers
 from wsgiref.util import FileWrapper
@@ -124,6 +125,10 @@ class WhiteNoise(WNCache):
         # self.stat_cache = Fdict()
 
     def __call__(self, environ, start_response):
+        # with open("/tmp/aaa.txt", "w", encoding="utf8") as f:
+        #     for k, v in environ.items():
+        #         f.write(f"{k}:{v}\n")
+        # sys.exit()
         path = decode_path_info(environ.get("PATH_INFO", ""))
         if self.autorefresh:
             static_file = self.find_file(path)

@@ -81,6 +81,10 @@ def create_app(script_info=None):
     def random_image():
         img_path = img_list[rnd.randint(0, len(img_list) - 1)]
         # return send_from_directory("groundtruth", "australia/Image01.jpg")
-        return send_from_directory(STATIC_FOLDER, img_path)
+        # return send_from_directory(STATIC_FOLDER, img_path)
+        # return urljoin(app.config["STATIC_URL"], f"{prefix}/{filename}")
+        # return url_for("static", filename=img_path)
+        url = url_for("static", filename=img_path)
+        return TPLATE % (url, url)
 
     return app
