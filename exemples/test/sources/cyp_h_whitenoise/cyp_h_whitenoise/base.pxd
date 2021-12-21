@@ -20,7 +20,7 @@ from .stdlib.regex cimport re_is_match
 
 from .common cimport Sdict, getdefault, StrList, Finfo, Fdict
 from .http_status cimport get_status_line
-from .http_headers cimport HttpHeaders, py_environ_headers
+from .http_headers cimport HttpHeaders, cyp_environ_headers, hash_headers
 from .media_types cimport MediaTypes
 from .scan cimport scan_fs_dic
 from .static_file cimport StaticFile

@@ -20,7 +20,7 @@ cdef HttpHeaders make_header(Str key, Str value) nogil:
     return headers
 
 
-cdef Sdict py_environ_headers(environ):
+cdef Sdict cyp_environ_headers(environ):
     """Convert the strings part of the request headers into a cython+ string
     dictionary
     """
@@ -40,3 +40,14 @@ cdef Sdict py_environ_headers(environ):
             sk = Str(bytes(k))
         headers[sk] = sv
     return headers
+
+
+cdef size_t hash_headers(Sdict headers) nogil:
+    cdef cyplist[Str] lst = cyplist[Str]()
+    cdef Str joined
+
+    for item in headers.items():
+        lst.append(item.first)
+        lst.append(item.second)
+    joined = Str("").join(lst)
+    return joined.__hash__()

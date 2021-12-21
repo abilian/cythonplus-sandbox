@@ -20,7 +20,7 @@ from .stdlib.regex cimport re_is_match
 
 from .common cimport Sdict, getdefault, StrList, Finfo, Fdict
 from .http_status cimport get_status_line
-from .http_headers cimport HttpHeaders, py_environ_headers
+from .http_headers cimport HttpHeaders, cyp_environ_headers, hash_headers
 from .media_types cimport MediaTypes
 from .scan cimport scan_fs_dic
 from .static_file cimport StaticFile
@@ -29,9 +29,11 @@ from .response cimport Response
 
 cdef class XNoise:
     cdef Noise noise
+    cdef cypdict[size_t, Response] response_cache
 
     def __init__(self):
         self.noise = Noise()
+        self.response_cache = cypdict[size_t, Response]()
 
     cdef void start(self, Str root, Str prefix):
         with nogil:
@@ -42,11 +44,19 @@ cdef class XNoise:
             return self.noise.files.__len__()
 
     cdef Response call(self, Sdict environ_headers):
+        cdef size_t header_hash
+        cdef Response response
+
         with nogil:
-            return self.noise.call(environ_headers)
+            header_hash = hash_headers(environ_headers)
+            if header_hash in self.response_cache:
+                response = self.response_cache[header_hash]
+            else:
+                response = self.noise.call(environ_headers)
+                self.response_cache[header_hash] = response
+            return response
 
 
-# cdef class WhiteNoise():
 class WhiteNoise(XNoise):
     # FOREVER = 10 * 365 * 24 * 60 * 60
     # autorefresh = False
@@ -77,9 +87,8 @@ class WhiteNoise(XNoise):
 
     def __call__(self, environ, start_response):
         cdef Sdict environ_headers
-        cdef Response response
 
-        environ_headers = py_environ_headers(environ)
+        environ_headers = cyp_environ_headers(environ)
         response = XNoise.call(self, environ_headers)
         if response is NULL:
             # static_file is None:

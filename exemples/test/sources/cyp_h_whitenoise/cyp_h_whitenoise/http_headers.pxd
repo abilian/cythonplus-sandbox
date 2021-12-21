@@ -125,5 +125,6 @@ cdef cypclass HttpHeaders:
         return result
 
 
-cdef Sdict py_environ_headers(environ)
+cdef Sdict cyp_environ_headers(environ)
 cdef HttpHeaders make_header(Str key, Str value) nogil
+cdef size_t hash_headers(Sdict) nogil
