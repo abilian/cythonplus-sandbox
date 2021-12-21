@@ -7,11 +7,14 @@
 /cyp_e_whitenoise/
 /cyp_f_whitenoise/
 /cyp_g_whitenoise/
+/cyp_h_whitenoise/
 sources/cyp_e_whitenoise/build_fmt/
 sources/cyp_e_whitenoise/libfmt/
 sources/cyp_f_whitenoise/build_fmt/
 sources/cyp_d_whitenoise/libfmt/
 sources/cyp_g_whitenoise/libfmt/
 sources/cyp_f_whitenoise/libfmt/
+sources/cyp_h_whitenoise/libfmt/
 sources/cyp_d_whitenoise/build_fmt/
 sources/cyp_g_whitenoise/build_fmt/
+sources/cyp_h_whitenoise/build_fmt/

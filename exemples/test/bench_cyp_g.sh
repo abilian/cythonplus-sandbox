@@ -13,6 +13,7 @@ gunicorn "${NAME}:create_app()" --preload --disable-redirect-access-to-syslog --
 # gunicorn "${NAME}:create_app()" --preload --disable-redirect-access-to-syslog --log-file ${LOG} --capture-output --threads 2 -D -b 127.0.0.1:${PORT} -p ${PID}
 sleep 1
 tail -f ${LOG} &
+tail_pid=$!
 grep -q 'initialization' <(tail -f ${LOG})
 
 sleep 3
@@ -22,4 +23,5 @@ WRK=~/tmp/wntest/wrk/wrk
 ${WRK} -c10 -d20s -t1 -s ./rnd.lua http://localhost:${PORT}
 
 kill $(cat ${PID})
+kill ${tail_pid}
 exit

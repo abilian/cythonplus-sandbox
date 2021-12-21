@@ -131,6 +131,9 @@ class WhiteNoise(WNCache):
             self.add_files(root, prefix)
         # self.stat_cache = Fdict()
 
+    def nb_cached_files(self):
+        return len(self.files)
+
     def __call__(self, environ, start_response):
         # with open("/tmp/aaa.txt", "w", encoding="utf8") as f:
         #     for k, v in environ.items():

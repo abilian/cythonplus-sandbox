@@ -60,7 +60,10 @@ def create_app(script_info=None):
         prefix="static/",
         max_age=WHITENOISE_MAX_AGE,
     )
-    print(len(app.wsgi_app.files), "files cached by Whitenoise")
+    try:
+        print(app.wsgi_app.nb_cached_files(), "files cached by Whitenoise")
+    except AttributeError:
+        print(len(app.wsgi_app.files), "files cached by Whitenoise")
     print("Whitenoise initialization:", perf_counter() - t0)
     print("")
 

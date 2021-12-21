@@ -104,6 +104,9 @@ class WhiteNoise():
         if root is not None:
             self.add_files(root, prefix)
 
+    def nb_cached_files(self):
+        return len(self.files)
+
     def __call__(self, environ, start_response):
         path = decode_path_info(environ.get("PATH_INFO", ""))
         if self.autorefresh:

@@ -38,6 +38,10 @@ cdef class XNoise:
         with nogil:
             self.noise.start(root, prefix)
 
+    cdef int nb_cached_files(self):
+        with nogil:
+            return self.noise.files.__len__()
+
     cdef Response call(self, Sdict environ_headers):
         with nogil:
             return self.noise.call(environ_headers)
@@ -57,8 +61,6 @@ class WhiteNoise(XNoise):
         cdef Str croot, cprefix
 
         self.application = application
-        self.files = {}
-
         if root:
             croot = to_str(root)
         else:
@@ -70,6 +72,9 @@ class WhiteNoise(XNoise):
 
         XNoise.__init__(self)
         XNoise.start(self, croot, cprefix)
+
+    def nb_cached_files(self):
+        return XNoise.nb_cached_files(self)
 
     def __call__(self, environ, start_response):
         cdef Sdict environ_headers
