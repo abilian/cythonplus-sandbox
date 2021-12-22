@@ -21,4 +21,4 @@ cdef cypclass Finfo:
 
 
 cdef Str getdefault(Sdict, Str, Str) nogil
-# cdef void xlog(msg)
+cdef void xlog(msg)

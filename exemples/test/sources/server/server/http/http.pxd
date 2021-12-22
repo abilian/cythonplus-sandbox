@@ -1,5 +1,12 @@
-from stdlib.string cimport Str
+# from stdlib.string cimport Str
+# from libcythonplus.dict cimport cypdict
+
+from posix.types cimport off_t, time_t
+from libcythonplus.list cimport cyplist
 from libcythonplus.dict cimport cypdict
+from stdlib.string cimport Str
+from stdlib._string cimport string
+
 
 
 cdef cypclass HTTPRequest:
@@ -74,16 +81,22 @@ cdef cypclass HTTPRequest:
         self._pos = 0
         endline = self.peek(CRLF)
         method = self.token(SP, endline)
+        # with gil:
+        #     ylog(f"{bytes(method.bytes())}")
         if method is NULL:
             self.error()
             return
         self.method = method
         uri = self.token(SP, endline)
+        # with gil:
+        #     ylog(f"{bytes(uri.bytes())}")
         if uri is NULL:
             self.error()
             return
         self.uri = uri
         version = self.token(CRLF)
+        # with gil:
+        #     ylog(f"{bytes(version.bytes())}")
         if version is NULL:
             self.error()
             return
@@ -94,15 +107,23 @@ cdef cypclass HTTPRequest:
                 self.skip(CRLF)
                 break
             key = self.token(COL, endline)
+            # with gil:
+            #     ylog(f"{bytes(key.bytes())}")
             if key is NULL:
                 self.error()
                 return
             self.whitespace()
             stop = self.rstrip(self._pos, endline)
+            # with gil:
+            #     ylog(f"{stop}")
             if stop <= self._pos:
                 self.error()
                 return
             value = self.raw.substr(self._pos, stop)
+            # with gil:
+            #     ylog(f"{bytes(value.bytes())}")
             self.skip(CRLF, endline)
             self.headers[key] = value
 
+
+cdef void ylog(msg)

@@ -59,6 +59,7 @@ extensions = [
     pypyx_ext(NAME, "stdlib", "strip"),
     pypyx_ext(NAME, "stdlib", "formatdate"),
     pypyx_ext(NAME, "stdlib", "parsedate"),
+    pypyx_ext(NAME, "http", "http"),
     pypyx_ext(NAME, "common"),
     pypyx_ext(NAME, "http_status"),
     pypyx_ext(NAME, "http_headers"),
