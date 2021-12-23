@@ -1,4 +1,3 @@
-# distutils: language = c++
 """https headers, managed like flask Headers
 """
 from libcythonplus.dict cimport cypdict
@@ -7,7 +6,6 @@ from stdlib.string cimport Str
 from stdlib._string cimport string
 from stdlib.format cimport format
 from .stdlib.strip cimport stripped
-from .common cimport Sdict
 
 
 cdef HttpHeaders make_header(Str key, Str value) nogil:
@@ -20,13 +18,13 @@ cdef HttpHeaders make_header(Str key, Str value) nogil:
     return headers
 
 
-cdef Sdict cyp_environ_headers(environ):
+cdef cypdict[Str, Str] cyp_environ_headers(environ):
     """Convert the strings part of the request headers into a cython+ string
     dictionary
     """
-    cdef Sdict headers
+    cdef cypdict[Str, Str] headers
 
-    headers = Sdict()
+    headers = cypdict[Str, Str]()
     for k, v in environ.items():
         if isinstance(v, str):
             sv = Str(bytes(v.encode("utf8")))
@@ -42,7 +40,7 @@ cdef Sdict cyp_environ_headers(environ):
     return headers
 
 
-cdef size_t hash_headers(Sdict headers) nogil:
+cdef size_t hash_headers(cypdict[Str, Str] headers) nogil:
     cdef cyplist[Str] lst = cyplist[Str]()
     cdef Str joined
 

@@ -5,7 +5,7 @@ from .http_status cimport get_status_line
 
 
 cdef cypclass Response:
-    string status_line
+    Str status_line
     HttpHeaders headers
     Str file_path
 

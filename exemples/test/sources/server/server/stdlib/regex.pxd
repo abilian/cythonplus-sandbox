@@ -1,4 +1,3 @@
-# distutils: language = c++
 from stdlib.string cimport Str
 
 

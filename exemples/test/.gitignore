@@ -8,6 +8,7 @@
 /cyp_f_whitenoise/
 /cyp_g_whitenoise/
 /cyp_h_whitenoise/
+/server/
 sources/cyp_e_whitenoise/build_fmt/
 sources/cyp_e_whitenoise/libfmt/
 sources/cyp_f_whitenoise/build_fmt/

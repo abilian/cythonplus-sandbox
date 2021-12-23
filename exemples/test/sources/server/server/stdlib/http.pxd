@@ -124,6 +124,3 @@ cdef cypclass HTTPRequest:
             #     ylog(f"{bytes(value.bytes())}")
             self.skip(CRLF, endline)
             self.headers[key] = value
-
-
-cdef void ylog(msg)

@@ -7,7 +7,7 @@ from stdlib.format cimport format
 
 
 ctypedef cypdict[Str, HttpStatus] HttpStatusDict
-ctypedef cypdict[Str, string] StatusLinesDict
+ctypedef cypdict[Str, Str] StatusLinesDict
 
 
 cdef cypclass HttpStatus:
@@ -26,4 +26,4 @@ cdef cypclass HttpStatus:
 
 cdef HttpStatusDict generate_http_status_dict() nogil
 cdef StatusLinesDict generate_status_lines() nogil
-cdef string get_status_line(Str) nogil
+cdef Str get_status_line(Str) nogil

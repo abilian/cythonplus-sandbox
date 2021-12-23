@@ -59,12 +59,16 @@ extensions = [
     pypyx_ext(NAME, "stdlib", "strip"),
     pypyx_ext(NAME, "stdlib", "formatdate"),
     pypyx_ext(NAME, "stdlib", "parsedate"),
-    pypyx_ext(NAME, "http", "http"),
     pypyx_ext(NAME, "common"),
+    pypyx_ext(NAME, "static_file"),
+    pypyx_ext(NAME, "scan"),
+    pypyx_ext(NAME, "response"),
+    pypyx_ext(NAME, "media_types"),
     pypyx_ext(NAME, "http_status"),
     pypyx_ext(NAME, "http_headers"),
     pypyx_ext(NAME, "httpserver"),
     pypyx_ext(NAME, "daemon"),
+    pypyx_ext(NAME, "server"),
 ]
 
 
@@ -73,6 +77,10 @@ setup(
         extensions,
         language_level="3str",
         include_path=[
+            # "stdlib",
+            # "server/stdlib",
+            # "server",
+            os.path.join(PROJECT_ROOT, NAME, "stdlib"),
             os.path.join(PROJECT_ROOT, NAME),
         ],
     ),

@@ -1,11 +1,11 @@
-cimport http._socket as _socket
-from stdlib._string cimport string, move_string
+cimport stdlib._socket as _socket
 
 from libc.errno cimport errno
 from libc.string cimport memset, memcpy, strerror
 from libc.stdlib cimport malloc, free
-from stdlib.string cimport Str
 from libcythonplus.list cimport cyplist
+from stdlib.string cimport Str
+from stdlib._string cimport string, move_string
 
 
 cdef extern from "<sys/socket.h>" nogil:
@@ -235,6 +235,17 @@ cdef cypclass Socket:
             with gil:
                 raise ValueError('cannot send NULL to socket')
         status = _socket.send(self.sockfd, Str.to_c_str(msg), msg.__len__(), flags)
+        if status == -1:
+            with gil:
+                raise OSError('failed to send to socket: ' + strerror(errno).decode())
+        return status
+
+    int sendraw(self, char* buffer, int length, int flags=0) except -1:
+        cdef int status
+        if buffer is NULL:
+            with gil:
+                raise ValueError('cannot send NULL to socket')
+        status = _socket.send(self.sockfd, buffer, length, flags)
         if status == -1:
             with gil:
                 raise OSError('failed to send to socket: ' + strerror(errno).decode())

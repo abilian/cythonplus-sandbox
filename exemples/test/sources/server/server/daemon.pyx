@@ -1,6 +1,8 @@
-# distutils: language = c++
-import sys, os, time, atexit, signal
-from .httpserver import httpserver
+import sys
+import os
+import time
+import atexit
+import signal
 
 
 class Daemon:
@@ -103,4 +105,4 @@ class Daemon:
         self.start()
 
     def run(self):
-        httpserver(self.addr, self.port)
+        pass

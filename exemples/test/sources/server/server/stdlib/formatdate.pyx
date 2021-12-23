@@ -7,7 +7,7 @@
 #          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][timetuple[1] - 1],
 #         timetuple[0], timetuple[3], timetuple[4], timetuple[5],
 #         zone)
-from libc.time cimport time_t, tm, gmtime_r
+from libc.time cimport time_t, tm, gmtime_r, time
 from stdlib.string cimport Str
 from stdlib.format cimport format
 
@@ -71,3 +71,30 @@ cdef Str formatdate(time_t t) nogil:
                     tms.tm_sec
                     )
     return result
+
+
+cdef Str formatnow() nogil:
+    cdef time_t now_time
+    cdef Str now
+
+    now_time = time(NULL)
+    now = formatdate(now_time)
+    return now
+
+
+cdef Str formatlog() nogil:
+    cdef time_t now_time
+    cdef tm tms
+    cdef Str now
+
+    now_time = time(NULL)
+    gmtime_r(&now_time, &tms)
+    now = format("{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}",
+                    tms.tm_year + 1900,
+                    tms.tm_mon,
+                    tms.tm_mday,
+                    tms.tm_hour,
+                    tms.tm_min,
+                    tms.tm_sec
+                    )
+    return now

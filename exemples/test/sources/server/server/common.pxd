@@ -1,11 +1,11 @@
-from posix.types cimport off_t, time_t
 from libcythonplus.list cimport cyplist
 from libcythonplus.dict cimport cypdict
+from .stdlib.formatdate cimport formatlog
 from stdlib.string cimport Str
 from stdlib._string cimport string
+from posix.types cimport off_t, time_t
 
 
-ctypedef cypdict[Str, Str] Sdict
 ctypedef cyplist[Str] StrList
 ctypedef cypdict[string, Finfo] Fdict
 
@@ -20,5 +20,5 @@ cdef cypclass Finfo:
         self.mtime = mtime
 
 
-cdef Str getdefault(Sdict, Str, Str) nogil
+cdef Str getdefault(cypdict[Str, Str], Str, Str) nogil
 cdef void xlog(msg)

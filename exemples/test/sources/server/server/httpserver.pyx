@@ -1,133 +1,119 @@
-from stdlib.string cimport Str
-from stdlib.format cimport format
-from http.socket cimport *
-from .http.http cimport HTTPRequest
+import os
+from posixpath import normpath
+import re
+import sys
+import warnings
 
-from libc.stdio cimport puts, printf
+from libcythonplus.dict cimport cypdict
+from libc.stdio cimport *
+
+from stdlib.string cimport Str
+from stdlib._string cimport string
+from stdlib.format cimport format
+
+from .stdlib.abspath cimport abspath
+from .stdlib.startswith cimport startswith, endswith
+from .stdlib.strip cimport stripped
+from .stdlib.regex cimport re_is_match
+from .stdlib.formatdate cimport formatnow
+
+from stdlib.socket cimport *
+from stdlib.http cimport HTTPRequest
 
 from scheduler.scheduler cimport SequentialMailBox, NullResult, Scheduler
 
+from .common cimport getdefault, StrList, Finfo, Fdict
 from .common cimport xlog
+from .http_status cimport get_status_line
+from .http_headers cimport HttpHeaders, cyp_environ_headers, hash_headers
+from .media_types cimport MediaTypes
+from .scan cimport scan_fs_dic
+from .static_file cimport StaticFile
+from .response cimport Response
 
-# Use global for scheduler:
-cdef lock Scheduler scheduler
+
+cdef Str to_str(byte_or_string):
+    if isinstance(byte_or_string, str):
+        return Str(byte_or_string.encode("utf8", "replace"))
+    else:
+        return Str(bytes(byte_or_string))
 
 
-cdef cypclass Responder activable:
-    Socket s1
+class StaticServer:
+    def __init__(self, py_server_addr, py_server_port,
+                 py_root=None, py_prefix=None, py_back_log=1):
 
-    __init__(self,  iso Socket s1):
-        self._active_result_class = NullResult
-        self._active_queue_class = consume SequentialMailBox(scheduler)
-        self.s1 = consume s1
+        self.py_server_addr = py_server_addr
+        self.py_server_port = py_server_port
+        self.py_root = py_root
+        self.py_prefix = py_prefix
+        self.backlog = int(py_back_log)
+        self.nb_files = 0
 
-    void run(self):
-        cdef Str body, resp, status, rq
-        cdef size_t length
-        cdef Str crlfcrlf = Str("\r\n\r\n")
-        cdef HTTPRequest request
-        cdef iso Str recv
+    def scan(self):
+        cdef Noise noise
+        cdef Str root, prefix
 
-        recv = self.s1.recvuntil(crlfcrlf, 1024)
-        # with gil:
-        #     xlog(f"rq: {bytes(recv.bytes())}")
-        request = HTTPRequest(consume recv)
-        if not request.ok:
+        if self.py_root:
+            root = to_str(self.py_root)
+        else:
+            root = NULL
+        if self.py_prefix is not None:
+            prefix = to_str(self.py_prefix)
+        else:
+            prefix = Str("")
+
+        noise = Noise()
+        with nogil:
+            noise.start(root, prefix)
+
+        self.nb_files = noise.nb_files
+        xlog(f"files cached: {self.nb_files}")
+
+    def nb_cached_files(self):
+        return self.nb_files
+
+    def serve(self):
+        cdef Str server_addr, server_port
+        cdef Socket s1
+        cdef int backlog
+        cdef int count
+        global server_scheduler
+
+        server_scheduler = Scheduler()
+        server_addr = to_str(self.py_server_addr)
+        server_port = to_str(self.py_server_port)
+        backlog = <int> self.backlog
+
+        count = 0
+        with nogil:
+            a = getaddrinfo(server_addr, server_port,
+                            AF_UNSPEC, SOCK_STREAM, 0, AI_PASSIVE)[0]
+            s = socket(a.family, a.socktype, a.protocol)
+            s.setsockopt(SO_REUSEADDR, 1)
+            s.bind(a.sockaddr)
+            s.listen(backlog)
+
             with gil:
-                xlog(f"bad request\n")
-            self.s1.shutdown(SHUT_WR)
-            self.s1.close()
-            return
+                xlog(f"listening on "
+                     f"http://{self.py_server_addr}:{self.py_server_port}")
+                xlog("initialization ok.")
 
-        # with gil:
-        #     xlog(f"request: {request.headers.__len__()}")
-        #     xlog(f"{bytes(request.method.bytes())}  {bytes(request.uri.bytes())}")
-        # for item in request.headers.items():
-        #     with gil:
-        #         xlog(f"  -- {bytes(item.first.bytes())}: {bytes(item.second.bytes())}")
-        # with gil:
-        #     xlog(f"===\n")
-
-            # rq = request.headers[Str("GET")]
-
-        # if request.ok:
-        status = Str("HTTP/1.0 200 OK")
-            # content_length_key = Str('Content-Length')
-            # if content_length_key in request.headers:
-            #     content_length_value = request.headers[content_length_key]
-            #     length = content_length_value.__int__()
-            #     body = recv.substr(request._pos)
-            #     while body.__len__() < length:
-            #         remaining = length - body.__len__()
-            #         body = s1.recvinto(consume body, remaining)
-            #     printf('Received body:\n==========\n%s\n==========\n\n', Str.to_c_str(body))
-            #     resp = format("{}\r\nContent-Length: {}{}{}", status, length, CRLFCRLF, body)
-            #
-            #     if body == Str("quit"):
-            #         loop = False
-            #
-            # else:
-        body = Str("Something")
-        resp = format("{}\r\nContent-Length: {}{}{}", status, body.__len__(), crlfcrlf, body)
-        # with gil:
-        #     xlog(f"{bytes(resp.bytes())}")
-
-        # resp = status + crlfcrlf
-        # else:
-        #     if recv == Str('quit'):
-        #         loop = False
-        #     status = Str("HTTP/1.0 418 I'M A TEAPOT")
-        #     resp = status + CRLFCRLF
-        # printf("Sending:\n==========\n%s\n==========\n\n\n", Str.to_c_str(resp))
-        # with gil:
-        #     xlog(f"sending")
-        self.s1.sendall(resp)
-        self.s1.shutdown(SHUT_WR)
-        self.s1.close()
-        # with gil:
-        #     xlog(f"closed")
-
-
-def httpserver(py_server_addr, py_server_port):
-    cdef Str recv, body, resp
-    cdef size_t length
-    cdef Str CRLFCRLF = Str("\r\n\r\n")
-    cdef Str server_addr, server_port
-    cdef Socket s1
-    global scheduler
-
-    scheduler = Scheduler()
-    server_addr = Str(py_server_addr.encode("utf8"))
-    server_port = Str(py_server_port.encode("utf8"))
-    with nogil:
-        a = getaddrinfo(server_addr, server_port,
-                        AF_UNSPEC, SOCK_STREAM, 0, AI_PASSIVE)[0]
-        s = socket(a.family, a.socktype, a.protocol)
-        s.setsockopt(SO_REUSEADDR, 1)
-        s.bind(a.sockaddr)
-        s.listen(100)
-
-        with gil:
-            xlog(f"listening on http://{py_server_addr}:{py_server_port}")
-            xlog("initialization ok.")
-
-        loop = True
-        while loop:
-            with gil:
-                try:
-                    with nogil:
-                        s1 = s.accept()
-                except OSError as e:
-                    xlog(f"some error: {e}")
-                    continue
-
-            # r = Responder(consume s1)
-            # with gil:
-            #     xlog(f"-----------------")
-            active_r = activate(consume(Responder(consume s1)))
-            active_r.run(NULL)
-            # with gil:
-            #     xlog(f"-- next")
-
-        s.close()
-    xlog(f"quitting.")
+            loop = True
+            while loop:
+                # with gil:
+                #     xlog(f"--- in loop ")
+                with gil:
+                    try:
+                        with nogil:
+                            s1 = s.accept()
+                    except OSError as e:
+                        xlog(f"error: {e}")
+                        continue
+                active_r = activate(consume(Responder(consume s1)))
+                active_r.run(NULL)
+                count += 1
+                if count % 1000 == 0:
+                    with gil:
+                        xlog(f"counter: {count}")
+            s.close()

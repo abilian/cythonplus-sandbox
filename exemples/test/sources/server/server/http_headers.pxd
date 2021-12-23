@@ -6,7 +6,6 @@ from stdlib.string cimport Str
 from stdlib._string cimport string
 from stdlib.format cimport format
 from .stdlib.strip cimport stripped
-from .common cimport Sdict
 
 
 cdef cypclass HttpHeaderValue:
@@ -125,6 +124,6 @@ cdef cypclass HttpHeaders:
         return result
 
 
-cdef Sdict cyp_environ_headers(environ)
+cdef cypdict[Str, Str] cyp_environ_headers(environ)
 cdef HttpHeaders make_header(Str key, Str value) nogil
-cdef size_t hash_headers(Sdict) nogil
+cdef size_t hash_headers(cypdict[Str, Str]) nogil

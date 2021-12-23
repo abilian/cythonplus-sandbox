@@ -15,3 +15,5 @@ from stdlib.format cimport format
 cdef Str day_string(int) nogil
 cdef Str month_string(int) nogil
 cdef Str formatdate(time_t) nogil
+cdef Str formatnow() nogil
+cdef Str formatlog() nogil

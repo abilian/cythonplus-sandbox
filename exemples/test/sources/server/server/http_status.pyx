@@ -88,17 +88,17 @@ cdef StatusLinesDict generate_status_lines() nogil:
     d = generate_http_status_dict()
     sdl = StatusLinesDict()
     status = d[Str("OK")]
-    sdl[Str("OK")] = status.status_line()._str
+    sdl[Str("OK")] = status.status_line()
     status = d[Str("METHOD_NOT_ALLOWED")]
-    sdl[Str("METHOD_NOT_ALLOWED")] = status.status_line()._str
+    sdl[Str("METHOD_NOT_ALLOWED")] = status.status_line()
     status = d[Str("PARTIAL_CONTENT")]
-    sdl[Str("PARTIAL_CONTENT")] = status.status_line()._str
+    sdl[Str("PARTIAL_CONTENT")] = status.status_line()
     status = d[Str("REQUESTED_RANGE_NOT_SATISFIABLE")]
-    sdl[Str("REQUESTED_RANGE_NOT_SATISFIABLE")] = status.status_line()._str
+    sdl[Str("REQUESTED_RANGE_NOT_SATISFIABLE")] = status.status_line()
     status = d[Str("NOT_MODIFIED")]
-    sdl[Str("NOT_MODIFIED")] = status.status_line()._str
+    sdl[Str("NOT_MODIFIED")] = status.status_line()
     status = d[Str("FOUND")]
-    sdl[Str("FOUND")] = status.status_line()._str
+    sdl[Str("FOUND")] = status.status_line()
     return sdl
 
 
@@ -106,5 +106,5 @@ cdef StatusLinesDict generate_status_lines() nogil:
 cdef StatusLinesDict SLD = generate_status_lines()
 
 
-cdef string get_status_line(Str key) nogil:
+cdef Str get_status_line(Str key) nogil:
     return SLD[key]
