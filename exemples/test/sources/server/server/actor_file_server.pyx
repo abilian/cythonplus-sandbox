@@ -6,6 +6,7 @@ import warnings
 
 from libcythonplus.dict cimport cypdict
 from libc.stdio cimport *
+# from posix.time cimport nanosleep, timespec
 
 from stdlib.string cimport Str
 from stdlib._string cimport string
@@ -39,7 +40,7 @@ cdef Str to_str(byte_or_string):
         return Str(bytes(byte_or_string))
 
 
-class StaticServer:
+class ActorFileServer:
     def __init__(self, py_server_addr, py_server_port,
                  py_root=None, py_prefix=None, py_back_log=1):
 
@@ -79,6 +80,7 @@ class StaticServer:
         cdef int backlog
         cdef int count
         global server_scheduler
+        cdef int pending
 
         server_scheduler = Scheduler()
         server_addr = to_str(self.py_server_addr)
@@ -103,6 +105,8 @@ class StaticServer:
             while loop:
                 # with gil:
                 #     xlog(f"--- in loop ")
+                #     pending = server_scheduler.num_pending_queues.load()
+                #     xlog(pending)
                 with gil:
                     try:
                         with nogil:
@@ -110,10 +114,11 @@ class StaticServer:
                     except OSError as e:
                         xlog(f"error: {e}")
                         continue
+
                 active_r = activate(consume(Responder(consume s1)))
                 active_r.run(NULL)
                 count += 1
-                if count % 1000 == 0:
+                if count % 10000 == 0:
                     with gil:
                         xlog(f"counter: {count}")
             s.close()

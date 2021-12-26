@@ -11,7 +11,7 @@ ctypedef cypdict[string, Finfo] Fdict
 
 
 cdef cypclass Finfo:
-    "minimal file informtion"
+    "Minimal file information, size and mtime."
     off_t size
     time_t mtime
 
@@ -21,4 +21,5 @@ cdef cypclass Finfo:
 
 
 cdef Str getdefault(cypdict[Str, Str], Str, Str) nogil
+cpdef void set_log_file(path)
 cdef void xlog(msg)

@@ -6,6 +6,7 @@ import warnings
 
 from libcythonplus.dict cimport cypdict
 from libc.stdio cimport *
+# from posix.time cimport nanosleep, timespec
 
 from stdlib.string cimport Str
 from stdlib._string cimport string
@@ -47,45 +48,45 @@ cdef cypclass Responder activable:
         self._active_queue_class = consume SequentialMailBox(server_scheduler)
         self.s1 = consume s1
 
-    Str response_404(self):
+    Str response_404(self, Str path):
         cdef Str html, body, now
         cdef int length
 
-        body = Str("<html><head><title>404 Not Found</title></head><body>bgcolor=\"white\"><center><h1>404 Not Found</h1></center></body></html>{}\r\n")
+        body = format("<html><head><title>404 Not Found</title></head><body>bgcolor=\"white\"><center><h1>404 Not Found<br>{}</h1></center></body></html>\r\n", path)
         length = body.__len__()
         now = formatnow()
-
         html = format("HTTP/1.1 404 Not Found\r\nServer: staticsimple 0.2\r\nDate: {}\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}",
         now, length, body)
         return html
 
     void send_response(self, Response response):
         cdef Str head, now, status, header_lines, path
-        # cdef int length
         cdef FILE * file
         cdef char * buffer
-        cdef int length
+        cdef size_t length
 
         now = formatnow()
         status = response.status_line
+        length = response.length
+        path = response.file_path
         # with gil:
         #     xlog(response.status_line.bytes())
+        #     xlog(response.length)
         header_lines = response.headers.get_text()  # ended with one \r\n
         head = format("HTTP/1.1 {}\r\nServer: staticsimple 0.2\r\nDate: {}\r\n{}\r\n",
                         status,
                         now,
                         header_lines)
-        path = response.file_path
-        if path is NULL:  # can be a HEAD method
-            head = head + Str("\r\n")
-            self.s1.sendall(head)
+        head = head + Str("\r\n")
+        self.s1.sendall(head)
+        if path is NULL:  # probably a HEAD method
             return
 
         file = fopen(path._str.c_str(), "rb")
         if file:
-            fseek(file, 0, SEEK_END)
-            length = ftell(file)
-            fseek(file, 0, SEEK_SET)
+            # fseek(file, 0, SEEK_END)
+            # length = ftell(file)
+            # fseek(file, 0, SEEK_SET)
             buffer = <char*>malloc(length)
             if buffer:
                 fread(buffer, 1, length, file)
@@ -98,7 +99,6 @@ cdef cypclass Responder activable:
         cdef size_t length
         cdef Str crlfcrlf = Str("\r\n\r\n")
         cdef HTTPRequest request
-        # cdef iso Str recv
         cdef Str recv
         cdef Response response
 
@@ -109,29 +109,31 @@ cdef cypclass Responder activable:
         request = HTTPRequest(recv)
 
         if not request.ok:
-            with gil:
-                xlog(f"bad request")
+            # with gil:
+            #     xlog(f"bad request")
+            del request
             self.s1.shutdown(SHUT_WR)
             self.s1.close()
             return
 
-        # assuming  method is get...
+        # assuming  method is GET or HEAD:
         if <string> request.uri._str not in files:
-            resp = self.response_404()
+            resp = self.response_404(request.uri)
             self.s1.sendall(resp)
+            del request
             self.s1.shutdown(SHUT_WR)
             self.s1.close()
             return
         # with gil:
         #     xlog(request.uri.bytes())
-        # fixme : use staticfile headers...
         static_file = files[<string> request.uri._str]
         response = static_file.get_response2(request.method, request.headers)
         self.send_response(response)
+        del request
         self.s1.shutdown(SHUT_WR)
         self.s1.close()
-        with gil:
-            xlog("send done")
+        # with gil:
+        #     xlog("send done")
 
 
 cdef cypclass Noise:
@@ -161,24 +163,8 @@ cdef cypclass Noise:
         self.media_types = MediaTypes(self.mimetypes)
         self.add_files()
 
-    # Response call(self, Sdict environ_headers):
-    #     cdef StaticFile static_file
-    #     cdef Response response
-    #     cdef Str path_info_key = Str("PATH_INFO")
-    #     cdef Str path_info
-    #
-    #     if path_info_key not in environ_headers:
-    #         return NULL
-    #     path_info = environ_headers[path_info_key]
-    #     if path_info._str not in self.files:
-    #         return NULL
-    #     static_file = self.files[path_info._str]
-    #     response = static_file.get_response(environ_headers)
-    #     return response
-
     void add_files(self):
         cdef Str url, path
-        # cdef string cpath
         cdef StaticFileCache files
 
         global global_files
@@ -203,7 +189,6 @@ cdef cypclass Noise:
 
         # Build a mapping from paths to the results of `os.stat` calls
         # so we only have to touch the filesystem once
-        # cdef string s_path
         self.stat_cache = scan_fs_dic(self.root)
 
         for cpath in self.stat_cache.keys():
@@ -241,7 +226,7 @@ cdef cypclass Noise:
         self.add_cache_headers(headers)
         if self.allow_all_origins:
             headers.set_header(Str("Access-Control-Allow-Origin"), Str("*"))
-        # FIXME: see later:
+        # See later for this:
         # if self.add_headers_function:
         #     self.add_headers_function(headers, path, url)
         return StaticFile(path, headers, self.stat_cache)

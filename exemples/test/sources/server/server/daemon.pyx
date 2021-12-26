@@ -10,10 +10,11 @@ class Daemon:
 
     Usage: subclass the daemon class and override the run() method."""
 
-    def __init__(self, pidfile, addr, port):
+    def __init__(self, pidfile, addr, port, **params):
         self.pidfile = pidfile
         self.addr = addr
         self.port = port
+        self.params = params
 
     def daemonize(self):
         """Deamonize class. UNIX double fork mechanism."""

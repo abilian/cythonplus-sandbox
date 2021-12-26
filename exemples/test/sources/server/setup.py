@@ -66,7 +66,7 @@ extensions = [
     pypyx_ext(NAME, "media_types"),
     pypyx_ext(NAME, "http_status"),
     pypyx_ext(NAME, "http_headers"),
-    pypyx_ext(NAME, "httpserver"),
+    pypyx_ext(NAME, "actor_file_server"),
     pypyx_ext(NAME, "daemon"),
     pypyx_ext(NAME, "server"),
 ]

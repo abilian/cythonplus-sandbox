@@ -30,11 +30,14 @@ cdef cypclass Alternative:
     Str encoding_pattern
     Str file_path
     HttpHeaders headers
+    size_t length
 
-    __init__(self, Str encoding_pattern,Str file_path, HttpHeaders headers):
+    __init__(self, Str encoding_pattern,Str file_path, HttpHeaders headers,
+             size_t length):
         self.encoding_pattern = encoding_pattern
         self.file_path = file_path
         self.headers = headers
+        self.length = length
 
 ctypedef cyplist[Alternative] AlternativeList
 
@@ -59,6 +62,7 @@ cdef cypclass StaticFile:
     Response get_response(self, cypdict[Str, Str] request_headers):
         """get response in WSGI context"""
         cdef Alternative chosen_alternative
+        cdef size_t length
         cdef Str file_path
         cdef Str method
         cdef Str request_method_key = Str("REQUEST_METHOD")
@@ -66,20 +70,22 @@ cdef cypclass StaticFile:
         if request_method_key not in request_headers:
             return Response(Str("METHOD_NOT_ALLOWED"),
                                  make_header(Str("Allow"),Str("GET, HEAD")),
-                                 NULL)
+                                 NULL, 0)
         method = request_headers[request_method_key]
         if method != Str("GET") and method != Str("HEAD"):
             return Response(Str("METHOD_NOT_ALLOWED"),
                                  make_header(Str("Allow"), Str("GET, HEAD")),
-                                 NULL)
+                                 NULL, 0)
         if self.is_not_modified(request_headers):
             return self.not_modified_response
         chosen_alternative = self.get_path_and_headers(request_headers)
 
         if method == Str("HEAD"):
             file_path = NULL
+            length = 0
         else:
             file_path = chosen_alternative.file_path
+            length = chosen_alternative.length
             # file_handle = open(path, "rb")
         # range_header = request_headers.get("HTTP_RANGE")
         # if range_header:
@@ -90,25 +96,29 @@ cdef cypclass StaticFile:
         #         # just ignore it and return the standard response (this
         #         # behaviour is allowed by the spec)
         #         pass
-        return Response(Str("OK"), chosen_alternative.headers, file_path)
+        return Response(Str("OK"), chosen_alternative.headers, file_path,
+                        length)
 
     Response get_response2(self, Str method, cypdict[Str, Str] request_headers):
         cdef Alternative chosen_alternative
+        cdef size_t length
         cdef Str file_path
         cdef Str request_method_key = Str("REQUEST_METHOD")
 
         if method != Str("GET") and method != Str("HEAD"):
             return Response(Str("METHOD_NOT_ALLOWED"),
                                  make_header(Str("Allow"), Str("GET, HEAD")),
-                                 NULL)
+                                 NULL, 0)
         if self.is_not_modified(request_headers):
             return self.not_modified_response
         chosen_alternative = self.get_path_and_headers(request_headers)
 
         if method == Str("HEAD"):
             file_path = NULL
+            length = 0
         else:
             file_path = chosen_alternative.file_path
+            length = chosen_alternative.length
             # file_handle = open(path, "rb")
         # range_header = request_headers.get("HTTP_RANGE")
         # if range_header:
@@ -119,7 +129,8 @@ cdef cypclass StaticFile:
         #         # just ignore it and return the standard response (this
         #         # behaviour is allowed by the spec)
         #         pass
-        return Response(Str("OK"), chosen_alternative.headers, file_path)
+        return Response(Str("OK"), chosen_alternative.headers, file_path,
+                        length)
 
     @staticmethod
     FEDict get_file_stats(Str path, Fdict stat_cache):
@@ -192,7 +203,7 @@ cdef cypclass StaticFile:
             value = headers.get_content(key)
             if value is not NULL:
                 not_modified_headers.set_header(key, value)
-        return Response(Str("NOT_MODIFIED"), not_modified_headers, NULL)
+        return Response(Str("NOT_MODIFIED"), not_modified_headers, NULL, 0)
 
     AlternativeList get_alternatives(self, HttpHeaders base_headers, FEDict files):
         cdef AlternativeList alternatives
@@ -225,7 +236,8 @@ cdef cypclass StaticFile:
                 encoding_pattern = Str("[ :,;?()\"']") + fe.encoding + Str("[ :,;?()\"']")
             else:
                 encoding_pattern = Str("")
-            alternatives.append(Alternative(encoding_pattern, fe.file_path, headers))
+            alternatives.append(Alternative(encoding_pattern, fe.file_path,
+                                headers, fe.info.size))
 
         return alternatives
 
