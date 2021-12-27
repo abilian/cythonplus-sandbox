@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NAME="server"
+NAME="actor server"
 echo "start app: ${NAME}"
 
 PID="/tmp/actor_server.pid"
@@ -9,13 +9,14 @@ LOG="/tmp/afs.log"
 [[ -f ${LOG} ]] && rm -f ${LOG}
 
 PORT=5016
-python -c "import server as s; s.start_server(pidfile='${PID}', port='${PORT}', log_file='${LOG}')"
+WORKERS=2  # for best perfs, use actual nb of cores without hyperthreading
+python -c "import server as s; s.start_server(pidfile='${PID}', port='${PORT}', log_file='${LOG}', workers='${WORKERS}')"
 sleep 1
 tail -f ${LOG} &
 tail_pid=$!
 grep -q 'initialization' <(tail -f ${LOG})
 
-sleep 3
+sleep 1
 echo "start requests"
 WRK=~/tmp/wntest/wrk/wrk
 # ${WRK} -c10 -d20s -t1 http://localhost:${PORT}/random_image

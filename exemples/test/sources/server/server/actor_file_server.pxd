@@ -52,7 +52,7 @@ cdef cypclass Responder activable:
         cdef Str html, body, now
         cdef int length
 
-        body = format("<html><head><title>404 Not Found</title></head><body>bgcolor=\"white\"><center><h1>404 Not Found<br>{}</h1></center></body></html>\r\n", path)
+        body = format("<html><head><title>404 Not Found</title><style>body {{background-color: white}}</style></head><body><h1>404 Not Found</h1><h3><br>{}</h3></body></html>\r\n", path)
         length = body.__len__()
         now = formatnow()
         html = format("HTTP/1.1 404 Not Found\r\nServer: staticsimple 0.2\r\nDate: {}\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}",
@@ -77,7 +77,6 @@ cdef cypclass Responder activable:
                         status,
                         now,
                         header_lines)
-        head = head + Str("\r\n")
         self.s1.sendall(head)
         if path is NULL:  # probably a HEAD method
             return

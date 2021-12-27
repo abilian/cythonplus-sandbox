@@ -42,13 +42,14 @@ cdef Str to_str(byte_or_string):
 
 class ActorFileServer:
     def __init__(self, py_server_addr, py_server_port,
-                 py_root=None, py_prefix=None, py_back_log=1):
+                 py_root=None, py_prefix=None, py_workers=0, py_backlog=1):
 
         self.py_server_addr = py_server_addr
         self.py_server_port = py_server_port
         self.py_root = py_root
         self.py_prefix = py_prefix
-        self.backlog = int(py_back_log)
+        self.backlog = int(py_backlog)
+        self.workers = int(py_workers)
         self.nb_files = 0
 
     def scan(self):
@@ -77,12 +78,14 @@ class ActorFileServer:
     def serve(self):
         cdef Str server_addr, server_port
         cdef Socket s1
+        cdef int workers
         cdef int backlog
         cdef int count
         global server_scheduler
         cdef int pending
 
-        server_scheduler = Scheduler()
+        workers = <int> self.workers
+        server_scheduler = Scheduler(workers)
         server_addr = to_str(self.py_server_addr)
         server_port = to_str(self.py_server_port)
         backlog = <int> self.backlog
