@@ -28,9 +28,9 @@ def main(src, dest):
         sys.exit(1)
     if exists(dest):
         print("===========================================================")
-        print("need to remove old folder:", dest + "_old")
+        print("need to remove manually existing folder:", dest)
         print("===========================================================")
-        rename(dest, dest + "_old")
+        sys.exit(1)
     makedirs(dest)
     r = Random()
     r.seed(1415)
