@@ -6,11 +6,13 @@ import warnings
 
 from libcythonplus.dict cimport cypdict
 from libc.stdio cimport *
+from posix.stdio cimport fileno
 # from posix.time cimport nanosleep, timespec
 
 from stdlib.string cimport Str
 from stdlib._string cimport string
 from stdlib.format cimport format
+from stdlib.sendfile cimport sendfile
 
 from .stdlib.abspath cimport abspath
 from .stdlib.startswith cimport startswith, endswith
@@ -100,12 +102,13 @@ class ActorFileServer:
             s.listen(backlog)
 
             with gil:
+                xlog(f"ActorStaticFileServer 0.2 "
+                     f"({server_scheduler.num_workers} workers)")
                 xlog(f"listening on "
                      f"http://{self.py_server_addr}:{self.py_server_port}")
                 xlog("initialization ok.")
 
-            loop = True
-            while loop:
+            while 1:
                 # with gil:
                 #     xlog(f"--- in loop ")
                 #     pending = server_scheduler.num_pending_queues.load()

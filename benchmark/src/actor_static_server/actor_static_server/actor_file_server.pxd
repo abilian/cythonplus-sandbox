@@ -6,11 +6,13 @@ import warnings
 
 from libcythonplus.dict cimport cypdict
 from libc.stdio cimport *
+from posix.stdio cimport fileno
 # from posix.time cimport nanosleep, timespec
 
 from stdlib.string cimport Str
 from stdlib._string cimport string
 from stdlib.format cimport format
+from stdlib.sendfile cimport sendfile
 
 from .stdlib.abspath cimport abspath
 from .stdlib.startswith cimport startswith, endswith
@@ -52,45 +54,57 @@ cdef cypclass Responder activable:
         cdef Str html, body, now
         cdef int length
 
-        body = format("<html><head><title>404 Not Found</title><style>body {{background-color: white}}</style></head><body><h1>404 Not Found</h1><h3><br>{}</h3></body></html>\r\n", path)
-        length = body.__len__()
         now = formatnow()
-        html = format("HTTP/1.1 404 Not Found\r\nServer: staticsimple 0.2\r\nDate: {}\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}",
+        body = format("\
+<html>\
+<head>\
+  <title>404 Not Found</title>\
+  <style>body {{background-color: white}}</style>\
+</head>\
+<body>\
+<h1>404 Not Found</h1>\
+<h3>{}</h3>\
+</body>\
+</html>\r\n",
+        path)
+        length = body.__len__()
+        html = format("\
+HTTP/1.0 404 Not Found\r\n\
+Server: ActorStaticFileServer 0.2\r\n\
+Date: {}\r\n\
+Content-Type: text/html\r\n\
+Content-Length: {}\r\n\\r\n\
+{}",
         now, length, body)
         return html
 
     void send_response(self, Response response):
-        cdef Str head, now, status, header_lines, path
+        cdef Str head, now, header_lines
         cdef FILE * file
-        cdef char * buffer
-        cdef size_t length
+        # cdef char * buffer
 
         now = formatnow()
-        status = response.status_line
-        length = response.length
-        path = response.file_path
-        # with gil:
-        #     xlog(response.status_line.bytes())
-        #     xlog(response.length)
-        header_lines = response.headers.get_text()  # ended with one \r\n
-        head = format("HTTP/1.1 {}\r\nServer: staticsimple 0.2\r\nDate: {}\r\n{}\r\n",
-                        status,
-                        now,
-                        header_lines)
+        header_lines = response.headers.get_text()
+        head = format("\
+HTTP/1.0 {}\r\n\
+Server: ActorStaticFileServer 0.2\r\n\
+Date: {}\r\n{}\r\n\r\n",
+        response.status_line,
+        now,
+        header_lines)
         self.s1.sendall(head)
-        if path is NULL:  # probably a HEAD method
+        if response.file_path is NULL:  # assuming a HEAD method
             return
 
-        file = fopen(path._str.c_str(), "rb")
+        file = fopen(response.file_path._str.c_str(), "rb")
         if file:
-            # fseek(file, 0, SEEK_END)
-            # length = ftell(file)
-            # fseek(file, 0, SEEK_SET)
-            buffer = <char*>malloc(length)
-            if buffer:
-                fread(buffer, 1, length, file)
-                self.s1.sendraw(buffer, length)
-                free(buffer)
+            # buffer = <char*>malloc(length)
+            # if buffer:
+            #     fread(buffer, 1, length, file)
+            #     self.s1.sendraw(buffer, length)
+            #     free(buffer)
+            # use Linux's sendfile() :
+            sendfile(self.s1.sockfd, fileno(file), NULL, response.length)
             fclose(file)
 
     void run(self):
@@ -111,7 +125,7 @@ cdef cypclass Responder activable:
             # with gil:
             #     xlog(f"bad request")
             del request
-            self.s1.shutdown(SHUT_WR)
+            self.s1.shutdown(SHUT_RDWR)
             self.s1.close()
             return
 
@@ -123,13 +137,12 @@ cdef cypclass Responder activable:
             self.s1.shutdown(SHUT_WR)
             self.s1.close()
             return
-        # with gil:
-        #     xlog(request.uri.bytes())
+
         static_file = files[<string> request.uri._str]
         response = static_file.get_response2(request.method, request.headers)
         self.send_response(response)
         del request
-        self.s1.shutdown(SHUT_WR)
+        self.s1.shutdown(SHUT_RDWR)
         self.s1.close()
         # with gil:
         #     xlog("send done")

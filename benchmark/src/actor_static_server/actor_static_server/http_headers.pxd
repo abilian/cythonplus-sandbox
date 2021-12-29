@@ -112,7 +112,7 @@ cdef cypclass HttpHeaders:
         for item in self.headers.items():
             lst.append(format("{}: {}", <Str>item.first, <Str>item.second.content))
         comma = Str("\r\n")
-        result = comma.join(lst) + comma
+        result = comma.join(lst)
         return result
 
     HttpHeaders copy(self):

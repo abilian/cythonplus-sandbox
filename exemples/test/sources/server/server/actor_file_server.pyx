@@ -6,11 +6,13 @@ import warnings
 
 from libcythonplus.dict cimport cypdict
 from libc.stdio cimport *
+from posix.stdio cimport fileno
 # from posix.time cimport nanosleep, timespec
 
 from stdlib.string cimport Str
 from stdlib._string cimport string
 from stdlib.format cimport format
+from stdlib.sendfile cimport sendfile
 
 from .stdlib.abspath cimport abspath
 from .stdlib.startswith cimport startswith, endswith
