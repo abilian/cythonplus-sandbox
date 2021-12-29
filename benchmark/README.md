@@ -2,57 +2,62 @@
 
 ## Objectif
 
-Le logiciel Whitenoise est un composat classique d'une configuration python utilisant Flask ou Django. Whitenoise intercepte et répond pour les reqûetes concernant des fichiers statiques. Whitenoise accélère ces requêtes en utilisant un cache des entêtes et des statitiques des fichiers (taille, dernière date de modification). Cet outil est entièrement écrit en python.
+ActorStaticFileServer vise à répliquer les fonctionnalités de deux outils python fréquemment associés: Gunicorn et Whitenoise .
 
-Gunicorn est un serveur HTTP (WSGI), réputé rapide écrit en python. Gunicorn peut utiliser plusieurs mode de parallélisation dont une mode prefork.
+- Le logiciel Whitenoise est un composant classique d'une configuration python utilisant Flask ou Django. Whitenoise répond aux requêtes de fichiers statiques. Whitenoise accélère ces transactions en utilisant un cache des entêtes HTTP et des statistiques des fichiers (taille, dernière date de modification). Cet outil est entièrement écrit en python.
+
+- Gunicorn est un serveur HTTP (WSGI), réputé rapide, écrit en python. Gunicorn peut utiliser plusieurs mode de parallélisation, notamment des workers (prefork).
 
 L'objectif est de fournir un serveur basé sur Cython+ et le modèle acteur pour réaliser le même service que la combinaison de ces deux outils et de comparer les performances obtenues.
 
 Whitenoise: https://github.com/evansd/whitenoise
+
 Gunicorn: https://github.com/benoitc/gunicorn
 
 
-## Actor Static Server
+## ActorStaticFileServer
 
 Cet applicatif remplit les deux fonctions:
 
-  - serveur web HTTP 1.1
-  - accélération de la distribution de fichiers statiques
+  - serveur web HTTP 1.0,
+  - accélération de la distribution de fichiers statiques.
 
-Le serveur web utilise le modèle acteur pour paralléliser les réponses aux requêtes sur les coeurs disponibles.
-L'index des fichiers statiques reprend les fonctionalités de Whitenoise.
+Le serveur web utilise le modèle acteur pour paralléliser les réponses aux requêtes.
+L'index des fichiers statiques reprend les fonctionalités de Whitenoise. L'analyse initiale du dossier des fichiers statique est parallélisé selon le modèle acteur.
 
 
 ## Installation et test
 
 - Prérequis:
-
-    - serveur Linux, environnement de compilation c++ (testé sur Ubuntu LTS 2020)
-    - python 3.8+
-    - cython+ installé (https://lab.nexedi.com/nexedi/cython)
-
-- dans le répertoire benchmark:
+    - serveur Linux, environnement de compilation c++ GNU (testé sur Ubuntu LTS 2020),
+    - python 3.8+,
+    - cython+ installé (https://lab.nexedi.com/nexedi/cython).
 
 
-  Le script `constants.sh` contient différents paramètres de configuration de l'environnement de test. Par défaut l'installation utilise le répertoire `~/tmp` de l'utilisateur courant.
+- Installation:
+
+  L'installation et les tests sont réalisés par des script présents dans le dossier `benchmark.
+
+  - Le script `constants.sh` contient différents paramètres de configuration de l'environnement de test. Par défaut l'installation utilise le répertoire `~/tmp` de l'utilisateur courant.
 
   Le script `all_install.sh` chaîne les scripts:
 
   - `install_packages.sh`, installation de gunicorn, flask (v1.1), whitenoise (5.30), wrk (test de charge du serveur).
-  - `fetch_many_images.sh`, téléchargement d'une banque d'images de test depuis http://imagedatabase.cs.washington.edu/groundtruth/
+  - `fetch_many_images.sh`, téléchargement d'une banque d'images de tests depuis http://imagedatabase.cs.washington.edu/groundtruth/
   - `copy_750_images.sh`, copie les images dans un site de test local
 
 
      ./all_install.sh
 
 
-  Le script `all_build_bench.sh` chaîne les scripts:
+- Benchmark
 
-  - `build_gu_wn_python.sh`, `build_actor_static_server.sh` : installation et compilation des logiciels.
-  - `bench_gu_wn_python.sh`, `bench_actor_static_server.sh` : lancement du comparatif.
+  Le script `all_build_bench.sh` chaîne tous les scripts trouvés dans le sous-dossier `bench_scripts`:
+
+  - `bench_actor_static_server_auto.sh`, `bench_actor_static_server_workers_1.sh`, ...
 
 
      ./all_build_bench.sh
 
 
-  Les tests consistent à envoyer des requ^tes sur des fichiers statiques aléatoires pendant 30 secondes et à comparer le nombre de requêtes servies par les différentes configurations. Les résultats sont disponibles dans le dossier `benchmars/results`.
+  Les tests consistent à envoyer des requêtes de fichiers statiques aléatoires (seed de départ identique) pendant 30 secondes. La comparaison des performances des différentes configurations se base sur le bilan final de `wrk`. Les résultats sont disponibles dans le dossier `benchmark/results`.
