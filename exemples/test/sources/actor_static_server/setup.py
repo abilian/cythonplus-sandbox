@@ -10,7 +10,7 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
 
-NAME = "server"
+NAME = "actor_static_server"
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -77,9 +77,6 @@ setup(
         extensions,
         language_level="3str",
         include_path=[
-            # "stdlib",
-            # "server/stdlib",
-            # "server",
             os.path.join(PROJECT_ROOT, NAME, "stdlib"),
             os.path.join(PROJECT_ROOT, NAME),
         ],
@@ -91,23 +88,19 @@ setup(
     url="https://abilian.com",
     packages=find_packages(exclude=["tests*"]),
     license="In progress",
-    description="Simple http server, based on Nexedi's cython plus sources.",
-    long_description="Simple http server, based on Nexedi's cython plus sources.",
+    description="Simple http server, based on Nexedi's CythonPlus sources.",
+    long_description="Simple http server, based on Nexedi's CythonPlus sources.",
     # classifiers=[
     #     "Development Status :: 5 - Production/Stable",
-    #     "Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware",
+    #     "Topic :: Internet :: WWW/HTTP :: Middleware",
     #     "Intended Audience :: Developers",
     #     "License :: OSI Approved :: MIT License",
     #     "Operating System :: OS Independent",
     #     "Programming Language :: Python :: 3",
-    #     "Programming Language :: Python :: 3.5",
-    #     "Programming Language :: Python :: 3.6",
-    #     "Programming Language :: Python :: 3.7",
     #     "Programming Language :: Python :: 3.8",
     #     "Programming Language :: Python :: Implementation :: CPython",
-    #     "Programming Language :: Python :: Implementation :: PyPy",
     # ],
-    python_requires=">=3.5, <4",
+    python_requires=">=3.8, <4",
     include_package_data=True,
     zip_safe=False,
 )

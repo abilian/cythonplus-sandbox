@@ -102,12 +102,13 @@ class ActorFileServer:
             s.listen(backlog)
 
             with gil:
+                xlog(f"ActorStaticFileServer 0.2 "
+                     f"({server_scheduler.num_workers} workers)")
                 xlog(f"listening on "
                      f"http://{self.py_server_addr}:{self.py_server_port}")
                 xlog("initialization ok.")
 
-            loop = True
-            while loop:
+            while 1:
                 # with gil:
                 #     xlog(f"--- in loop ")
                 #     pending = server_scheduler.num_pending_queues.load()

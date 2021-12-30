@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NAME="server"
+NAME="actor_static_server_h11"
 [ -f "make_cythonplus.sh" ] || exit 1  # security
 
 . make_libfmt.sh
@@ -13,8 +13,6 @@ cp setup.py build
 cd build
 
 python setup.py build_ext --inplace
-tree ${NAME}
-python -c "import ${NAME}; \
-           print(${NAME}, 'version', ${NAME}.__version__)"
-python -c "import ${NAME} as s; print(s.start_server)"
+# tree ${NAME}
+python -c "import ${NAME}; print(${NAME}, 'version:', ${NAME}.__version__)"
 cd ..
