@@ -17,7 +17,8 @@ sleep 3
 echo "start requests"
 WRK=~/tmp/wntest/wrk/wrk
 # ${WRK} -c10 -d20s -t1 http://localhost:${PORT}/random_image
-${WRK} -c20 -d30s -t1 -s ./rnd.lua http://localhost:${PORT}
+#${WRK} -c20 -d30s -t1 -s ./rnd.lua http://localhost:${PORT}
+${WRK} -c80 -d30s -t4 -s ./rnd.lua http://localhost:${PORT}
 
 kill $(cat ${PID})
 kill ${tail_pid}

@@ -44,17 +44,17 @@ cdef StaticFileCache[1] global_files
 cdef lock Scheduler server_scheduler
 
 
-cdef cypclass Responder activable:
+cdef cypclass Responder0 activable:
+    """Responder for HTTP/1.0
+    """
     Socket s1
-    int protocol  # 0 for http 1.0, or 1 for http 1.1
 
-    __init__(self,  iso Socket s1, int protocol):
+    __init__(self,  iso Socket s1):
         cdef timeval timeout
 
         self._active_result_class = NullResult
         self._active_queue_class = consume SequentialMailBox(server_scheduler)
         self.s1 = consume s1
-        self.protocol = protocol
         # timeout = timeval()
         # timeout.tv_sec = 5
         # timeout.tv_usec = 0
@@ -79,13 +79,13 @@ cdef cypclass Responder activable:
         path)
         length = body.__len__()
         html = format("\
-HTTP/1.{} 404 Not Found\r\n\
+HTTP/1.0 404 Not Found\r\n\
 Server: ActorStaticFileServer 0.3\r\n\
 Date: {}\r\n\
 Content-Type: text/html\r\n\
 Content-Length: {}\r\n\\r\n\
 {}",
-        self.protocol, now, length, body)
+        now, length, body)
         return html
 
     void send_response(self, Response response):
@@ -96,10 +96,120 @@ Content-Length: {}\r\n\\r\n\
         now = formatnow()
         header_lines = response.headers.get_text()
         head = format("\
-HTTP/1.{} {}\r\n\
+HTTP/1.0 {}\r\n\
 Server: ActorStaticFileServer 0.3\r\n\
 Date: {}\r\n{}\r\n\r\n",
-        self.protocol,
+        response.status_line,
+        now,
+        header_lines)
+        self.s1.sendall(head)
+        if response.file_path is NULL:  # assuming a HEAD method
+            return
+
+        file = fopen(response.file_path._str.c_str(), "rb")
+        if file:
+            # buffer = <char*>malloc(length)
+            # if buffer:
+            #     fread(buffer, 1, length, file)
+            #     self.s1.sendraw(buffer, length)
+            #     free(buffer)
+            # use Linux's sendfile() :
+            sendfile(self.s1.sockfd, fileno(file), NULL, response.length)
+            fclose(file)
+
+    void manage_request(self, Str received):
+        cdef Str resp_404
+        cdef HTTPRequest request
+        cdef Response response
+        cdef StaticFile static_file
+        cdef StaticFileCache files
+
+        request = HTTPRequest(received)
+        if not request.ok:
+            return
+
+        files = global_files[0]
+        # assuming  method is GET or HEAD:
+        if <string> request.uri._str not in files:
+            resp_404 = self.response_404(request.uri)
+            self.s1.sendall(resp_404)
+            del request
+            return
+
+        static_file = files[<string> request.uri._str]
+        response = static_file.response2(request.method, request.headers)
+        self.send_response(response)
+        del request
+        return
+
+    void run(self):
+        cdef Str recv
+        cdef Str crlfcrlf = Str("\r\n\r\n")
+        cdef int request_ok
+
+        recv = Str.copy_iso(self.s1.recvuntil(crlfcrlf, 1024))
+        if recv:
+            self.manage_request(recv)
+        self.s1.shutdown(SHUT_RDWR)
+        self.s1.close()
+        return
+
+
+cdef cypclass Responder1 activable:
+    """Responder for HTTP/1.1
+    """
+    Socket s1
+
+    __init__(self,  iso Socket s1):
+        cdef timeval timeout
+
+        self._active_result_class = NullResult
+        self._active_queue_class = consume SequentialMailBox(server_scheduler)
+        self.s1 = consume s1
+        # timeout = timeval()
+        # timeout.tv_sec = 5
+        # timeout.tv_usec = 0
+        # setsockopt(self.s1.sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout))
+
+    Str response_404(self, Str path):
+        cdef Str html, body, now
+        cdef int length
+
+        now = formatnow()
+        body = format("\
+<html>\
+<head>\
+  <title>404 Not Found</title>\
+  <style>body {{background-color: white}}</style>\
+</head>\
+<body>\
+<h1>404 Not Found</h1>\
+<h3>{}</h3>\
+</body>\
+</html>\r\n",
+        path)
+        length = body.__len__()
+        html = format("\
+HTTP/1.1 404 Not Found\r\n\
+Server: ActorStaticFileServer 0.3\r\n\
+Date: {}\r\n\
+Content-Type: text/html\r\n\
+Content-Length: {}\r\n\\r\n\
+{}",
+        now, length, body)
+        return html
+
+    void send_response(self, Response response):
+        cdef Str head, now, header_lines
+        cdef FILE * file
+        # cdef char * buffer
+
+        now = formatnow()
+        header_lines = response.headers.get_text()
+        head = format("\
+HTTP/1.1 {}\r\n\
+Server: ActorStaticFileServer 0.3\r\n\
+Date: {}\r\n{}\r\n\r\n",
         response.status_line,
         now,
         header_lines)
@@ -138,7 +248,7 @@ Date: {}\r\n{}\r\n\r\n",
             return 1
 
         static_file = files[<string> request.uri._str]
-        response = static_file.get_response2(request.method, request.headers)
+        response = static_file.response2(request.method, request.headers)
         self.send_response(response)
         del request
         return 1
@@ -150,19 +260,14 @@ Date: {}\r\n{}\r\n\r\n",
 
         while 1:
             recv = Str.copy_iso(self.s1.recvuntil(crlfcrlf, 1024))
-            if not recv:
-                self.s1.shutdown(SHUT_RDWR)
-                self.s1.close()
-                return
-            request_ok = self.manage_request(recv)
-            if not request_ok:
-                self.s1.shutdown(SHUT_RDWR)
-                self.s1.close()
-                return
-            if not self.protocol:
-                self.s1.shutdown(SHUT_RDWR)
-                self.s1.close()
-                return
+            if recv:
+                request_ok = self.manage_request(recv)
+                if request_ok:
+                    continue
+            self.s1.shutdown(SHUT_RDWR)
+            self.s1.close()
+            return
+
 
 cdef cypclass Noise:
     Fdict stat_cache
@@ -175,6 +280,7 @@ cdef cypclass Noise:
     Str prefix
     MediaTypes media_types
     int nb_files
+    int workers
 
     __init__(self):
         self.stat_cache = NULL
@@ -185,10 +291,11 @@ cdef cypclass Noise:
         self.add_headers_function = NULL
         self.nb_files = 0
 
-    void start(self, Str root, Str prefix):
+    void start(self, Str root, Str prefix, int workers):
         self.root = root
         self.prefix = prefix
         self.media_types = MediaTypes(self.mimetypes)
+        self.workers = workers
         self.add_files()
 
     void add_files(self):
@@ -217,7 +324,7 @@ cdef cypclass Noise:
 
         # Build a mapping from paths to the results of `os.stat` calls
         # so we only have to touch the filesystem once
-        self.stat_cache = scan_fs_dic(self.root)
+        self.stat_cache = scan_fs_dic(self.root, self.workers)
 
         for cpath in self.stat_cache.keys():
             path = new Str()

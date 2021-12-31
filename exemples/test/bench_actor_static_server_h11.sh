@@ -13,7 +13,7 @@ echo -e "Benchmark of the actor server h1.1 with auto detection of cores\n" > ${
 
 PORT=5016
 PROTO=1
-WORKERS=2  # for best perfs, use actual nb of cores without hyperthreading
+WORKERS=16  # for best perfs, use actual nb of cores without hyperthreading
 command="import ${NAME} as s; s.start_server(pidfile='${PID}', addr='127.0.0.1', \
 port='${PORT}', site_root='${ROOT}', static_folder='${STATIC_FOLDER}', \
 prefix=None, log_file='${LOG}', workers='${WORKERS}', protocol='${PROTO}')"
@@ -26,7 +26,7 @@ grep -q 'initialization' <(tail -f ${LOG})
 sleep 1
 echo "start requests"
 WRK=~/tmp/wntest/wrk/wrk
-${WRK} -c20 -d30s -t1 -s ./rnd.lua http://localhost:${PORT}
+${WRK} -c40 -d30s -t4 -s ./rnd.lua http://localhost:${PORT}
 #${WRK} -c20 -d3s -t1 -s ./rnd.lua http://localhost:${PORT} >> "${LOG}" 2>&1
 
 [ -f ${PID} ] && kill $(cat ${PID})

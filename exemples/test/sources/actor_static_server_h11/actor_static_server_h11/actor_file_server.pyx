@@ -7,6 +7,7 @@ import warnings
 from libcythonplus.dict cimport cypdict
 from libc.stdio cimport *
 from posix.stdio cimport fileno
+from posix.time cimport timeval
 # from posix.time cimport nanosleep, timespec
 
 from stdlib.string cimport Str
@@ -21,6 +22,7 @@ from .stdlib.regex cimport re_is_match
 from .stdlib.formatdate cimport formatnow
 
 from stdlib.socket cimport *
+from stdlib._socket cimport setsockopt
 from stdlib.http cimport HTTPRequest
 
 from scheduler.scheduler cimport SequentialMailBox, NullResult, Scheduler
@@ -45,7 +47,7 @@ cdef Str to_str(byte_or_string):
 class ActorFileServer:
     def __init__(self, py_server_addr, py_server_port,
                  py_root=None, py_prefix=None, py_workers=0, py_backlog=1,
-                 py_protocol=0):
+                 py_protocol=1, py_scan_workers=0):
 
         self.py_server_addr = py_server_addr
         self.py_server_port = py_server_port
@@ -53,12 +55,14 @@ class ActorFileServer:
         self.py_prefix = py_prefix
         self.backlog = int(py_backlog)
         self.workers = int(py_workers)
+        self.scan_workers = int(py_scan_workers)
         self.protocol = int(py_protocol)
         self.nb_files = 0
 
     def scan(self):
         cdef Noise noise
         cdef Str root, prefix
+        cdef int scan_workers
 
         if self.py_root:
             root = to_str(self.py_root)
@@ -68,10 +72,10 @@ class ActorFileServer:
             prefix = to_str(self.py_prefix)
         else:
             prefix = Str("")
-
+        scan_workers = <int> self.scan_workers
         noise = Noise()
         with nogil:
-            noise.start(root, prefix)
+            noise.start(root, prefix, scan_workers)
 
         self.nb_files = noise.nb_files
         xlog(f"files cached: {self.nb_files}")
@@ -114,23 +118,41 @@ class ActorFileServer:
                      f"http://{self.py_server_addr}:{self.py_server_port}")
                 xlog("initialization ok.")
 
-            while 1:
-                # with gil:
-                #     xlog(f"--- in loop ")
-                #     pending = server_scheduler.num_pending_queues.load()
-                #     xlog(pending)
-                with gil:
-                    try:
-                        with nogil:
-                            s1 = s.accept()
-                    except OSError as e:
-                        xlog(f"error: {e}")
-                        continue
-
-                active_r = activate(consume(Responder(consume s1, protocol)))
-                active_r.run(NULL)
-                count += 1
-                if count % 10000 == 0:
+            if protocol == 1:
+                while 1:
+                    # with gil:
+                    #     xlog(f"--- in loop ")
+                    #     pending = server_scheduler.num_pending_queues.load()
+                    #     xlog(pending)
                     with gil:
-                        xlog(f"counter: {count}")
+                        try:
+                            with nogil:
+                                s1 = s.accept()
+                        except OSError as e:
+                            xlog(f"error: {e}")
+                            continue
+
+                    active_r1 = activate(consume(Responder1(consume s1)))
+                    active_r1.run(NULL)
+                    count += 1
+                    if count % 10000 == 0:
+                        with gil:
+                            xlog(f"counter: {count}")
+            else:
+                while 1:
+                    with gil:
+                        try:
+                            with nogil:
+                                s1 = s.accept()
+                        except OSError as e:
+                            xlog(f"error: {e}")
+                            continue
+
+                    active_r0 = activate(consume(Responder0(consume s1)))
+                    active_r0.run(NULL)
+                    count += 1
+                    if count % 10000 == 0:
+                        with gil:
+                            xlog(f"counter: {count}")
+
             s.close()

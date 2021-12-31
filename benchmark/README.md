@@ -2,11 +2,11 @@
 
 ## Objectif
 
-ActorStaticFileServer vise à répliquer les fonctionnalités de deux outils python fréquemment associés: Gunicorn et Whitenoise .
+ActorStaticFileServer vise à répliquer les fonctionnalités de deux outils python fréquemment associés: Gunicorn et Whitenoise.
 
 - Le logiciel Whitenoise est un composant classique d'une configuration python utilisant Flask ou Django. Whitenoise répond aux requêtes de fichiers statiques. Whitenoise accélère ces transactions en utilisant un cache des entêtes HTTP et des statistiques des fichiers (taille, dernière date de modification). Cet outil est entièrement écrit en python.
 
-- Gunicorn est un serveur HTTP (WSGI), réputé rapide, écrit en python. Gunicorn peut utiliser plusieurs mode de parallélisation, notamment des workers (prefork).
+- Gunicorn est un serveur HTTP (WSGI), réputé rapide, écrit en python. Gunicorn peut utiliser plusieurs modes de parallélisation, notamment des workers (prefork).
 
 L'objectif est de fournir un serveur basé sur Cython+ et le modèle acteur pour réaliser le même service que la combinaison de ces deux outils et de comparer les performances obtenues.
 
@@ -19,11 +19,11 @@ Gunicorn: https://github.com/benoitc/gunicorn
 
 Cet applicatif remplit les deux fonctions:
 
-  - serveur web HTTP 1.0,
+  - serveur web HTTP/1.1 ou HTTP/1.0
   - accélération de la distribution de fichiers statiques.
 
 Le serveur web utilise le modèle acteur pour paralléliser les réponses aux requêtes.
-L'index des fichiers statiques reprend les fonctionalités de Whitenoise. L'analyse initiale du dossier des fichiers statique est parallélisé selon le modèle acteur.
+L'index des fichiers statiques reprend les fonctionalités de Whitenoise. L'analyse initiale du dossier des fichiers statique est parallélisée selon le modèle acteur.
 
 
 ## Installation et test
@@ -36,7 +36,7 @@ L'index des fichiers statiques reprend les fonctionalités de Whitenoise. L'anal
 
 - Installation:
 
-  L'installation et les tests sont réalisés par des script présents dans le dossier `benchmark.
+  L'installation et les tests sont réalisés par les scripts présents dans le dossier `benchmark.
 
   - Le script `constants.sh` contient différents paramètres de configuration de l'environnement de test. Par défaut l'installation utilise le répertoire `~/tmp` de l'utilisateur courant.
 
@@ -60,4 +60,4 @@ L'index des fichiers statiques reprend les fonctionalités de Whitenoise. L'anal
      ./all_build_bench.sh
 
 
-  Les tests consistent à envoyer des requêtes de fichiers statiques aléatoires (seed de départ identique) pendant 30 secondes. La comparaison des performances des différentes configurations se base sur le bilan final de `wrk`. Les résultats sont disponibles dans le dossier `benchmark/results`.
+  Les tests consistent à envoyer des requêtes de fichiers statiques aléatoires (seed de départ identique) pendant 30 secondes. Les résultats des tests sont disponibles dans le dossier `benchmark/results`. Le bilan final de `wrk` permet la comparaison des performances des différentes configurations.

@@ -30,7 +30,7 @@ TPLATE = """<!DOCTYPE html>
 
 def images_list(static_folder):
     images = []
-    for suffix in ("jpg",):
+    for suffix in ("jpg", "txt"):
         images.extend(
             [
                 relpath(x, static_folder)
@@ -68,7 +68,7 @@ def create_app(script_info=None):
         print(app.wsgi_app.nb_cached_files(), "files cached by Whitenoise")
     except AttributeError:
         print(len(app.wsgi_app.files), "files cached by Whitenoise")
-    print("Whitenoise initialization (ms):", (perf_counter() - t0) * 1000)
+    print("Whitenoise initialization (ms):", int((perf_counter() - t0) * 1000))
     print()
 
     @app.route("/")

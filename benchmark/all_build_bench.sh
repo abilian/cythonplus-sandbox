@@ -6,9 +6,4 @@ echo "Build all, bench all"
 
 ./build_gu_wn_python.sh
 ./build_actor_static_server.sh
-
-for bench in bench_scripts/*
-do
-  echo "========================================================================="
-  ./${bench}
-done
+./do_bench.sh

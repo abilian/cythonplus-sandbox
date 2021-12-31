@@ -9,7 +9,7 @@ from stdlib.dirent cimport DIR, struct_dirent, opendir, readdir, closedir
 # from scheduler.scheduler cimport BatchMailBox, NullResult, Scheduler
 from scheduler.scheduler cimport SequentialMailBox, NullResult, Scheduler
 
-from .common cimport Finfo, Fdict
+from .common cimport Finfo, Fdict, xlog
 
 
 cdef iso Node make_node(iso Str path, iso Str name) nogil:
@@ -23,17 +23,17 @@ cdef iso Node make_node(iso Str path, iso Str name) nogil:
     return NULL
 
 
-cdef Fdict scan_fs_dic(Str path) nogil:
+cdef Fdict scan_fs_dic(Str path, int workers) nogil:
     cdef iso Node node
     cdef Str root_path, path1, path2
     global scheduler
-    scheduler = Scheduler()
+    scheduler = Scheduler(workers)
     global collector
     collector = Fdict()
 
-    # root_path = Str("/home/jd/bin")
-    # path1 = root_path.copy()
-    # path2 = root_path.copy()
+    with gil:
+        xlog(f"start scan filesystem ({scheduler.num_workers} workers)")
+
     path1 = path.copy()
     path2 = path.copy()
     node = make_node(consume path1, consume path2)

@@ -7,6 +7,7 @@
 ROOT=~/tmp/site_root
 STATIC_FOLDER=static
 IMAGES=${ROOT}/${STATIC_FOLDER}/images
+SMALL=${ROOT}/${STATIC_FOLDER}/small
 
 # where are stored tar files of images
 IMGSRC=~/tmp/images_src

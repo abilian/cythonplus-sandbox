@@ -43,6 +43,8 @@ ctypedef cyplist[Alternative] AlternativeList
 
 
 cdef cypclass StaticFile:
+    """Container for cached information of a static file.
+    """
     AlternativeList alternatives
     time_t last_modified
     Str etag
@@ -52,15 +54,16 @@ cdef cypclass StaticFile:
         cdef FEDict files
         cdef HttpHeaders headers
 
-        files = self.get_file_stats(path, stat_cache)
-        headers = self.get_headers(base_headers, files)
-        self.last_modified = parsedate(headers.get_content(Str("Last-Modified")))
+        files = self.cached_file_stats(path, stat_cache)
+        headers = self.make_headers(base_headers, files)
+        self.last_modified = parsedate(
+                headers.get_content(Str("Last-Modified")))
         self.etag = headers.get_content(Str("ETag"))
-        self.not_modified_response = self.get_not_modified_response(headers)
-        self.alternatives = self.get_alternatives(headers, files)
+        self.not_modified_response = self.make_not_modified_response(headers)
+        self.alternatives = self.list_alternatives(headers, files)
 
-    Response get_response(self, cypdict[Str, Str] request_headers):
-        """get response in WSGI context"""
+    Response response(self, cypdict[Str, Str] request_headers):
+        """get response in WSGI context, not used by ActorStaticFileServer."""
         cdef Alternative chosen_alternative
         cdef size_t length
         cdef Str file_path
@@ -78,7 +81,7 @@ cdef cypclass StaticFile:
                                  NULL, 0)
         if self.is_not_modified(request_headers):
             return self.not_modified_response
-        chosen_alternative = self.get_path_and_headers(request_headers)
+        chosen_alternative = self.select_alternative(request_headers)
 
         if method == Str("HEAD"):
             file_path = NULL
@@ -99,7 +102,8 @@ cdef cypclass StaticFile:
         return Response(Str("OK"), chosen_alternative.headers, file_path,
                         length)
 
-    Response get_response2(self, Str method, cypdict[Str, Str] request_headers):
+    Response response2(self, Str method, cypdict[Str, Str] request_headers):
+        """get response in ActorStaticFileServer context."""
         cdef Alternative chosen_alternative
         cdef size_t length
         cdef Str file_path
@@ -111,7 +115,7 @@ cdef cypclass StaticFile:
                                  NULL, 0)
         if self.is_not_modified(request_headers):
             return self.not_modified_response
-        chosen_alternative = self.get_path_and_headers(request_headers)
+        chosen_alternative = self.select_alternative(request_headers)
 
         if method == Str("HEAD"):
             file_path = NULL
@@ -133,7 +137,7 @@ cdef cypclass StaticFile:
                         length)
 
     @staticmethod
-    FEDict get_file_stats(Str path, Fdict stat_cache):
+    FEDict cached_file_stats(Str path, Fdict stat_cache):
         cdef FEDict files
         cdef FileEntry entry
         cdef Str zpath
@@ -147,16 +151,18 @@ cdef cypclass StaticFile:
                 raise ValueError(f"Missing file: {path._str.c_str()}")
         zpath = path + Str(".gz")
         if <string> zpath._str in stat_cache:
-            entry = FileEntry(zpath, stat_cache[<string> zpath._str], Str(".gzip"))
+            entry = FileEntry(
+                zpath, stat_cache[<string> zpath._str], Str(".gzip"))
             files[Str(".gzip")] = entry
         zpath = path + Str(".br")
         if <string> zpath._str in stat_cache:
-            entry = FileEntry(zpath, stat_cache[<string> zpath._str], Str("br"))
+            entry = FileEntry(
+                zpath, stat_cache[<string> zpath._str], Str("br"))
             files[Str("br")] = entry
         return files
 
     @staticmethod
-    HttpHeaders get_headers(HttpHeaders base_headers, FEDict files):
+    HttpHeaders make_headers(HttpHeaders base_headers, FEDict files):
         cdef HttpHeaders headers
         cdef FileEntry fe
         cdef Str value
@@ -186,7 +192,7 @@ cdef cypclass StaticFile:
         return headers
 
     @staticmethod
-    Response get_not_modified_response(HttpHeaders headers):
+    Response make_not_modified_response(HttpHeaders headers):
         cdef HttpHeaders not_modified_headers
         cdef StrList no_mod_header_keys
 
@@ -205,7 +211,7 @@ cdef cypclass StaticFile:
                 not_modified_headers.set_header(key, value)
         return Response(Str("NOT_MODIFIED"), not_modified_headers, NULL, 0)
 
-    AlternativeList get_alternatives(self, HttpHeaders base_headers, FEDict files):
+    AlternativeList list_alternatives(self, HttpHeaders base_headers, FEDict files):
         cdef AlternativeList alternatives
         cdef cyplist[FileEntry] sorted_files
         cdef FileEntry fe, fi
@@ -233,12 +239,12 @@ cdef cypclass StaticFile:
             headers.set_header(Str("Content-Length"), str_size)
             if fe.encoding.__len__() > 0:
                 headers.set_header(Str("Content-Encoding"), fe.encoding)
-                encoding_pattern = Str("[ :,;?()\"']") + fe.encoding + Str("[ :,;?()\"']")
+                encoding_pattern = format(
+                    "[ :,;?()\"']{}[ :,;?()\"']", fe.encoding)
             else:
                 encoding_pattern = Str("")
             alternatives.append(Alternative(encoding_pattern, fe.file_path,
                                 headers, fe.info.size))
-
         return alternatives
 
     bint is_not_modified(self, cypdict[Str, Str] request_headers):
@@ -260,7 +266,7 @@ cdef cypclass StaticFile:
             return last_requested_ts >= self.last_modified
         return False
 
-    Alternative get_path_and_headers(self, cypdict[Str, Str] request_headers):
+    Alternative select_alternative(self, cypdict[Str, Str] request_headers):
         cdef Str accept_encoding, tmp
         cdef Alternative alter
 

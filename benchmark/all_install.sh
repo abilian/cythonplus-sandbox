@@ -7,3 +7,4 @@ echo "Install all"
 ./install_packages.sh
 ./fetch_many_images.sh
 ./copy_750_images.sh
+./gen_small_files.sh

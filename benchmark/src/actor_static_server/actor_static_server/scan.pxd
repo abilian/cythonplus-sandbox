@@ -9,7 +9,7 @@ from stdlib.dirent cimport DIR, struct_dirent, opendir, readdir, closedir
 # from scheduler.scheduler cimport BatchMailBox, NullResult, Scheduler
 from scheduler.scheduler cimport SequentialMailBox, NullResult, Scheduler
 
-from .common cimport Finfo, Fdict
+from .common cimport Finfo, Fdict, xlog
 
 
 # Use global for scheduler and collector:
@@ -88,4 +88,4 @@ cdef cypclass Node activable:
 
 
 cdef iso Node make_node(iso Str, iso Str) nogil
-cdef Fdict scan_fs_dic(Str) nogil
+cdef Fdict scan_fs_dic(Str, int) nogil
