@@ -13,20 +13,25 @@ cd ${TMPGIT}
 #sudo port install -y py38-gunicorn
 #sudo port install -y py38-setproctitle
 #sudo port install -y py38-flask
-sudo apt-get install -y gunicorn
-sudo apt-get install -y python3-setproctitle
-sudo apt-get install -y python3-flask
+# sudo apt-get install -y gunicorn
+# sudo apt-get install -y python3-setproctitle
+# sudo apt-get install -y python3-flask
+
+pip install gunicorn
+pip install setproctitle
+pip install flask
 
 echo "------------------------------------"
 cd ${TMPGIT}
-git clone -o github https://github.com/evansd/whitenoise.git
+[[ -d whitenoise ]] || git clone -o github https://github.com/evansd/whitenoise.git
 cd whitenoise
-sudo python setup.py install
+python setup.py install
 
 echo "------------------------------------"
 cd ${TMPGIT}
-git clone -o github https://github.com/wg/wrk.git
+[[ -d wrk ]] || git clone -o github https://github.com/wg/wrk.git
 cd wrk
-make
-
-cd ${ORIG}
+./wrk -v |grep 'wrk 4' || {
+    git pull
+    make
+}

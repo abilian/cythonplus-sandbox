@@ -2,7 +2,7 @@
 
 ## Objectif
 
-ActorStaticFileServer vise à répliquer les fonctionnalités de deux outils python fréquemment associés: Gunicorn et Whitenoise.
+Httpd-Plus vise à répliquer les fonctionnalités de deux outils python fréquemment associés: Gunicorn et Whitenoise.
 
 - Le logiciel Whitenoise est un composant classique d'une configuration python utilisant Flask ou Django. Whitenoise répond aux requêtes de fichiers statiques. Whitenoise accélère ces transactions en utilisant un cache des entêtes HTTP et des statistiques des fichiers (taille, dernière date de modification). Cet outil est entièrement écrit en python.
 
@@ -14,8 +14,10 @@ Whitenoise: https://github.com/evansd/whitenoise
 
 Gunicorn: https://github.com/benoitc/gunicorn
 
+Httpd-Plus: https://github.com/abilian/httpd-plus
 
-## ActorStaticFileServer
+
+## Httpd-Plus
 
 Cet applicatif remplit les deux fonctions:
 
@@ -54,7 +56,7 @@ L'index des fichiers statiques reprend les fonctionalités de Whitenoise. L'anal
 
   Le script `all_build_bench.sh` chaîne tous les scripts trouvés dans le sous-dossier `bench_scripts`:
 
-  - `bench_actor_static_server_auto.sh`, `bench_actor_static_server_workers_1.sh`, ...
+  - `bench_httpd_plus_auto.sh`, `bench_httpd_plus_workers_1.sh`, ...
 
 
      ./all_build_bench.sh

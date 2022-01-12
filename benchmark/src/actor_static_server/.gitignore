@@ -1,5 +1,0 @@
-*.py[co]
-__pycache__
-/build
-/build_fmt
-/libfmt
