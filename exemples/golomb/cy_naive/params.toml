@@ -1,0 +1,5 @@
+title = "Golomb, cython naive (original pure python used as cython source)"
+module = "golomb"
+# function = "main"
+function = "golomb_sequence"
+args = [50]

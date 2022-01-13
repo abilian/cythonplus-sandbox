@@ -1,0 +1,5 @@
+title = "Golomb, cython using python syntax"
+module = "golomb_pysyn"
+# function = "main"
+function = "golomb_sequence"
+args = [50]
