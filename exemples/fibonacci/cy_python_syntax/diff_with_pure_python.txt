@@ -1,0 +1,33 @@
+--- ../python_pure/fibonacci.py	2022-01-13 12:38:05.000000000 +0100
++++ fibonacci_cy_pysyn.py	2022-01-13 12:34:15.000000000 +0100
+@@ -1,11 +1,16 @@
+ #!/usr/bin/env python
+-# Fibonacci x 100, pure python
++# Fibonacci x 100, cython using python syntax
+ # for "int" on 64bits fibonacci max is n: 92 fibo: 7540113804746346429
+ # (for fib(n) <= 2**63)
+ # So for testing purpose, use "float" (aka double) fibonacci max is about 1477
++import cython
+ 
+ 
+-def fibo(n):
++def fibo(n: cython.int) -> cython.double:
++    a: cython.double
++    b: cython.double
++    i: cython.int
++
+     a = 0.0
+     b = 1.0
+     for i in range(n):
+@@ -13,7 +18,10 @@
+     return a
+ 
+ 
+-def fibo_list(size):
++def fibo_list(size: cython.int) -> list:
++    results: list
++    i: cython.int
++
+     results = []
+     # store each result, or for the C versions the clever compiler will not
+     # compute unused results

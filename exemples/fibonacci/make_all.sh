@@ -1,6 +1,8 @@
 #!/bin/bash
 
 folders="
+cy_naive
+cy_python_syntax
 cy_monocore
 cy_multicore
 cyp_monocore

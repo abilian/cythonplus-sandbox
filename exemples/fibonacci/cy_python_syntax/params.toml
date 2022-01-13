@@ -1,0 +1,4 @@
+title = "Fibonacci x 100, cython using python syntax"
+module = "fibonacci_cy_pysyn"
+function = "fibo_many"
+args = [1476, 100]

@@ -1,0 +1,4 @@
+title = "Fibonacci x 100, cython naive (original pure python used as cython source)"
+module = "fibonacci"
+function = "fibo_many"
+args = [1476, 100]
