@@ -1,0 +1,4 @@
+title = "fannkuchredux, monocore, cython using python syntax"
+module = "fannkuchredux_pysyn"
+function = "main"
+args = [11]

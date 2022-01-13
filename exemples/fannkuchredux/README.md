@@ -39,28 +39,42 @@ fannkuchredux, pure python, monocore
 params: [11]
 556355
 Pfannkuchen(11) = 51
-duration: 196.838s
+duration: 195.394s
 
 ============================================================================
 fannkuchredux, pure python, multicore using multiprocess
 params: [11]
 556355
 Pfannkuchen(11) = 51
-duration: 73.518s
+duration: 72.784s
+
+============================================================================
+fannkuchredux, monocore, cython naive (original pure python used as cython source)
+params: [11]
+556355
+Pfannkuchen(11) = 51
+duration: 103.913s
+
+============================================================================
+fannkuchredux, monocore, cython using python syntax
+params: [11]
+556355
+Pfannkuchen(11) = 51
+duration: 103.731s
 
 ============================================================================
 fannkuchredux, cython, basic cython port of multiprocess version
 params: [11]
 556355
 Pfannkuchen(11) = 51
-duration: 34.418s
+duration: 34.589s
 
 ============================================================================
 fannkuchredux, cythonplus with actors
 params: [11]
 556355
 Pfannkuchen(11) = 51
-duration: 86.991s
+duration: 86.904s
 
 ============================================================================
 fannkuchredux, C++ implementation, using openmp
@@ -74,5 +88,5 @@ fannkuchredux, fastest C implementation, using openmp
 params: [11]
 556355
 Pfannkuchen(11) = 51
-duration: 0.850s
+duration: 0.849s
 ```

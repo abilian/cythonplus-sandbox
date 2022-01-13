@@ -1,0 +1,4 @@
+title = "fannkuchredux, monocore, cython naive (original pure python used as cython source)"
+module = "fannkuchredux"
+function = "main"
+args = [11]
