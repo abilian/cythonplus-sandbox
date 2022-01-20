@@ -1,0 +1,9 @@
+[build-system]
+requires = ["setuptools>=49.5.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest]
+addopts = "--doctest-modules"
+
+# [tool.pytest.ini_options]
+# addopts = "--cov --cov-config=pyproject.toml --no-cov-on-fail"
