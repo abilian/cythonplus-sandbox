@@ -42,9 +42,7 @@ def main():
 
     compiling_name = backend.capitalize() + "izing"
 
-    assert sys.argv[0].endswith(
-        os.path.sep.join(("transonic_cl", "run_backend.py"))
-    )
+    assert sys.argv[0].endswith(os.path.sep.join(("transonic_cl", "run_backend.py")))
 
     args = sys.argv[1:]
     name = args[0]
@@ -62,7 +60,7 @@ def main():
         if backend == "pythran":
             name_tmp = name_out_base + ".tmp"
             args[index_output] = name_tmp
-        elif backend == "cython":
+        elif backend in {"cython", "cythonplus"}:
             name_tmp = name_out_base + ".py"
             copyfile(name, name_tmp)
             copyfile(name.split(".", 1)[0] + ".pxd", name_out_base + ".pxd")
@@ -112,7 +110,7 @@ def main():
         args.insert(0, "pythran")
         if os.getenv("TRANSONIC_DEBUG"):
             args.append("-v")
-    elif backend == "cython":
+    elif backend in {"cython", "cythonplus"}:
         args = [sys.executable, "-m", "transonic_cl.cythonize", name]
 
     name_lock.touch()
@@ -126,7 +124,7 @@ def main():
         name_lock.unlink()
     if backend == "pythran" and "-o" in args and path_tmp.exists():
         path_tmp.rename(path_out)
-    elif backend == "cython":
+    elif backend in {"cython", "cythonplus"}:
         path_tmp.with_suffix(".c").unlink()
         path_tmp.with_suffix(".pxd").unlink()
         path_tmp.unlink()
@@ -138,9 +136,7 @@ def main():
             pass
         else:
             if completed_process.stdout:
-                print(
-                    f"{backend.capitalize()} stdout:\n{completed_process.stdout}"
-                )
+                print(f"{backend.capitalize()} stdout:\n{completed_process.stdout}")
             if completed_process.stderr:
                 logger.error(
                     f"{backend.capitalize()} stderr:\n{completed_process.stderr}"

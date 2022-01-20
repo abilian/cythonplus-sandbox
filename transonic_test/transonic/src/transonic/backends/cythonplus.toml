@@ -1,0 +1,13 @@
+# CythonPlus backend
+
+[types]
+int = "int"
+float = "double"
+str = "Str"
+dict = "cypdict[Str, int]"
+list = "cyplist[int]"
+
+[initializations]
+int = "0"
+double = "0.0"
+Str = 'Str("")'

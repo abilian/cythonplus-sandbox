@@ -83,10 +83,8 @@ def get_decorated_dicts(
 
     kinds = ("functions", "functions_ext", "methods", "classes")
 
-    backend_names = ("pythran", "cython", "numba", "python")
-    decorated_dicts = {
-        kind: {name: {} for name in backend_names} for kind in kinds
-    }
+    backend_names = ("pythran", "cython", "cythonplus", "numba", "python")
+    decorated_dicts = {kind: {name: {} for name in backend_names} for kind in kinds}
 
     def add_definition(node_using_decorator):
         """
@@ -196,9 +194,7 @@ def get_decorated_dicts(
                     decorated_dict = decorated_dicts["methods"][backend_name_def]
                     func_name = (parent.name, func_name)
                 else:
-                    decorated_dict = decorated_dicts["functions"][
-                        backend_name_def
-                    ]
+                    decorated_dict = decorated_dicts["functions"][backend_name_def]
             elif isinstance(definition_node, ast.ClassDef):
                 decorated_dict = decorated_dicts["classes"][backend_name_def]
             else:
@@ -270,7 +266,8 @@ def get_types_from_transonic_signature(signature: str, function_name: str):
 
 def analyse_aot(code, pathfile, backend_name):
     """Gather the informations for ``@boost`` and blocks"""
-    debug = logger.debug
+    logger.set_level("debug")
+    debug = logger.info
 
     debug("extast.parse")
     module = extast.parse(code)
@@ -283,9 +280,7 @@ def analyse_aot(code, pathfile, backend_name):
     debug(code_dependance_annotations)
 
     debug("find boosted objects")
-    boosted_dicts = get_decorated_dicts(
-        module, ancestors, duc, None, backend_name
-    )
+    boosted_dicts = get_decorated_dicts(module, ancestors, duc, None, backend_name)
     debug(pformat(boosted_dicts))
 
     debug("compute the annotations")
@@ -333,6 +328,7 @@ def analyse_aot(code, pathfile, backend_name):
     blocks = get_block_definitions(code, module, ancestors, duc, udc)
 
     for block in blocks:
+        debug(block)
         replace_strings_by_objects(block.signatures, module, ancestors, udc, duc)
 
     debug(pformat(blocks))
@@ -345,9 +341,7 @@ def analyse_aot(code, pathfile, backend_name):
         def_node.decorator_list = []
         if isinstance(def_node, ast.ClassDef):
             def_node.body = [
-                node
-                for node in def_node.body
-                if not isinstance(node, ast.AnnAssign)
+                node for node in def_node.body if not isinstance(node, ast.AnnAssign)
             ]
 
     blocks_for_capturex = [block.ast_code for block in blocks]
@@ -411,9 +405,9 @@ def analyse_aot(code, pathfile, backend_name):
                 annotations["__locals__"][name_func] = annotations_locals
 
             if fdef.returns:
-                annotations["__returns__"][
-                    name_func
-                ] = extract_returns_annotation(fdef.returns, namespace)
+                annotations["__returns__"][name_func] = extract_returns_annotation(
+                    fdef.returns, namespace
+                )
 
     for signatures in annotations["__in_comments__"].values():
         replace_strings_by_objects(signatures, module, ancestors, udc, duc)

@@ -29,9 +29,11 @@ try:
 except ImportError:
     build_ext_classes = [SetuptoolsBuildExt]
     can_import_cython = False
+    can_import_cythonplus = False
 else:
     build_ext_classes = [CythonBuildExt]
     can_import_cython = True
+    can_import_cythonplus = True
 
 try:
     from pythran.dist import PythranBuildExt, PythranExtension
@@ -164,7 +166,7 @@ def init_transonic_extensions(
         return []
     elif backend == "pythran":
         BackendExtension = PythranExtension
-    elif backend == "cython":
+    elif backend in {"cython", "cythonplus"}:
 
         def BackendExtension(mod, files):
             # to avoid a bug: Cython does not take into account .pxd file
@@ -294,9 +296,7 @@ class ParallelBuildExt(*build_ext_classes):
                 key
                 for key in self.compiler.compiler_so
                 if key not in self.ignoreflags
-                and all(
-                    [not key.startswith(s) for s in self.ignoreflags_startswith]
-                )
+                and all([not key.startswith(s) for s in self.ignoreflags_startswith])
             ]
 
         # Set of all extension types
@@ -312,9 +312,7 @@ class ParallelBuildExt(*build_ext_classes):
         num_jobs = self.parallel
         logger.info(f"_build_extensions_parallel with num_jobs = {num_jobs}")
         for type_ext, exts in extensions_by_type.items():
-            logger.info(
-                f"Building extensions of type {type_ext}: {names(exts)}"
-            )
+            logger.info(f"Building extensions of type {type_ext}: {names(exts)}")
 
             with Pool(num_jobs) as pool:
                 pool.map(self.build_extension, exts)

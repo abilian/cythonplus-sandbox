@@ -73,9 +73,11 @@ def set_backend(backend: str):
     """Set the "global variable" backend_default"""
 
     backend = backend.lower()
-    supported_backends = ["pythran", "cython", "numba", "python"]
+    supported_backends = {"pythran", "cython", "numba", "python", "cythonplus"}
     if backend not in supported_backends:
-        raise ValueError(f"backend {backend} not supported")
+        raise ValueError(
+            f"backend {backend} not supported." f" Suported are: {supported_backends}"
+        )
 
     global backend_default, backend_set_by_user
 

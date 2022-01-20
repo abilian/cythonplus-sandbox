@@ -141,7 +141,7 @@ def parse_args():
     parser.add_argument(
         "-b",
         "--backend",
-        help=("Backend (pythran, cython, numba or python)"),
+        help=("Backend (pythran, cython, cythonplus, numba or python)"),
         type=str,
         default=backend_default,
     )

@@ -186,9 +186,7 @@ class Transonic:
 
     """
 
-    def __init__(
-        self, use_transonified=True, frame=None, reuse=True, backend=None
-    ):
+    def __init__(self, use_transonified=True, frame=None, reuse=True, backend=None):
 
         if frame is None:
             frame = inspect.stack()[1]
@@ -337,9 +335,7 @@ class Transonic:
                     module.__transonic__ = self.module_backend.__transonic__
 
             if hasattr(self.module_backend, "arguments_blocks"):
-                self.arguments_blocks = getattr(
-                    self.module_backend, "arguments_blocks"
-                )
+                self.arguments_blocks = getattr(self.module_backend, "arguments_blocks")
 
         modules[module_name] = self
 
@@ -456,18 +452,14 @@ class Transonic:
             func_name = func.__name__
 
             name_backend_func = f"__for_method__{cls_name}__{func_name}"
-            name_var_code_new_method = (
-                f"__code_new_method__{cls_name}__{func_name}"
-            )
+            name_var_code_new_method = f"__code_new_method__{cls_name}__{func_name}"
 
             if not hasattr(self.module_backend, name_backend_func):
                 self.reload_module_backend()
 
             try:
                 backend_func = getattr(self.module_backend, name_backend_func)
-                code_new_method = getattr(
-                    self.module_backend, name_var_code_new_method
-                )
+                code_new_method = getattr(self.module_backend, name_var_code_new_method)
             except AttributeError:
                 # TODO: improve what happens in this case
                 raise RuntimeError(
@@ -579,9 +571,7 @@ def jit_class(cls, jit_methods, backend):
         mod = _get_module_jit(backend_name=backend.name, index_frame=5)
         if mpi.rank == 0:
             python_path = mpi.PathSeq(python_path)
-            python_code = (
-                mod.info_analysis["codes_dependance_classes"][cls_name] + "\n"
-            )
+            python_code = mod.info_analysis["codes_dependance_classes"][cls_name] + "\n"
             python_code += backend.jit.produce_code_class(cls)
             write_if_has_to_write(python_path, python_code)
             python_path = mpi.Path(python_path)

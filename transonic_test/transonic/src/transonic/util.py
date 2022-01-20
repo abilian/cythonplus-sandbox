@@ -123,6 +123,11 @@ def can_import_accelerator(backend: str = backend_default):
             import cython
         except ImportError:
             return False
+    elif backend == "cythonplus":
+        try:
+            import cython
+        except ImportError:
+            return False
     elif backend == "numba":
         try:
             import numba
@@ -155,7 +160,7 @@ def print_versions(accelerators=None):
         else:
             print(f"Numba {numba.__version__}")
 
-    if accelerators is None or "cython" in accelerators:
+    if accelerators is None or "cython" in accelerators or "cythonplus" in accelerators:
         try:
             import Cython
         except ImportError:
@@ -400,16 +405,12 @@ def clear_cached_extensions(module_name: str, force: bool, backend: str):
     path_pythran = relative_path.parent / (
         "__{backend.name}__/" + relative_path.name + ".py"
     )
-    path_ext = path_pythran.with_name(
-        backend.name_ext_from_path_backend(path_pythran)
-    )
+    path_ext = path_pythran.with_name(backend.name_ext_from_path_backend(path_pythran))
 
     if not path_pythran_dir_jit.exists() and not (
         path_pythran.exists() or path_ext.exists()
     ):
-        print(
-            f"Not able to find cached extensions corresponding to {module_name}"
-        )
+        print(f"Not able to find cached extensions corresponding to {module_name}")
         print("Nothing to do! ✨ 🍰 ✨.")
         return
 
@@ -456,9 +457,7 @@ def has_to_write(path_file: Path, new_code: str):
         return True
 
 
-def write_if_has_to_write(
-    path_file: Path, new_code: str, logger=None, force=False
-):
+def write_if_has_to_write(path_file: Path, new_code: str, logger=None, force=False):
     """Write a file if it doesn't exist or doesn't contain a particular code"""
     written = False
     if has_to_write(path_file, new_code) or force:
@@ -503,9 +502,7 @@ def timeit_verbose(
     print_time=False,
     max_length_name=33,
 ):
-    result = timeit(
-        stmt, setup=setup, total_duration=total_duration, globals=globals
-    )
+    result = timeit(stmt, setup=setup, total_duration=total_duration, globals=globals)
     if norm is None:
         norm = result
         norm_given = False

@@ -13,6 +13,7 @@
 
    pythran
    cython
+   cythonplus
    numba
    py
 
@@ -35,11 +36,13 @@ from transonic.util import get_module_name
 from .py import PythonBackend
 from .pythran import PythranBackend
 from .cython import CythonBackend
+from .cythonplus import CythonPlusBackend
 from .numba import NumbaBackend
 
 backends = dict(
     pythran=PythranBackend(),
     cython=CythonBackend(),
+    cythonplus=CythonPlusBackend(),
     numba=NumbaBackend(),
     python=PythonBackend(),
 )
