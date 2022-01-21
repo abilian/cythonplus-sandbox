@@ -11,13 +11,11 @@ from stdlib.string cimport Str
 from stdlib._string cimport string
 from stdlib.format cimport format
 
-
 cdef int gpos(int n):
     """Return the value of position n of the Golomb sequence (recursive function).
     """
     cdef int val
     cdef Str something
-
     val = 0
     something = Str("")
 
@@ -26,12 +24,12 @@ cdef int gpos(int n):
         return 1
     return gpos(n - gpos(gpos(n - 1))) + 1
 
+
 cdef int gpos2(int n) nogil:
     """Return the value of position n of the Golomb sequence (recursive function).
     """
     cdef int val
     cdef cypdict[Str, int] somedict
-
     val = 0
     somedict = cypdict[Str, int]()
 

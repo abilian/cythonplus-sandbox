@@ -37,9 +37,7 @@ def make_code_method_jit(cls, func_name):
     func = cls.__dict__[func_name]
     func = func.func
 
-    new_code, attributes, name_new_func = make_new_code_method_from_objects(
-        cls, func
-    )
+    new_code, attributes, name_new_func = make_new_code_method_from_objects(cls, func)
 
     try:
         cls_annotations = cls.__annotations__
@@ -131,9 +129,7 @@ def make_new_code_method_from_source(source, func_name, cls_name):
                 tokens.append((NAME, "self"))
                 using_self = False
             else:
-                raise NotImplementedError(
-                    f"self{tokval} not supported by Transonic"
-                )
+                raise NotImplementedError(f"self{tokval} not supported by Transonic")
 
         if using_self == ".":
             if toknum == NAME:
@@ -167,7 +163,8 @@ def make_new_code_method_from_source(source, func_name, cls_name):
     tokens = tokens[:index_self] + tokens_attr + tokens[index_self + 1 :]
 
     index_func_name = tokens.index((NAME, func_name))
-    name_new_func = f"__for_method__{cls_name}__{func_name}"
+    raise
+    name_new_func = f"_cc_for_method__{cls_name}__{func_name}"
     tokens[index_func_name] = (NAME, name_new_func)
     # change recursive calls
     if func_name in attributes:

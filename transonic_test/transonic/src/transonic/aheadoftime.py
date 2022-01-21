@@ -431,6 +431,9 @@ class Transonic:
         if is_transpiling:
             return cls
 
+        if self.backend.name == "cythonplus":
+            return cls
+
         jit_methods = {
             key: value
             for key, value in cls.__dict__.items()

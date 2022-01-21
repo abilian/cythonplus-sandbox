@@ -12,6 +12,5 @@ from stdlib._string cimport string
 from stdlib.format cimport format
 
 
-
 cdef int gpos(int)
 cdef int gpos2(int) nogil

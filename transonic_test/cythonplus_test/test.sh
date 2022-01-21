@@ -11,5 +11,5 @@ export TRANSONIC_NO_MPI=true
 
 [[ -d __cythonplus__ ]] && rm -fr __cythonplus__
 
-transonic golomb.py -b cythonplus --no-compile
-# transonic golomb_class.py -b cythonplus --no-compile
+transonic code_with_functions.py -b cythonplus --no-compile
+transonic code_with_classes.py -b cythonplus --no-compile

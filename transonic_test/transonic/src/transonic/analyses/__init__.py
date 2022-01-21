@@ -197,6 +197,13 @@ def get_decorated_dicts(
                     decorated_dict = decorated_dicts["functions"][backend_name_def]
             elif isinstance(definition_node, ast.ClassDef):
                 decorated_dict = decorated_dicts["classes"][backend_name_def]
+                if backend_name_def == "cythonplus":
+                    for meth in definition_node.body:
+                        if not isinstance(meth, ast.FunctionDef):
+                            continue
+                        meth_dict = decorated_dicts["methods"][backend_name_def]
+                        meth_key = (definition_node.name, meth.name)
+                        meth_dict[meth_key] = meth
             else:
                 raise RuntimeError
             if decorated_dict is not None:
@@ -277,11 +284,11 @@ def analyse_aot(code, pathfile, backend_name):
 
     debug("filter_code_typevars")
     code_dependance_annotations = filter_code_typevars(module, duc, ancestors)
-    debug(code_dependance_annotations)
+    # debug(code_dependance_annotations)
 
     debug("find boosted objects")
     boosted_dicts = get_decorated_dicts(module, ancestors, duc, None, backend_name)
-    debug(pformat(boosted_dicts))
+    # debug(pformat(boosted_dicts))
 
     debug("compute the annotations")
 
@@ -322,16 +329,15 @@ def analyse_aot(code, pathfile, backend_name):
                 if ann != {}:
                     annotations[kind][key] = ann
 
-    debug(pformat(annotations))
+    # debug(pformat(annotations))
 
     debug("get_block_definitions")
     blocks = get_block_definitions(code, module, ancestors, duc, udc)
 
     for block in blocks:
-        debug(block)
         replace_strings_by_objects(block.signatures, module, ancestors, udc, duc)
 
-    debug(pformat(blocks))
+    # debug(pformat(blocks))
 
     debug("compute code dependance:")
 
@@ -406,6 +412,33 @@ def analyse_aot(code, pathfile, backend_name):
 
             if fdef.returns:
                 annotations["__returns__"][name_func] = extract_returns_annotation(
+                    fdef.returns, namespace
+                )
+
+    for functions_backend in boosted_dicts["methods"].values():
+        for cl_meth, fdef in functions_backend.items():
+            try:
+                signatures = signatures_p[cl_meth]
+            except KeyError:
+                signatures = tuple()
+            arg_names = [arg.id for arg in fdef.args.args]
+            annotations_sign = []
+            for sig in signatures:
+                types = [
+                    type_.strip()
+                    for type_ in re.split(pattern, sig[len(fdef.name) + 1 : -1])
+                ]
+                annotations_sign.append(dict(zip(arg_names, types)))
+            if annotations_sign:
+                annotations["__in_comments__"][cl_meth] = annotations_sign
+
+            # locals: variable annotations
+            annotations_locals = extract_variable_annotations(fdef, namespace)
+            if annotations_locals:
+                annotations["__locals__"][cl_meth] = annotations_locals
+
+            if fdef.returns:
+                annotations["__returns__"][cl_meth] = extract_returns_annotation(
                     fdef.returns, namespace
                 )
 

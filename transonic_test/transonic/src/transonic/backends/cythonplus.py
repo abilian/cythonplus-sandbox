@@ -58,7 +58,8 @@ from transonic.util import (
 from .for_classes import make_new_code_method_from_nodes
 from .typing import TypeFormatter
 
-RE_SIGNATUE = re.compile("^\s*def .*\n", re.M)
+RE_SIGNATURE = re.compile("^\s*def .*\n", re.M)
+TAB = "    "
 
 
 class DecoratorFlags:
@@ -100,6 +101,24 @@ class Config:
 CONF = Config()
 
 
+class MethAnnotation:
+    def __init__(self, class_name, meth_name, annotations):
+        self.meth_key = (class_name, meth_name)
+        self.a_class = annotations["classes"].get(class_name) or {}
+        self.a_method = annotations["methods"].get(self.meth_key) or {}
+        self.locals = annotations["__locals__"].get(self.meth_key) or {}
+        self.returns = annotations["__returns__"].get(self.meth_key) or None
+
+        transonic_types = set(self.a_method.values())
+        transonic_types.update(self.locals.values())
+        if self.returns:
+            transonic_types.add(self.returns)
+        self.transonic_types = sorted(transonic_types, key=repr)
+
+    def arg(self, name_id):
+        return self.a_method.get(name_id, "")
+
+
 class CythonPlusBackend:
     """Main class for the CythonPlus backend"""
 
@@ -117,8 +136,11 @@ class CythonPlusBackend:
         self.type_formatter = TypeFormatterCythonPlus(self.name)
         self.jit = None
 
-    def _make_code_from_fdef_node(self, fdef, cyp_headers):
-
+    def _make_code_from_fdef_node(
+        self, fdef, cyp_headers, activable="", indent_level=0
+    ):
+        tab0 = TAB * indent_level
+        tab = TAB * (indent_level + 1)
         parts = []
         transformed = TypeHintRemover().visit(fdef)
         # convert the AST back to source code
@@ -126,20 +148,25 @@ class CythonPlusBackend:
         if doc is None:
             doc = ""
         else:
-            doc = f'    """{doc}\n    """\n'
+            doc = f'{tab}"""{doc}\n{tab}"""\n'
             del transformed.body[0]
-        new_header = (
-            "\n"
-            + cyp_headers["pyx"]
-            + doc
-            + cyp_headers["locals"]
-            + "\n"
-            + cyp_headers["inits"]
-            + "\n"
-        )
-        parts.append(unparse(transformed))
-        src = "\n".join(parts)
-        src = RE_SIGNATUE.sub(new_header, src)
+
+        tabbed_locals = cyp_headers["locals"].split("\n")
+        new_header = "\n" + cyp_headers["pyx"] + doc
+        if cyp_headers["locals"]:
+            new_header = new_header + cyp_headers["locals"]
+        if cyp_headers["inits"]:
+            new_header = new_header + cyp_headers["inits"] + "\n"
+        if activable and fdef.name == "__init__":
+            new_header += (
+                f"{tab}# for actavable cypclass defaults:\n"
+                f"{tab}self._active_result_class = NullResult\n"
+                f"{tab}self._active_queue_class = consume SequentialMailBox(scheduler)\n"
+            )
+
+        parts.append(indent(unparse(transformed), tab0))
+        src = "\n".join(parts) + "\n"
+        src = RE_SIGNATURE.sub(new_header, src)
         # logger.info(src)
         return src
         # return format_str(src)
@@ -179,9 +206,9 @@ class CythonPlusBackend:
     ):
         """Create a Python file from a Python file (if necessary)"""
 
+        logger.set_level("debug")
         if log_level is not None:
             logger.set_level(log_level)
-        logger.set_level("debug")
         logger.info(path_py)
         path_py = Path(path_py)
 
@@ -215,9 +242,9 @@ class CythonPlusBackend:
         if not code_pyx and not code_pxd:
             logger.debug(f"no code for {self.name}\n")
             return
-        logger.debug(f"code_{self.name}:\n{code_pyx}")
-        logger.debug(f"code_{self.name}:\n{codes_ext}")
-        logger.debug(f"code_{self.name}:\n{code_pxd}")
+        # logger.debug(f"code_{self.name}:\n{code_pyx}")
+        # logger.debug(f"code_{self.name}:\n{codes_ext}")
+        # logger.debug(f"code_{self.name}:\n{code_pxd}")
 
         for file_name, code in codes_ext["function"].items():
             path_ext_file = path_dir / (file_name + ".py")
@@ -259,7 +286,6 @@ class CythonPlusBackend:
             "from stdlib._string cimport string\n"
             "from stdlib.format cimport format\n"
             "\n"
-            "\n"
         )
 
     def _make_backend_code(self, path_py, analyse):
@@ -267,27 +293,21 @@ class CythonPlusBackend:
 
         boosted_dicts, code_dependance, annotations, blocks, codes_ext = analyse
         boosted_dicts = {key: value[self.name] for key, value in boosted_dicts.items()}
-        logger.info("\n".join(boosted_dicts.keys()))
-        logger.info("\n".join(boosted_dicts["functions_ext"].keys()))
+        # logger.info("\n".join(boosted_dicts.keys()))
 
         lines_pyx = ["\n" + code_dependance + "\n"]
         lines_header = self._make_first_lines_header()
         # Deal with functions
         for fdef in boosted_dicts["functions"].values():
-            cyp_headers = self._make_header_1_function_pxd_pyx(fdef, annotations)
+            cyp_headers = self._make_header_1_function_pxd_pyx(fdef, annotations, 0)
             if cyp_headers:
                 lines_header.append(cyp_headers["pxd"])
-            code_function = self._make_code_from_fdef_node(fdef, cyp_headers)
+            code_function = self._make_code_from_fdef_node(fdef, cyp_headers, "", 0)
             lines_pyx.append(code_function)
 
         # Deal with methods
         for klass in boosted_dicts["classes"].values():
-            logger.info("KKKKKKKKK " + klass.name)
-            cyp_class_definition = self._make_class_pxd(
-                klass, annotations, boosted_dicts
-            )
-            if cyp_class_definition:
-                lines_header.append(cyp_class_definition["pxd"])
+            self._make_cypclass(klass, annotations, boosted_dicts, lines_header)
 
         # Deal with blocks
         signatures, code_blocks = self._make_code_blocks(blocks)
@@ -341,79 +361,74 @@ class CythonPlusBackend:
         return signatures_blocks, code
 
     def _make_code_method(
-        self, class_name, fdef, meth_name, annotations, boosted_dicts
+        self, class_name, fdef, annotations, boosted_dicts, activable
     ):
-        class_def = boosted_dicts["classes"][class_name]
-
-        if class_name in annotations["classes"]:
-            annotations_class = annotations["classes"][class_name]
-        else:
-            annotations_class = {}
-        logger.info("ac " + str(annotations["classes"]))
-
-        if (class_name, meth_name) in annotations["methods"]:
-            annotations_meth = annotations["methods"][(class_name, meth_name)]
-        else:
-            annotations_meth = {}
-
         meth_name = fdef.name
-        python_code, attributes, _ = make_new_code_method_from_nodes(class_def, fdef)
-
-        for attr in attributes:
-            logger.info("=> " + attr)
-
-        for attr in attributes:
-            if attr not in annotations_class:
-                raise NotImplementedError(
-                    f"self.{attr} used but {attr} not in class annotations"
-                )
-        types_attrs = {"self_" + attr: annotations_class[attr] for attr in attributes}
-        types_pythran = {**types_attrs, **annotations_meth}
-
-        # TODO: locals_types for methods
-        locals_types = None
-        signatures_method = self._make_header_from_fdef_annotations(
-            extast.parse(python_code).body[0], [types_pythran], locals_types
+        class_def = boosted_dicts["classes"][class_name]
+        meth_annotation = MethAnnotation(class_name, meth_name, annotations)
+        cyp_headers = self._make_header_from_method_annotations_cypclass(
+            fdef,
+            meth_annotation,
+            1,
         )
+        return self._make_code_from_fdef_node(fdef, cyp_headers, activable, 1)
 
-        str_self_dot_attributes = ", ".join("self." + attr for attr in attributes)
-        args_func = [arg.id for arg in fdef.args.args[1:]]
-        str_args_func = ", ".join(args_func)
+        #
+        # for attr in attributes:
+        #     logger.info("=> " + attr)
+        #
+        # for attr in attributes:
+        #     if attr not in annotations_class:
+        #         raise NotImplementedError(
+        #             f"self.{attr} used but {attr} not in class annotations"
+        #         )
+        # types_attrs = {"self_" + attr: annotations_class[attr] for attr in attributes}
+        # types_pythran = {**types_attrs, **annotations_meth}
+        #
+        # # TODO: locals_types for methods
+        # locals_types = None
+        # signatures_method = self._make_header_from_fdef_annotations(
+        #     extast.parse(python_code).body[0], [types_pythran], locals_types
+        # )
 
-        defaults = fdef.args.defaults
-        nb_defaults = len(defaults)
-        nb_args = len(fdef.args.args)
-        nb_no_defaults = nb_args - nb_defaults - 1
-
-        str_args_value_func = []
-        ind_default = 0
-        for ind, arg in enumerate(fdef.args.args[1:]):
-            name = arg.id
-            if ind < nb_no_defaults:
-                str_args_value_func.append(f"{name}")
-            else:
-                default = extast.unparse(defaults[ind_default]).strip()
-                str_args_value_func.append(f"{name}={default}")
-                ind_default += 1
-
-        str_args_value_func = ", ".join(str_args_value_func)
-
-        if str_self_dot_attributes:
-            str_args_backend_func = ", ".join((str_self_dot_attributes, str_args_func))
-        else:
-            str_args_backend_func = str_args_func
-
-        name_var_code_new_method = f"__code_new_method__{class_name}__{meth_name}"
-
-        self._append_line_header_variable(signatures_method, name_var_code_new_method)
-        python_code += (
-            f'\n{name_var_code_new_method} = """\n\n'
-            f"def new_method(self, {str_args_value_func}):\n"
-            f"    return backend_func({str_args_backend_func})"
-            '\n\n"""\n'
-        )
-
-        return signatures_method, format_str(python_code)
+        # str_self_dot_attributes = ", ".join("self." + attr for attr in attributes)
+        # args_func = [arg.id for arg in fdef.args.args[1:]]
+        # str_args_func = ", ".join(args_func)
+        #
+        # defaults = fdef.args.defaults
+        # nb_defaults = len(defaults)
+        # nb_args = len(fdef.args.args)
+        # nb_no_defaults = nb_args - nb_defaults - 1
+        #
+        # str_args_value_func = []
+        # ind_default = 0
+        # for ind, arg in enumerate(fdef.args.args[1:]):
+        #     name = arg.id
+        #     if ind < nb_no_defaults:
+        #         str_args_value_func.append(f"{name}")
+        #     else:
+        #         default = extast.unparse(defaults[ind_default]).strip()
+        #         str_args_value_func.append(f"{name}={default}")
+        #         ind_default += 1
+        #
+        # str_args_value_func = ", ".join(str_args_value_func)
+        #
+        # if str_self_dot_attributes:
+        #     str_args_backend_func = ", ".join((str_self_dot_attributes, str_args_func))
+        # else:
+        #     str_args_backend_func = str_args_func
+        #
+        # name_var_code_new_method = f"__code_new_method__{class_name}__{meth_name}"
+        #
+        # self._append_line_header_variable(signatures_method, name_var_code_new_method)
+        # python_code += (
+        #     f'\n{name_var_code_new_method} = """\n\n'
+        #     f"def new_method(self, {str_args_value_func}):\n"
+        #     f"    return backend_func({str_args_backend_func})"
+        #     '\n\n"""\n'
+        # )
+        #
+        # return signatures_method, format_str(python_code)
 
     def _make_header_from_fdef_annotations(
         self, fdef, annotations: dict, locals_types=None, returns=None
@@ -535,9 +550,10 @@ class CythonPlusBackend:
         return signatures_func
 
     def _make_header_from_fdef_annotations_pxd_pyx(
-        self, fdef, annotations: dict, locals_types=None, returns=None
+        self, fdef, annotations, locals_types=None, returns=None, indent_level=0
     ):
-
+        tab0 = TAB * indent_level
+        tab = TAB * (indent_level + 1)
         result = {"pyx": "", "pxd": "", "locals": "", "inits": ""}
         flags = DecoratorFlags(fdef)
         nogil = " nogil" if flags.nogil else ""
@@ -549,7 +565,7 @@ class CythonPlusBackend:
 
         if len(annotations) > 1:
             warn(
-                "CythoPlus backend only supports one set of annotations. "
+                "CythonPlus backend only supports one set of annotations. "
                 "(And CythonPlus does not supports fused types.)"
             )
 
@@ -575,18 +591,10 @@ class CythonPlusBackend:
 
         template_parameters = sorted(template_parameters, key=repr)
 
-        # transonic_fused_types = [
-        #     ttype
-        #     for ttype in transonic_types
-        #     if hasattr(ttype, "is_fused_type") and ttype.is_fused_type()
-        # ]
-
         if not all(param.values for param in template_parameters):
             raise ValueError(
                 f"{template_parameters}, {[param.values for param in template_parameters]}"
             )
-
-        # cython_fused_types = {}
 
         def get_ttype_name(ttype):
             if hasattr(ttype, "short_repr"):
@@ -598,27 +606,6 @@ class CythonPlusBackend:
             else:
                 raise RuntimeError
             return ttype_name
-
-        # for ttype in transonic_fused_types:
-        #     ttype_name = get_ttype_name(ttype)
-        #     name_cython_type = f"__{fdef.name}__{ttype_name}"
-        #
-        #     cython_types = ttype.get_all_formatted_backend_types(self.type_formatter)
-        #     if "None" in cython_types:
-        #         cython_types.remove("None")
-        #     cython_fused_types[name_cython_type] = cython_types
-
-        ###
-        ### cythonplus does not support fused types
-        ###
-
-        # signatures_func = []
-
-        # for name, possible_types in cython_fused_types.items():
-        #     ctypedef = [f"ctypedef fused {name}:\n"]
-        #     for possible_type in sorted(set(possible_types)):
-        #         ctypedef.append(f"   {possible_type}\n")
-        #     signatures_func.append("".join(ctypedef))
 
         def get_name_cython_type(ttype):
             return format_type_as_backend_type(ttype, self.type_formatter)
@@ -661,12 +648,13 @@ class CythonPlusBackend:
             #     f"{k}={format_type_as_backend_type(v, self.type_formatter, memview=True)}"
             #     for k, v in locals_types.items()
             # )
+
             locals = [
-                f"    cdef {get_name_cython_type(v)} {k}\n"
+                f"{tab}cdef {get_name_cython_type(v)} {k}\n"
                 for k, v in locals_types.items()
             ]
             inits = [
-                f"    {k} = {init_cythonplus_type(v)}\n"
+                f"{tab}{k} = {init_cythonplus_type(v)}\n"
                 for k, v in locals_types.items()
             ]
             result["locals"] = "".join(locals)
@@ -681,10 +669,106 @@ class CythonPlusBackend:
             returns = "void "
 
         # logger.info(unparse(fdef))
-        result["pyx"] = f"cdef {inline}{returns}{unparse(fdef).strip()[4:-1]}{nogil}:\n"
+        result[
+            "pyx"
+        ] = f"{tab0}cdef {inline}{returns}{unparse(fdef).strip()[4:-1]}{nogil}:\n"
         fdef.args = pxd_args
-        result["pxd"] = f"cdef {inline}{returns}{unparse(fdef).strip()[4:-1]}{nogil}"
+        result[
+            "pxd"
+        ] = f"{tab0}cdef {inline}{returns}{unparse(fdef).strip()[4:-1]}{nogil}"
 
+        return result
+
+    def _make_header_from_method_annotations_cypclass(
+        self,
+        fdef,
+        meth_annotation,
+        indent_level=0,
+    ):
+        """make header of a cypclass method"""
+        tab0 = TAB * indent_level
+        tab = TAB * (indent_level + 1)
+        result = {"pyx": "", "pxd": "", "locals": "", "inits": ""}
+
+        fdef = FunctionDef(name=fdef.name, args=copy.deepcopy(fdef.args), body=[])
+
+        template_parameters = set()
+        for ttype in meth_annotation.transonic_types:
+            if hasattr(ttype, "get_template_parameters"):
+                template_parameters.update(ttype.get_template_parameters())
+
+        template_parameters = sorted(template_parameters, key=repr)
+
+        if not all(param.values for param in template_parameters):
+            raise ValueError(
+                f"{template_parameters}, {[param.values for param in template_parameters]}"
+            )
+
+        def get_ttype_name(ttype):
+            if hasattr(ttype, "short_repr"):
+                ttype_name = ttype.short_repr()
+            elif hasattr(ttype, "__name__"):
+                ttype_name = ttype.__name__
+            elif isinstance(ttype, str):
+                ttype_name = ttype
+            else:
+                raise RuntimeError
+            return ttype_name
+
+        def get_name_cython_type(ttype):
+            return format_type_as_backend_type(ttype, self.type_formatter)
+
+        def init_cythonplus_type(ttype):
+            return CONF.init_value(get_name_cython_type(ttype))
+
+        if fdef.args.defaults:
+            name_start = Name("*", gast.Param())
+            fdef.args.defaults = [name_start] * len(fdef.args.defaults)
+        for name in fdef.args.args:
+            name.annotation = None
+            if name.id == "self":
+                name_cython_type = ""
+            else:
+                ttype = meth_annotation.arg(name.id)
+                if ttype:
+                    name_cython_type = get_name_cython_type(ttype)
+                else:
+                    name_cython_type = "object"
+            if name_cython_type:
+                name_cython_type += " "
+            name.id = f"{name_cython_type}{name.id}"
+
+        if meth_annotation.locals:
+            # note: np.ndarray not supported by Cython in "locals"
+            # TODO: thus, fused types not supported here
+            # locals_types = ", ".join(
+            #     f"{k}={format_type_as_backend_type(v, self.type_formatter, memview=True)}"
+            #     for k, v in locals_types.items()
+            # )
+
+            locals = [
+                f"{tab}cdef {get_name_cython_type(v)} {k}\n"
+                for k, v in meth_annotation.locals.items()
+            ]
+            inits = [
+                f"{tab}{k} = {init_cythonplus_type(v)}\n"
+                for k, v in meth_annotation.locals.items()
+            ]
+            result["locals"] = "".join(locals)
+            result["inits"] = "".join(inits)
+            # logger.info(result["locals"])
+
+        if fdef.name == "__init__":
+            returns = ""
+        else:
+            if meth_annotation.returns:
+                returns = get_name_cython_type(meth_annotation.returns) + " "
+            else:
+                returns = "void "
+
+        # logger.info(unparse(fdef))
+        # for cypclass method, pyx == pxd
+        result["pyx"] = f"{tab0}{returns}{unparse(fdef).strip()[4:-1]}:\n"
         return result
 
     def name_ext_from_path_backend(self, path_backend):
@@ -722,32 +806,30 @@ class CythonPlusBackend:
     ):
         raise NotImplementedError
 
-    def _make_header_1_function_pxd_pyx(self, fdef, annotations):
-
-        logger.info("fac " + str(annotations))
-
+    def _make_header_1_function_pxd_pyx(self, fdef, annotations, indent_level):
+        name = fdef.name
         try:
-            annots = annotations["__in_comments__"][fdef.name]
+            annots = annotations["__in_comments__"][name]
         except KeyError:
             annots = []
-
         try:
-            annot = annotations["functions"][fdef.name]
+            annot = annotations["functions"][name]
         except KeyError:
             pass
         else:
             annots.append(annot)
 
-        locals_types = annotations["__locals__"].get(fdef.name, None)
-        returns = annotations["__returns__"].get(fdef.name, None)
+        locals_types = annotations["__locals__"].get(name, None)
+        returns = annotations["__returns__"].get(name, None)
 
         return self._make_header_from_fdef_annotations_pxd_pyx(
-            fdef, annots, locals_types, returns
+            fdef, annots, locals_types, returns, indent_level
         )
 
-    def _make_class_pxd(self, klass, annotations, boosted_dicts):
+    def _make_cypclass(self, klass, annotations, boosted_dicts, lines_header):
         name = klass.name
         result = {"pyx": "", "pxd": ""}
+
         flags = DecoratorFlags(klass)
         activable = " activable" if flags.activable else ""
 
@@ -755,39 +837,17 @@ class CythonPlusBackend:
         lines.append(f"cdef cypclass {name}{activable}:\n")
 
         for (class_name, meth_name), fdef in boosted_dicts["methods"].items():
-            logger.info("=========== " + class_name + " / " + meth_name)
             if class_name != name:
                 continue
-            signatures, code_for_meth = self._make_code_method(
-                class_name, fdef, meth_name, annotations, boosted_dicts
+            code_for_meth = self._make_code_method(
+                class_name, fdef, annotations, boosted_dicts, activable
             )
-            logger.info("=========== " + meth_name)
             lines.append(code_for_meth)
-            lines.extend(signatures)
 
-        result["pxd"] = "".join(lines)
-        logger.info(result["pxd"])
+        result["pxd"] = "".join(lines) + "\n"
+        # logger.info(result["pxd"])
+        lines_header.append(result["pxd"])
         return result
-
-        # try:
-        #     annots = annotations["__in_comments__"][name]
-        # except KeyError:
-        #     annots = []
-        # try:
-        #     annot = annotations["functions"][name]
-        # except KeyError:
-        #     pass
-        # else:
-        #     annots.append(annot)
-        #
-        # locals_types = annotations["__locals__"].get(name, None)
-        # # returns = annotations["__returns__"].get(name, None)
-        # #
-        # logger.info(annots)
-        # logger.info(locals_types)
-        # # return self._make_header_from_fdef_annotations_pxd_pyx(
-        # #     fdef, annots, locals_types, returns
-        # # )
 
 
 def normalize_type_name_for_array(name):

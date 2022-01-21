@@ -7,6 +7,8 @@ import gast as ast
 from transonic.analyses import beniget
 from transonic.analyses import extast
 
+from transonic.log import logger
+
 
 class CaptureX(ast.NodeVisitor):
     """Capture the external nodes used in functions, classes and blocks"""
@@ -21,6 +23,7 @@ class CaptureX(ast.NodeVisitor):
         consider_annotations=True,
         blocks=None,
     ):
+        logger.set_level("debug")
 
         if defuse_chains is None:
             self.du_chains = du = beniget.DefUseChains()
@@ -85,28 +88,23 @@ class CaptureX(ast.NodeVisitor):
                 except KeyError:
                     return  # a builtin
                 if self.func not in parents:
-                    if isinstance(def_.node, ast.FunctionDef):
+                    if isinstance(def_.node, (ast.FunctionDef, ast.ClassDef)):
                         defining_node = def_.node
                     else:
+                        logger.info("- " + def_.node.name)
                         defining_node = self.ancestors.parentStmt(def_.node)
                     if defining_node not in self.visited_external:
                         self.rec(defining_node)
                         if defining_node in self.functions:
                             return
 
-                        if (
-                            self.consider_annotations == "only"
-                            and self._annot is None
-                        ):
+                        if self.consider_annotations == "only" and self._annot is None:
                             return
 
                         if defining_node not in self.visited_external:
                             self.visited_external.add(defining_node)
                             self.external.append(defining_node)
-        elif (
-            isinstance(node.ctx, (ast.Param, ast.Store))
-            and self.consider_annotations
-        ):
+        elif isinstance(node.ctx, (ast.Param, ast.Store)) and self.consider_annotations:
             if node.annotation is None:
                 return
             self._annot = node.annotation
