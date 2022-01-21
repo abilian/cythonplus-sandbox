@@ -95,28 +95,35 @@ class Config:
         return self.inits.get(tpe, tpe + "()")
 
     def type_conversion(self, tpe):
+        if tpe in self.types:
+            return self.types[tpe]
+        if tpe.startswith("typing."):
+            tpe = tpe[7:]
+        if tpe in self.types:
+            return self.types[tpe]
+        tpe = tpe.replace(" ", "")
         return self.types.get(tpe, tpe)
 
 
 CONF = Config()
 
 
-class MethAnnotation:
+class MethodAnnotations:
     def __init__(self, class_name, meth_name, annotations):
         self.meth_key = (class_name, meth_name)
-        self.a_class = annotations["classes"].get(class_name) or {}
-        self.a_method = annotations["methods"].get(self.meth_key) or {}
+        self.classes = annotations["classes"].get(class_name) or {}
+        self.methods = annotations["methods"].get(self.meth_key) or {}
         self.locals = annotations["__locals__"].get(self.meth_key) or {}
         self.returns = annotations["__returns__"].get(self.meth_key) or None
 
-        transonic_types = set(self.a_method.values())
+        transonic_types = set(self.methods.values())
         transonic_types.update(self.locals.values())
         if self.returns:
             transonic_types.add(self.returns)
         self.transonic_types = sorted(transonic_types, key=repr)
 
-    def arg(self, name_id):
-        return self.a_method.get(name_id, "")
+    def args(self, name_id):
+        return self.methods.get(name_id, "")
 
 
 class CythonPlusBackend:
@@ -137,8 +144,14 @@ class CythonPlusBackend:
         self.jit = None
 
     def _make_code_from_fdef_node(
-        self, fdef, cyp_headers, activable="", indent_level=0
+        self, fdef, cyp_headers, meth_annotations=None, activable="", indent_level=0
     ):
+        def get_name_cython_type(ttype):
+            return format_type_as_backend_type(ttype, self.type_formatter)
+
+        def init_cythonplus_type(ttype):
+            return CONF.init_value(get_name_cython_type(ttype))
+
         tab0 = TAB * indent_level
         tab = TAB * (indent_level + 1)
         parts = []
@@ -159,10 +172,16 @@ class CythonPlusBackend:
             new_header = new_header + cyp_headers["inits"] + "\n"
         if activable and fdef.name == "__init__":
             new_header += (
-                f"{tab}# for actavable cypclass defaults:\n"
+                f"{tab}# for activable cypclass defaults:\n"
                 f"{tab}self._active_result_class = NullResult\n"
                 f"{tab}self._active_queue_class = consume SequentialMailBox(scheduler)\n"
             )
+        if fdef.name == "__init__" and meth_annotations and meth_annotations.classes:
+            new_header += f"{tab}# Default initialization of attributes:\n"
+            for item in meth_annotations.classes.items():
+                attr, ttype = item
+                new_header += f"{tab}self.{attr} = {init_cythonplus_type(ttype)}\n"
+            new_header += "\n"
 
         parts.append(indent(unparse(transformed), tab0))
         src = "\n".join(parts) + "\n"
@@ -302,7 +321,9 @@ class CythonPlusBackend:
             cyp_headers = self._make_header_1_function_pxd_pyx(fdef, annotations, 0)
             if cyp_headers:
                 lines_header.append(cyp_headers["pxd"])
-            code_function = self._make_code_from_fdef_node(fdef, cyp_headers, "", 0)
+            code_function = self._make_code_from_fdef_node(
+                fdef, cyp_headers, None, "", 0
+            )
             lines_pyx.append(code_function)
 
         # Deal with methods
@@ -360,75 +381,33 @@ class CythonPlusBackend:
             code.append(f"arguments_blocks = {str(arguments_blocks)}\n")
         return signatures_blocks, code
 
+    def cypclass_initialisation(self, klass, annotations, activable):
+        def get_name_cython_type(ttype):
+            return format_type_as_backend_type(ttype, self.type_formatter)
+
+        lines = []
+        lines.append(f"cdef cypclass {klass.name}{activable}:\n")
+        cls_annotation = annotations["classes"].get(klass.name) or {}
+        for item in cls_annotation.items():
+            attr, ttype = item
+            name_cython_type = get_name_cython_type(ttype)
+            lines.append(f"{TAB}{name_cython_type} {attr}\n")
+        return lines
+
     def _make_code_method(
         self, class_name, fdef, annotations, boosted_dicts, activable
     ):
         meth_name = fdef.name
         class_def = boosted_dicts["classes"][class_name]
-        meth_annotation = MethAnnotation(class_name, meth_name, annotations)
-        cyp_headers = self._make_header_from_method_annotations_cypclass(
+        meth_annotations = MethodAnnotations(class_name, meth_name, annotations)
+        cyp_headers = self._header_from_class_annotations_cypclass(
             fdef,
-            meth_annotation,
+            meth_annotations,
             1,
         )
-        return self._make_code_from_fdef_node(fdef, cyp_headers, activable, 1)
-
-        #
-        # for attr in attributes:
-        #     logger.info("=> " + attr)
-        #
-        # for attr in attributes:
-        #     if attr not in annotations_class:
-        #         raise NotImplementedError(
-        #             f"self.{attr} used but {attr} not in class annotations"
-        #         )
-        # types_attrs = {"self_" + attr: annotations_class[attr] for attr in attributes}
-        # types_pythran = {**types_attrs, **annotations_meth}
-        #
-        # # TODO: locals_types for methods
-        # locals_types = None
-        # signatures_method = self._make_header_from_fdef_annotations(
-        #     extast.parse(python_code).body[0], [types_pythran], locals_types
-        # )
-
-        # str_self_dot_attributes = ", ".join("self." + attr for attr in attributes)
-        # args_func = [arg.id for arg in fdef.args.args[1:]]
-        # str_args_func = ", ".join(args_func)
-        #
-        # defaults = fdef.args.defaults
-        # nb_defaults = len(defaults)
-        # nb_args = len(fdef.args.args)
-        # nb_no_defaults = nb_args - nb_defaults - 1
-        #
-        # str_args_value_func = []
-        # ind_default = 0
-        # for ind, arg in enumerate(fdef.args.args[1:]):
-        #     name = arg.id
-        #     if ind < nb_no_defaults:
-        #         str_args_value_func.append(f"{name}")
-        #     else:
-        #         default = extast.unparse(defaults[ind_default]).strip()
-        #         str_args_value_func.append(f"{name}={default}")
-        #         ind_default += 1
-        #
-        # str_args_value_func = ", ".join(str_args_value_func)
-        #
-        # if str_self_dot_attributes:
-        #     str_args_backend_func = ", ".join((str_self_dot_attributes, str_args_func))
-        # else:
-        #     str_args_backend_func = str_args_func
-        #
-        # name_var_code_new_method = f"__code_new_method__{class_name}__{meth_name}"
-        #
-        # self._append_line_header_variable(signatures_method, name_var_code_new_method)
-        # python_code += (
-        #     f'\n{name_var_code_new_method} = """\n\n'
-        #     f"def new_method(self, {str_args_value_func}):\n"
-        #     f"    return backend_func({str_args_backend_func})"
-        #     '\n\n"""\n'
-        # )
-        #
-        # return signatures_method, format_str(python_code)
+        return self._make_code_from_fdef_node(
+            fdef, cyp_headers, meth_annotations, activable, 1
+        )
 
     def _make_header_from_fdef_annotations(
         self, fdef, annotations: dict, locals_types=None, returns=None
@@ -469,47 +448,14 @@ class CythonPlusBackend:
 
         template_parameters = sorted(template_parameters, key=repr)
 
-        # transonic_fused_types = [
-        #     ttype
-        #     for ttype in transonic_types
-        #     if hasattr(ttype, "is_fused_type") and ttype.is_fused_type()
-        # ]
-
         if not all(param.values for param in template_parameters):
             raise ValueError(
                 f"{template_parameters}, {[param.values for param in template_parameters]}"
             )
 
         # cythonplus does not use fused types (currently).
-        # cython_fused_types = {}
-
-        def get_ttype_name(ttype):
-            if hasattr(ttype, "short_repr"):
-                ttype_name = ttype.short_repr()
-            elif hasattr(ttype, "__name__"):
-                ttype_name = ttype.__name__
-            elif isinstance(ttype, str):
-                ttype_name = ttype
-            else:
-                raise RuntimeError
-            return ttype_name
-
-        # for ttype in transonic_fused_types:
-        #     ttype_name = get_ttype_name(ttype)
-        #     name_cython_type = f"__{fdef.name}__{ttype_name}"
-        #
-        #     cython_types = ttype.get_all_formatted_backend_types(self.type_formatter)
-        #     if "None" in cython_types:
-        #         cython_types.remove("None")
-        #     cython_fused_types[name_cython_type] = cython_types
 
         signatures_func = []
-
-        # for name, possible_types in cython_fused_types.items():
-        #     ctypedef = [f"ctypedef fused {name}:\n"]
-        #     for possible_type in sorted(set(possible_types)):
-        #         ctypedef.append(f"   {possible_type}\n")
-        #     signatures_func.append("".join(ctypedef))
 
         def get_name_cython_type(ttype):
             return format_type_as_backend_type(ttype, self.type_formatter)
@@ -596,17 +542,6 @@ class CythonPlusBackend:
                 f"{template_parameters}, {[param.values for param in template_parameters]}"
             )
 
-        def get_ttype_name(ttype):
-            if hasattr(ttype, "short_repr"):
-                ttype_name = ttype.short_repr()
-            elif hasattr(ttype, "__name__"):
-                ttype_name = ttype.__name__
-            elif isinstance(ttype, str):
-                ttype_name = ttype
-            else:
-                raise RuntimeError
-            return ttype_name
-
         def get_name_cython_type(ttype):
             return format_type_as_backend_type(ttype, self.type_formatter)
 
@@ -679,10 +614,10 @@ class CythonPlusBackend:
 
         return result
 
-    def _make_header_from_method_annotations_cypclass(
+    def _header_from_class_annotations_cypclass(
         self,
         fdef,
-        meth_annotation,
+        meth_annotations,
         indent_level=0,
     ):
         """make header of a cypclass method"""
@@ -693,7 +628,7 @@ class CythonPlusBackend:
         fdef = FunctionDef(name=fdef.name, args=copy.deepcopy(fdef.args), body=[])
 
         template_parameters = set()
-        for ttype in meth_annotation.transonic_types:
+        for ttype in meth_annotations.transonic_types:
             if hasattr(ttype, "get_template_parameters"):
                 template_parameters.update(ttype.get_template_parameters())
 
@@ -704,16 +639,16 @@ class CythonPlusBackend:
                 f"{template_parameters}, {[param.values for param in template_parameters]}"
             )
 
-        def get_ttype_name(ttype):
-            if hasattr(ttype, "short_repr"):
-                ttype_name = ttype.short_repr()
-            elif hasattr(ttype, "__name__"):
-                ttype_name = ttype.__name__
-            elif isinstance(ttype, str):
-                ttype_name = ttype
-            else:
-                raise RuntimeError
-            return ttype_name
+        # def get_ttype_name(ttype):
+        #     if hasattr(ttype, "short_repr"):
+        #         ttype_name = ttype.short_repr()
+        #     elif hasattr(ttype, "__name__"):
+        #         ttype_name = ttype.__name__
+        #     elif isinstance(ttype, str):
+        #         ttype_name = ttype
+        #     else:
+        #         raise RuntimeError
+        #     return ttype_name
 
         def get_name_cython_type(ttype):
             return format_type_as_backend_type(ttype, self.type_formatter)
@@ -729,7 +664,7 @@ class CythonPlusBackend:
             if name.id == "self":
                 name_cython_type = ""
             else:
-                ttype = meth_annotation.arg(name.id)
+                ttype = meth_annotations.args(name.id)
                 if ttype:
                     name_cython_type = get_name_cython_type(ttype)
                 else:
@@ -738,7 +673,7 @@ class CythonPlusBackend:
                 name_cython_type += " "
             name.id = f"{name_cython_type}{name.id}"
 
-        if meth_annotation.locals:
+        if meth_annotations.locals:
             # note: np.ndarray not supported by Cython in "locals"
             # TODO: thus, fused types not supported here
             # locals_types = ", ".join(
@@ -748,11 +683,11 @@ class CythonPlusBackend:
 
             locals = [
                 f"{tab}cdef {get_name_cython_type(v)} {k}\n"
-                for k, v in meth_annotation.locals.items()
+                for k, v in meth_annotations.locals.items()
             ]
             inits = [
                 f"{tab}{k} = {init_cythonplus_type(v)}\n"
-                for k, v in meth_annotation.locals.items()
+                for k, v in meth_annotations.locals.items()
             ]
             result["locals"] = "".join(locals)
             result["inits"] = "".join(inits)
@@ -761,8 +696,8 @@ class CythonPlusBackend:
         if fdef.name == "__init__":
             returns = ""
         else:
-            if meth_annotation.returns:
-                returns = get_name_cython_type(meth_annotation.returns) + " "
+            if meth_annotations.returns:
+                returns = get_name_cython_type(meth_annotations.returns) + " "
             else:
                 returns = "void "
 
@@ -827,17 +762,15 @@ class CythonPlusBackend:
         )
 
     def _make_cypclass(self, klass, annotations, boosted_dicts, lines_header):
-        name = klass.name
         result = {"pyx": "", "pxd": ""}
 
         flags = DecoratorFlags(klass)
         activable = " activable" if flags.activable else ""
 
-        lines = []
-        lines.append(f"cdef cypclass {name}{activable}:\n")
+        lines = self.cypclass_initialisation(klass, annotations, activable)
 
         for (class_name, meth_name), fdef in boosted_dicts["methods"].items():
-            if class_name != name:
+            if class_name != klass.name:
                 continue
             code_for_meth = self._make_code_method(
                 class_name, fdef, annotations, boosted_dicts, activable

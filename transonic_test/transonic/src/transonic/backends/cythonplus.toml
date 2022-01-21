@@ -5,6 +5,8 @@ int = "int"
 float = "double"
 str = "Str"
 dict = "cypdict[Str, int]"
+"Dict[int, int]" = "cypdict[int, int]"
+"Dict[str, int]" = "cypdict[Str, int]"
 list = "cyplist[int]"
 
 [initializations]

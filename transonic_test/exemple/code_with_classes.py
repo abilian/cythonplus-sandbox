@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 # golomb sequence with class
 
+from typing import Dict
 from transonic import boost
 
 
 @boost(activable=True)
 class Golomb:
+    """Use of decorator boost(activable=True) will transform into activable
+    cypclass.
+    """
+
     rank: int
     value: int
 
@@ -22,18 +27,25 @@ class Golomb:
 
 
 class NoBoost:
+    """No boost decorator: class not exported into .pxd"""
+
     def __init(self):
         self.x = 1
 
 
 @boost
 class Gpos:
+    """Use of decorator boost will transform into cypclass."""
+
+    flrank: float
     xrank: int
     gpos: int
+    message: str
 
-    def __init__(self, rank: int):
-        print("44")
-        self.xrank = rank
+    def __init__(self, rank: int, ratio: float, msg: str):
+        self.flrank = 1.0 + ratio
+        self.xrank = rank + 42
+        self.message = msg
 
     def gpos(self, n: int) -> int:
         """Return the value of position n of the Golomb sequence (recursive function)."""
@@ -50,13 +62,20 @@ class Gpos:
 
 @boost
 class Recorder:
-    storage: dict
+    """The file src/transonic/nckends/cythonplus.toml contains custom
+    definition types.
+    """
+
+    storage: Dict[int, int]
+    txt_storage: Dict[str, int]
 
     def __init__(self):
         self.storage = {}
+        self.txt_storage = {}
 
     def store(self, key: int, value: int):
         self.storage[key] = value
+        self.txt_storage[str(key)] = value
 
-    def content(self) -> dict:
-        return self.storage
+    def content(self) -> Dict[str, int]:
+        return self.txt_storage
