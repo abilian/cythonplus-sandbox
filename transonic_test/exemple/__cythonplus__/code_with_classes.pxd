@@ -38,19 +38,18 @@ cdef cypclass Golomb activable:
 
 cdef cypclass Gpos:
     double flrank
-    int xrank
+    cyplist[int] xrank
     int gpos
     Str message
 
     __init__(self, int rank, double ratio, Str msg):
         # Default initialization of attributes:
         self.flrank = 0.0
-        self.xrank = 0
+        self.xrank = cyplist[int]()
         self.gpos = 0
         self.message = Str("")
 
         self.flrank = 1.0 + ratio
-        self.xrank = rank + 42
         self.message = msg
 
     int gpos(self, int n):

@@ -11,6 +11,7 @@ from stdlib.string cimport Str
 from stdlib._string cimport string
 from stdlib.format cimport format
 
+
 cdef int gpos(int n):
     """Return the value of position n of the Golomb sequence (recursive function).
     """
@@ -38,4 +39,5 @@ cdef int gpos2(int n) nogil:
         return 1
     return gpos2(n - gpos2(gpos2(n - 1))) + 1
 
-__transonic__ = ('123.4.12',)
+
+__transonic__ = ('0.4.12',)

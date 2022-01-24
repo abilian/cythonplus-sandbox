@@ -3,6 +3,7 @@
 export TRANSONIC_DIR="./tmp"
 export TRANSONIC_COMPILE_JIT=false
 export TRANSONIC_NO_MPI=true
+export TRANSONIC_BACKEND=cythonplus
 
 [[ -d __cythonplus__ ]] && rm -fr __cythonplus__
 

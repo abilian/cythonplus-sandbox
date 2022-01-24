@@ -40,8 +40,8 @@ destinée au compilateur CythonPlus.
     Le code CythonPlus généré par le backend s'appuie sur les annotations (types) du
     code python pour définir les type statiques de CythonPlus. Les types reconnus par
     le backend sont les types Cython de base et les types définis dans le fichier
-    cythonplus.toml. Pour utiliser des types personnalisés (des cypclass par exemples),
-    il faut mettre à jour ce fichier.
+    `cythonplus.toml`. Pour utiliser des types personnalisés (des cypclass par exemples),
+    il faut mettre à jour ce fichier ou un fichier `~/cythonplus.toml`.
 
 
 - Adaptation du code python

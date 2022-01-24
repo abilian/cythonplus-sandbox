@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # golomb sequence with class
 
-from typing import Dict
+from typing import Dict, List
 from transonic import boost
 
 
@@ -38,13 +38,12 @@ class Gpos:
     """Use of decorator boost will transform into cypclass."""
 
     flrank: float
-    xrank: int
+    xrank: List[int]
     gpos: int
     message: str
 
     def __init__(self, rank: int, ratio: float, msg: str):
         self.flrank = 1.0 + ratio
-        self.xrank = rank + 42
         self.message = msg
 
     def gpos(self, n: int) -> int:

@@ -7,7 +7,10 @@ str = "Str"
 dict = "cypdict[Str, int]"
 "Dict[int, int]" = "cypdict[int, int]"
 "Dict[str, int]" = "cypdict[Str, int]"
+"Dict[str, str]" = "cypdict[Str, Str]"
 list = "cyplist[int]"
+"List[int]" = "cyplist[int]"
+"List[str]" = "cyplist[Str]"
 
 [initializations]
 int = "0"

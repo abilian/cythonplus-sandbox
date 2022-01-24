@@ -17,7 +17,9 @@ Transonic is sensible to the environment variables:
 - :code:`FLUID_COMPILE_JIT` can be set to false to disable the
   compilation of jited functions. This can be useful for unittests.
 
-Bye the way, for performance, it is important to configure Pythran with a file
+- :code:`TRANSONIC_MPI_TIMEOUT` sets the MPI timeout (default to 5 s).
+
+By the way, for performance, it is important to configure Pythran with a file
 `~/.pythranrc
 <https://pythran.readthedocs.io/en/latest/MANUAL.html#customizing-your-pythranrc>`_:
 
@@ -73,11 +75,9 @@ def set_backend(backend: str):
     """Set the "global variable" backend_default"""
 
     backend = backend.lower()
-    supported_backends = {"pythran", "cython", "numba", "python", "cythonplus"}
+    supported_backends = ["pythran", "cython", "numba", "python", "cythonplus"]
     if backend not in supported_backends:
-        raise ValueError(
-            f"backend {backend} not supported." f" Suported are: {supported_backends}"
-        )
+        raise ValueError(f"backend {backend} not supported")
 
     global backend_default, backend_set_by_user
 

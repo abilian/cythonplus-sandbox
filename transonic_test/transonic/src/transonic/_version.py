@@ -1,5 +1,4 @@
-# cythonplus: use version 0.5.xxx to diffentiate from 0.4.xxx default
-__version__ = "123.4.12"
+__version__ = "0.4.12"
 
 try:
     from pyfiglet import figlet_format

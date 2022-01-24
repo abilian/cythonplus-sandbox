@@ -3,8 +3,6 @@
 
 from transonic import boost
 
-# __transonic def gpos(int)
-
 
 @boost
 def gpos(n: int) -> int:
@@ -43,4 +41,5 @@ def main(size=None):
 if __name__ == "__main__":
     import sys
 
-    main(sys.argv[1])
+    # main(sys.argv[1])
+    main(3)

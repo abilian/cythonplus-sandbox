@@ -7,8 +7,6 @@ import gast as ast
 from transonic.analyses import beniget
 from transonic.analyses import extast
 
-from transonic.log import logger
-
 
 class CaptureX(ast.NodeVisitor):
     """Capture the external nodes used in functions, classes and blocks"""
@@ -23,7 +21,6 @@ class CaptureX(ast.NodeVisitor):
         consider_annotations=True,
         blocks=None,
     ):
-        logger.set_level("debug")
 
         if defuse_chains is None:
             self.du_chains = du = beniget.DefUseChains()
@@ -91,7 +88,6 @@ class CaptureX(ast.NodeVisitor):
                     if isinstance(def_.node, (ast.FunctionDef, ast.ClassDef)):
                         defining_node = def_.node
                     else:
-                        logger.info("- " + def_.node.name)
                         defining_node = self.ancestors.parentStmt(def_.node)
                     if defining_node not in self.visited_external:
                         self.rec(defining_node)

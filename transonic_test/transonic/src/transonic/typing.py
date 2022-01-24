@@ -92,7 +92,9 @@ class FusedType:
         for set_types in itertools.product(*values_template_parameters.values()):
             template_variables = dict(zip(names, set_types))
             formatted_types.append(
-                format_type_as_backend_type(self, type_formatter, **template_variables)
+                format_type_as_backend_type(
+                    self, type_formatter, **template_variables
+                )
             )
         return formatted_types
 
@@ -382,7 +384,11 @@ class ArrayMeta(Meta):
                     )
                 ndim = param
 
-            if isinstance(param, str) and param[-1] == "d" and param[:-1].isnumeric():
+            if (
+                isinstance(param, str)
+                and param[-1] == "d"
+                and param[:-1].isnumeric()
+            ):
                 try:
                     tmp = int(param[:-1])
                 except ValueError:
@@ -420,7 +426,9 @@ class ArrayMeta(Meta):
 
         if shape is not None:
             if ndim is None:
-                ndim = NDim(len(shape), name_calling_module=get_name_calling_module())
+                ndim = NDim(
+                    len(shape), name_calling_module=get_name_calling_module()
+                )
                 params_filtered.append(ndim)
             elif ndim != len(shape):
                 raise ValueError("ndim != len(shape)")
@@ -628,7 +636,9 @@ class UnionMeta(Meta):
 
     def format_as_backend_type(self, backend_type_formatter, **kwargs):
         type_ = kwargs.pop(self.template_var.__name__)
-        return format_type_as_backend_type(type_, backend_type_formatter, **kwargs)
+        return format_type_as_backend_type(
+            type_, backend_type_formatter, **kwargs
+        )
 
     def short_repr(self):
         return self.__name__
@@ -841,11 +851,11 @@ def format_type_as_backend_type(type_, backend_type_formatter, **kwargs):
         type_ = str2type(type_)
 
     if hasattr(type_, "format_as_backend_type"):
-        backend_type = type_.format_as_backend_type(backend_type_formatter, **kwargs)
+        backend_type = type_.format_as_backend_type(
+            backend_type_formatter, **kwargs
+        )
     elif hasattr(type_, "__name__"):
         backend_type = type_.__name__
-    elif hasattr(type_, "__str__"):
-        backend_type = str(type_)
     else:
         print("type_", type_, type(type_))
         raise RuntimeError(f"type_: {type_}")
@@ -893,7 +903,9 @@ def str2type(str_type):
     if str_type.startswith("(") and str_type.endswith(")"):
         re_comma = re.compile(r",(?![^\[]*\])(?![^\(]*\))")
         return Tuple[
-            tuple(str2type(word) for word in re_comma.split(str_type[1:-1]) if word)
+            tuple(
+                str2type(word) for word in re_comma.split(str_type[1:-1]) if word
+            )
         ]
 
     words = [word for word in str_type.split(" ") if word]
@@ -949,7 +961,9 @@ def typeof(obj):
         return Tuple[tuple(typeof(elem) for elem in obj)]
 
     if isinstance(obj, (list, dict, set)) and not obj:
-        raise ValueError(f"Cannot determine the full type of an empty {type(obj)}")
+        raise ValueError(
+            f"Cannot determine the full type of an empty {type(obj)}"
+        )
 
     if isinstance(obj, list):
         type_elem = type(obj[0])
@@ -1000,7 +1014,9 @@ class ConstType(Type):
 
     def format_as_backend_type(self, backend_type_formatter, **kwargs):
         return backend_type_formatter.make_const_code(
-            format_type_as_backend_type(self.type, backend_type_formatter, **kwargs)
+            format_type_as_backend_type(
+                self.type, backend_type_formatter, **kwargs
+            )
         )
 
     def __repr__(self):

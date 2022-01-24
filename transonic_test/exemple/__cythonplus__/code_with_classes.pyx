@@ -11,6 +11,9 @@ from stdlib.string cimport Str
 from stdlib._string cimport string
 from stdlib.format cimport format
 
-from typing import Dict
+#### WARNING: some cythonplus code depends on this python code:
+from typing import Dict, List
+####
 
-__transonic__ = ('123.4.12',)
+
+__transonic__ = ('0.4.12',)

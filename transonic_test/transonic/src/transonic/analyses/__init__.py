@@ -273,8 +273,7 @@ def get_types_from_transonic_signature(signature: str, function_name: str):
 
 def analyse_aot(code, pathfile, backend_name):
     """Gather the informations for ``@boost`` and blocks"""
-    logger.set_level("debug")
-    debug = logger.info
+    debug = logger.debug
 
     debug("extast.parse")
     module = extast.parse(code)
@@ -284,11 +283,11 @@ def analyse_aot(code, pathfile, backend_name):
 
     debug("filter_code_typevars")
     code_dependance_annotations = filter_code_typevars(module, duc, ancestors)
-    # debug(code_dependance_annotations)
+    debug(code_dependance_annotations)
 
     debug("find boosted objects")
     boosted_dicts = get_decorated_dicts(module, ancestors, duc, None, backend_name)
-    # debug(pformat(boosted_dicts))
+    debug(pformat(boosted_dicts))
 
     debug("compute the annotations")
 
@@ -329,7 +328,7 @@ def analyse_aot(code, pathfile, backend_name):
                 if ann != {}:
                     annotations[kind][key] = ann
 
-    # debug(pformat(annotations))
+    debug(pformat(annotations))
 
     debug("get_block_definitions")
     blocks = get_block_definitions(code, module, ancestors, duc, udc)
@@ -337,7 +336,7 @@ def analyse_aot(code, pathfile, backend_name):
     for block in blocks:
         replace_strings_by_objects(block.signatures, module, ancestors, udc, duc)
 
-    # debug(pformat(blocks))
+    debug(pformat(blocks))
 
     debug("compute code dependance:")
 
@@ -415,32 +414,33 @@ def analyse_aot(code, pathfile, backend_name):
                     fdef.returns, namespace
                 )
 
-    for functions_backend in boosted_dicts["methods"].values():
-        for cl_meth, fdef in functions_backend.items():
-            try:
-                signatures = signatures_p[cl_meth]
-            except KeyError:
-                signatures = tuple()
-            arg_names = [arg.id for arg in fdef.args.args]
-            annotations_sign = []
-            for sig in signatures:
-                types = [
-                    type_.strip()
-                    for type_ in re.split(pattern, sig[len(fdef.name) + 1 : -1])
-                ]
-                annotations_sign.append(dict(zip(arg_names, types)))
-            if annotations_sign:
-                annotations["__in_comments__"][cl_meth] = annotations_sign
+    if backend_name == "cythonplus":
+        for functions_backend in boosted_dicts["methods"].values():
+            for cl_meth, fdef in functions_backend.items():
+                try:
+                    signatures = signatures_p[cl_meth]
+                except KeyError:
+                    signatures = tuple()
+                arg_names = [arg.id for arg in fdef.args.args]
+                annotations_sign = []
+                for sig in signatures:
+                    types = [
+                        type_.strip()
+                        for type_ in re.split(pattern, sig[len(fdef.name) + 1 : -1])
+                    ]
+                    annotations_sign.append(dict(zip(arg_names, types)))
+                if annotations_sign:
+                    annotations["__in_comments__"][cl_meth] = annotations_sign
 
-            # locals: variable annotations
-            annotations_locals = extract_variable_annotations(fdef, namespace)
-            if annotations_locals:
-                annotations["__locals__"][cl_meth] = annotations_locals
+                # locals: variable annotations
+                annotations_locals = extract_variable_annotations(fdef, namespace)
+                if annotations_locals:
+                    annotations["__locals__"][cl_meth] = annotations_locals
 
-            if fdef.returns:
-                annotations["__returns__"][cl_meth] = extract_returns_annotation(
-                    fdef.returns, namespace
-                )
+                if fdef.returns:
+                    annotations["__returns__"][cl_meth] = extract_returns_annotation(
+                        fdef.returns, namespace
+                    )
 
     for signatures in annotations["__in_comments__"].values():
         replace_strings_by_objects(signatures, module, ancestors, udc, duc)
