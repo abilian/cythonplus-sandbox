@@ -10,7 +10,7 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
 
-NAME = "xmlcyp"
+NAME = "cypxml"
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -56,6 +56,8 @@ def pypyx_ext(*pathname):
 extensions = [
     pypyx_ext(NAME, "stdlib", "xml_utils"),
     pypyx_ext(NAME, "test_xml_utils"),
+    pypyx_ext(NAME, "cypxml"),
+    pypyx_ext(NAME, "__init__"),
 ]
 
 
