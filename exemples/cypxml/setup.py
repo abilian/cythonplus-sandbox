@@ -57,6 +57,7 @@ extensions = [
     pypyx_ext(NAME, "stdlib", "xml_utils"),
     pypyx_ext(NAME, "test_xml_utils"),
     pypyx_ext(NAME, "cypxml"),
+    pypyx_ext(NAME, "test_cypxml"),
     pypyx_ext(NAME, "__init__"),
 ]
 

@@ -1,12 +1,12 @@
 from stdlib.string cimport Str
-from stdlib._string cimport string
-from stdlib.format cimport format
 from libcythonplus.dict cimport cypdict
+from libcythonplus.list cimport cyplist
+from stdlib.format cimport format
 
 from .stdlib.xml_utils cimport replace_one, replace_all
-from .stdlib.xml_utils cimport escape, unescape
-from .stdlib.xml_utils cimport quoteattr
-from .stdlib.xml_utils cimport nameprep
+from .stdlib.xml_utils cimport escape, escaped, unescape, unescaped
+from .stdlib.xml_utils cimport quoteattr, nameprep
+from .stdlib.xml_utils cimport concate
 
 cdef bint test_replace_one_1():
     cdef Str src
@@ -498,6 +498,61 @@ cdef bint test_escape_10():
 
 #############################################################################
 
+cdef bint test_escaped_1():
+    cdef Str src
+    cdef Str src2
+    cdef Str expected
+    cdef Str result
+
+    src = Str("some ééé abc abc")
+    src2 = Str("some ééé abc abc")
+    expected = Str("some ééé abc abc")
+    result = escaped(src, NULL)
+    if result == expected and src == src2:
+        return 1
+    print("-------------------------------------")
+    print(result.bytes())
+    raise RuntimeError()
+
+cdef bint test_escaped_2():
+    cdef Str src
+    cdef Str src2
+    cdef Str expected
+    cdef Str result
+
+    src = Str("some ééé & && &a &b")
+    src2 = Str("some ééé & && &a &b")
+    expected = Str("some ééé &amp; &amp;&amp; &amp;a &amp;b")
+    result = escaped(src, NULL)
+    if result == expected and src == src2:
+        return 1
+    print("-------------------------------------")
+    print(result.bytes())
+    raise RuntimeError()
+
+cdef bint test_escaped_3():
+    cdef Str src
+    cdef Str src2
+    cdef Str expected
+    cdef Str result
+    cdef cypdict[Str, Str] ent
+
+    ent = cypdict[Str, Str]()
+    ent[Str("é")] = Str("&eacute;")
+    ent[Str("à")] = Str("&agrave;")
+
+    src = Str("some & éàé > abc abc")
+    src2 = Str("some & éàé > abc abc")
+    expected = Str("some &amp; &eacute;&agrave;&eacute; &gt; abc abc")
+    result = escaped(src, ent)
+    if result == expected and src == src2:
+        return 1
+    print("-------------------------------------")
+    print(result.bytes())
+    raise RuntimeError()
+
+#############################################################################
+
 cdef bint test_unescape_1():
     cdef Str src
     cdef Str expected
@@ -592,6 +647,7 @@ cdef bint test_unescape_7():
 cdef bint test_unescape_8():
     cdef Str src
     cdef Str expected
+    cdef cypdict[Str, Str] end
 
     ent = cypdict[Str, Str]()
     ent[Str("&agrave;")] = Str("à")
@@ -609,6 +665,7 @@ cdef bint test_unescape_8():
 cdef bint test_unescape_9():
     cdef Str src
     cdef Str expected
+    cdef cypdict[Str, Str] end
 
     ent = cypdict[Str, Str]()
 
@@ -624,6 +681,7 @@ cdef bint test_unescape_9():
 cdef bint test_unescape_10():
     cdef Str src
     cdef Str expected
+    cdef cypdict[Str, Str] end
 
     ent = cypdict[Str, Str]()
     ent[Str("&agrave;")] = Str("à")
@@ -636,6 +694,60 @@ cdef bint test_unescape_10():
         return 1
     print("-------------------------------------")
     print(src.bytes())
+    raise RuntimeError()
+
+#############################################################################
+
+cdef bint test_unescaped_1():
+    cdef Str src
+    cdef Str src2
+    cdef Str expected
+    cdef Str result
+
+    src = Str("some ééé abc abc")
+    src2 = Str("some ééé abc abc")
+    expected = Str("some ééé abc abc")
+    result = unescaped(src, NULL)
+    if result == expected and src == src2:
+        return 1
+    print("-------------------------------------")
+    print(result.bytes())
+    raise RuntimeError()
+
+cdef bint test_unescaped_2():
+    cdef Str src
+    cdef Str src2
+    cdef Str expected
+    cdef Str result
+
+    src = Str("some ééé &amp; &amp;&amp; &amp;a &amp;b")
+    src2 = Str("some ééé &amp; &amp;&amp; &amp;a &amp;b")
+    expected = Str("some ééé & && &a &b")
+    result = unescaped(src, NULL)
+    if result == expected and src == src2:
+        return 1
+    print("-------------------------------------")
+    print(result.bytes())
+    raise RuntimeError()
+
+cdef bint test_unescaped_3():
+    cdef Str src
+    cdef Str src2
+    cdef Str expected
+    cdef Str result
+
+    ent = cypdict[Str, Str]()
+    ent[Str("&agrave;")] = Str("à")
+    ent[Str("&eacute;")] = Str("é")
+
+    src = Str("some &amp; &eacute;&agrave;&eacute; &gt; abc abc")
+    src2 = Str("some &amp; &eacute;&agrave;&eacute; &gt; abc abc")
+    expected = Str("some & éàé > abc abc")
+    result = unescaped(src, ent)
+    if result == expected and src == src2:
+        return 1
+    print("-------------------------------------")
+    print(result.bytes())
     raise RuntimeError()
 
 #############################################################################
@@ -798,6 +910,53 @@ cdef bint test_nameprep_3():
 
 #############################################################################
 
+cdef bint test_concate_1():
+    cdef cyplist[Str] strings
+    cdef Str expected
+    cdef Str result
+
+    strings = cyplist[Str]()
+    expected = Str("")
+    result = concate(strings)
+    if result == expected:
+        return 1
+    print("-------------------------------------")
+    print(result.bytes())
+    raise RuntimeError()
+
+cdef bint test_concate_2():
+    cdef cyplist[Str] strings
+    cdef Str expected
+    cdef Str result
+
+    strings = cyplist[Str]()
+    strings.append(Str("aaa"))
+    expected = Str("aaa")
+    result = concate(strings)
+    if result == expected:
+        return 1
+    print("-------------------------------------")
+    print(result.bytes())
+    raise RuntimeError()
+
+cdef bint test_concate_3():
+    cdef cyplist[Str] strings
+    cdef Str expected
+    cdef Str result
+
+    strings = cyplist[Str]()
+    strings.append(Str("aaa"))
+    strings.append(Str("bbb"))
+    expected = Str("aaabbb")
+    result = concate(strings)
+    if result == expected:
+        return 1
+    print("-------------------------------------")
+    print(result.bytes())
+    raise RuntimeError()
+
+#############################################################################
+
 def main():
     print("-------------------------------------")
     print("Test xml_utils.")
@@ -827,6 +986,9 @@ def main():
     test_escape_8()
     test_escape_9()
     test_escape_10()
+    test_escaped_1()
+    test_escaped_2()
+    test_escaped_3()
     test_unescape_1()
     test_unescape_2()
     test_unescape_3()
@@ -837,6 +999,9 @@ def main():
     test_unescape_8()
     test_unescape_9()
     test_unescape_10()
+    test_unescaped_1()
+    test_unescaped_2()
+    test_unescaped_3()
     test_quoteattr_1()
     test_quoteattr_2()
     test_quoteattr_3()
@@ -845,7 +1010,10 @@ def main():
     test_quoteattr_6()
     test_quoteattr_7()
     test_quoteattr_8()
-    test_nameprep_1
-    test_nameprep_2
-    test_nameprep_3
+    test_nameprep_1()
+    test_nameprep_2()
+    test_nameprep_3()
+    test_concate_1()
+    test_concate_2()
+    test_concate_3()
     print("Done.")

@@ -1,6 +1,7 @@
 from stdlib.string cimport Str
 from stdlib._string cimport npos
 from libcythonplus.dict cimport cypdict
+from libcythonplus.list cimport cyplist
 from stdlib.format cimport format
 
 
@@ -63,6 +64,19 @@ cdef void escape(Str data, cypdict[Str, Str] entities) nogil:
     if entities is not NULL:
         __dict_replace(data, entities)
 
+cdef Str escaped(Str data, cypdict[Str, Str] entities) nogil:
+    """Escape '&', '<', and '>' in a string of data.
+
+    You can escape other strings of data by passing a dictionary as
+    the optional entities parameter.  The keys and values must all be
+    strings; each key will be replaced with its corresponding value.
+
+    Return Str, the escaped string.
+    """
+    s = data.copy()
+    escape(s, entities)
+    return s
+
 cdef void unescape(Str data, cypdict[Str, Str] entities) nogil:
     """Unescape &amp;, &lt;, and &gt; in a string of data.
 
@@ -77,6 +91,19 @@ cdef void unescape(Str data, cypdict[Str, Str] entities) nogil:
     if entities is not NULL:
         __dict_replace(data, entities)
     replace_all(data, Str("&amp;"), Str("&"))
+
+cdef Str unescaped(Str data, cypdict[Str, Str] entities) nogil:
+    """Unescape &amp;, &lt;, and &gt; in a string of data.
+
+    You can unescape other strings of data by passing a dictionary as
+    the optional entities parameter.  The keys and values must all be
+    strings; each key will be replaced with its corresponding value.
+
+    Return Str, the unescaped string.
+    """
+    s = data.copy()
+    unescape(s, entities)
+    return s
 
 cdef void quoteattr(Str data, cypdict[Str, Str] entities) nogil:
     """Escape and quote an attribute value.
@@ -129,3 +156,19 @@ cdef Str nameprep(Str name) nogil:
     result = name.copy()
     replace_all(result, Str("__"), Str(":"))
     return result
+
+
+cdef Str concate(cyplist[Str] strings) nogil:
+    cdef Str joined
+    cdef int total
+
+    joined = Str()
+    if strings.__len__() == 0:
+        return joined
+    total = 0
+    for s in strings:
+        total += s._str.size()
+    joined._str.reserve(total)
+    for s in strings:
+        joined._str.append(s._str)
+    return joined
