@@ -12,42 +12,53 @@ cdef cypclass cypXML:
     Str version
     # cypElement root
     cyplist[cypElement] children
+    cyplist[Str] content
+    Str indent_space
     cyplist[Str] chunks
 
     __init__(self):
         self.version = Str()
         # self.root = cypElement(Str(""))
         self.children = cyplist[cypElement]()
+        self.content = cyplist[Str]()
+        self.indent_space = Str("  ")
         self.chunks = NULL
 
     void init_version(self, Str version):
         self.version = version
 
-    Str _generate_header(self):
+    void init_content(self, Str content):
+        self.version = version
+
+    void set_indent_space(self, Str indent_space):
+        self.indent_space = indent_space
+
+    void _generate_header(self):
         cdef Str header
 
-        if self.version.__len__() == 0:
-            header = Str()
-        else:
+        if self.version.__len__() != 0:
             header = format(
                 "<?xml version=\"{}\" encoding=\"utf-8\"?>\n",
                 self.version
             )
-        return header
+            self.content.insert(0, header)
 
     cypElement tag(self, Str name):
         cdef cypElement e
 
-        e = cypElement(name)
+        e = cypElement(name, self.indent_space)
         self.children.append(e)
         return e
 
     Str dump(self):
         cdef Str result
+        cdef Str item
         cdef cypElement c
 
+        self._generate_header()
         self.chunks = cyplist[Str]()
-        self.chunks.append(_generate_header())
+        for item in self.content:
+            self.chunks.append(item)
         for c in self.children:
             self.chunks.append(c.dump(0))
         result = concate(self.chunks)
@@ -65,14 +76,16 @@ cdef cypclass cypElement:
     cyplist[cypElement] children
     cyplist[Str] attributes
     cyplist[Str] content
+    Str indent_space
 
-    __init__(self, Str name):
+    __init__(self, Str name, Str indent_space):
     # __init__(self, Str name, cypElement parent):
         self.name = nameprep(name)
         # self.parent = parent
         self.children = cyplist[cypElement]()
         self.attributes = cyplist[Str]()
         self.content = cyplist[Str]()
+        self.indent_space = indent_space
 
     Str _space_indent(self, int indent):
         # need cache and recurse
@@ -80,11 +93,10 @@ cdef cypclass cypElement:
         cdef Str result
         cdef cyplist[Str] sp_indent
 
-        space = Str("  ")  # 2 spaces
         sp_indent = cyplist[Str]()
         if indent > 0:
             for _i in range(indent):
-                sp_indent.append(space)
+                sp_indent.append(self.indent_space)
             result = concate(sp_indent)
         else:
             result = Str("")
@@ -101,57 +113,112 @@ cdef cypclass cypElement:
             child_dump = cyplist[Str]()
             for c in self.children:
                 child_dump.append(c.dump(indent + 1))
-            if self.attributes.__len__() > 0:
-                result = format(
-                    "{}<{}{}>\n{}{}</{}>\n",
-                    spaces,
-                    self.name,
-                    concate(self.attributes),
-                    concate(child_dump),
-                    spaces,
-                    self.name,
-                )
+            if self.content.__len__() > 0:
+                if self.attributes.__len__() > 0:
+                    result = format(
+                        "{}<{}{}>{}{}</{}>\n",
+                        spaces,
+                        self.name,
+                        concate(self.attributes),
+                        concate(self.content),
+                        concate(child_dump),
+                        self.name,
+                    )
+                else:
+                    result = format(
+                        "{}<{}>{}{}</{}>\n",
+                        spaces,
+                        self.name,
+                        concate(self.content),
+                        concate(child_dump),
+                        spaces,
+                        self.name,
+                    )
             else:
-                result = format(
-                    "{}<{}>\n{}{}</{}>\n",
-                    spaces,
-                    self.name,
-                    concate(child_dump),
-                    spaces,
-                    self.name,
-                )
+                if self.attributes.__len__() > 0:
+                    result = format(
+                        "{}<{}{}>\n{}{}</{}>\n",
+                        spaces,
+                        self.name,
+                        concate(self.attributes),
+                        concate(child_dump),
+                        spaces,
+                        self.name,
+                    )
+                else:
+                    result = format(
+                        "{}<{}>\n{}{}</{}>\n",
+                        spaces,
+                        self.name,
+                        concate(child_dump),
+                        spaces,
+                        self.name,
+                    )
         else:
-            if self.attributes.__len__() > 0:
-                result = format(
-                    "{}<{}{} />\n",
-                    spaces,
-                    self.name,
-                    concate(self.attributes)
-                )
+            if self.content.__len__() > 0:
+                if self.attributes.__len__() > 0:
+                    result = format(
+                        "{}<{}{}>{}</{}>\n",
+                        spaces,
+                        self.name,
+                        concate(self.attributes),
+                        concate(self.content),
+                        self.name,
+                    )
+                else:
+                    result = format(
+                        "{}<{}>{}</{}>\n",
+                        spaces,
+                        self.name,
+                        concate(self.content),
+                        self.name,
+                    )
             else:
-                result = format(
-                    "{}<{} />\n",
-                    spaces,
-                    self.name
-                )
+                if self.attributes.__len__() > 0:
+                    result = format(
+                        "{}<{}{} />\n",
+                        spaces,
+                        self.name,
+                        concate(self.attributes)
+                    )
+                else:
+                    result = format(
+                        "{}<{} />\n",
+                        spaces,
+                        self.name
+                    )
         return result
 
     cypElement tag(self, Str name):
+        """Append an element as child of current element
+
+        Return the added element
+        """
         cdef cypElement e
 
-        e = cypElement(name)
+        e = cypElement(name, self.indent_space)
         self.children.append(e)
         return e
 
-    void text(self, Str txt):
-        self.content.append(escaped(txt, NULL))
+    cypElement text(self, Str txt):
+        """Append an text as content of current element
 
-    void attrib(self, Str key, Str value):
+        Return the element (self, not the added text)
+        """
+        self.content.append(escaped(txt, NULL))
+        return self
+
+    cypElement attr(self, Str key, Str value):
+        """Append an attribute to current element
+
+        Return the element (self, not the added attribute)
+        """
         self.attributes.append(format(
             " {}={}",
             nameprep(key),
             quotedattr(value, NULL)
         ))
+        return self
 
 
 cdef Str to_str(byte_or_string)
