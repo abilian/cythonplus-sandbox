@@ -73,6 +73,8 @@ cdef Str escaped(Str data, cypdict[Str, Str] entities) nogil:
 
     Return Str, the escaped string.
     """
+    cdef Str s
+
     s = data.copy()
     escape(s, entities)
     return s
@@ -101,6 +103,8 @@ cdef Str unescaped(Str data, cypdict[Str, Str] entities) nogil:
 
     Return Str, the unescaped string.
     """
+    cdef Str s
+
     s = data.copy()
     unescape(s, entities)
     return s
@@ -148,6 +152,24 @@ cdef void quoteattr(Str data, cypdict[Str, Str] entities) nogil:
             tmp = format("\"{}\"", data)
             data._str = tmp._str
 
+cdef Str quotedattr(Str data, cypdict[Str, Str] entities) nogil:
+    """Escape and quote an attribute value.
+
+    Escape &, <, and > in a string of data, then quote it for use as
+    an attribute value.  The \" character will be escaped as well, if
+    necessary.
+    You can escape other strings of data by passing a dictionary as
+    the optional entities parameter.  The keys and values must all be
+    strings; each key will be replaced with its corresponding value.
+
+    Return Str, a quoted string.
+    """
+    cdef Str s
+
+    s = data.copy()
+    quoteattr(s, entities)
+    return s
+
 cdef Str nameprep(Str name) nogil:
     """Undo colon mangling
     """
@@ -156,7 +178,6 @@ cdef Str nameprep(Str name) nogil:
     result = name.copy()
     replace_all(result, Str("__"), Str(":"))
     return result
-
 
 cdef Str concate(cyplist[Str] strings) nogil:
     cdef Str joined

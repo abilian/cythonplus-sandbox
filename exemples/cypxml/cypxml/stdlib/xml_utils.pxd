@@ -12,5 +12,6 @@ cdef Str escaped(Str, cypdict[Str, Str]) nogil
 cdef void unescape(Str, cypdict[Str, Str]) nogil
 cdef Str unescaped(Str, cypdict[Str, Str]) nogil
 cdef void quoteattr(Str, cypdict[Str, Str]) nogil
+cdef Str quotedattr(Str, cypdict[Str, Str]) nogil
 cdef Str nameprep(Str) nogil
 cdef Str concate(cyplist[Str]) nogil

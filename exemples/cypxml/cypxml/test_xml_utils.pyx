@@ -5,7 +5,7 @@ from stdlib.format cimport format
 
 from .stdlib.xml_utils cimport replace_one, replace_all
 from .stdlib.xml_utils cimport escape, escaped, unescape, unescaped
-from .stdlib.xml_utils cimport quoteattr, nameprep
+from .stdlib.xml_utils cimport quoteattr, quotedattr, nameprep
 from .stdlib.xml_utils cimport concate
 
 cdef bint test_replace_one_1():
@@ -866,6 +866,61 @@ cdef bint test_quoteattr_8():
 
 #############################################################################
 
+cdef bint test_quotedattr_1():
+    cdef Str src
+    cdef Str src2
+    cdef Str expected
+    cdef Str result
+
+    src = Str("some ééé abc abc")
+    src2 = Str("some ééé abc abc")
+    expected = Str('"some ééé abc abc"')
+    result = quotedattr(src, NULL)
+    if result == expected and src == src2:
+        return 1
+    print("-------------------------------------")
+    print(result.bytes())
+    raise RuntimeError()
+
+cdef bint test_quotedattr_2():
+    cdef Str src
+    cdef Str src2
+    cdef Str expected
+    cdef Str result
+
+    src = Str("some 'ééé' abc abc")
+    src2 = Str("some 'ééé' abc abc")
+    expected = Str('"some \'ééé\' abc abc"')
+    result = quotedattr(src, NULL)
+    if result == expected and src == src2:
+        return 1
+    print("-------------------------------------")
+    print(result.bytes())
+    raise RuntimeError()
+
+cdef bint test_quotedattr_3():
+    cdef Str src
+    cdef Str src2
+    cdef Str expected
+    cdef Str result
+    cdef cypdict[Str, Str] ent
+
+    ent = cypdict[Str, Str]()
+    ent[Str("é")] = Str("&eacute;")
+    ent[Str("à")] = Str("&agrave;")
+
+    src = Str("some 'ééé' à.\n ")
+    src2 = Str("some 'ééé' à.\n ")
+    expected = Str('"some \'&eacute;&eacute;&eacute;\' &agrave;.&#10; "')
+    result = quotedattr(src, ent)
+    if result == expected and src == src2:
+        return 1
+    print("-------------------------------------")
+    print(result.bytes())
+    raise RuntimeError()
+
+#############################################################################
+
 cdef bint test_nameprep_1():
     cdef Str src
     cdef Str expected
@@ -1010,6 +1065,9 @@ def main():
     test_quoteattr_6()
     test_quoteattr_7()
     test_quoteattr_8()
+    test_quotedattr_1()
+    test_quotedattr_2()
+    test_quotedattr_3()
     test_nameprep_1()
     test_nameprep_2()
     test_nameprep_3()
