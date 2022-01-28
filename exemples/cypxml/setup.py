@@ -58,6 +58,7 @@ extensions = [
     pypyx_ext(NAME, "test_xml_utils"),
     pypyx_ext(NAME, "cypxml"),
     pypyx_ext(NAME, "test_cypxml"),
+    pypyx_ext(NAME, "test_perf"),
     pypyx_ext(NAME, "__init__"),
 ]
 
