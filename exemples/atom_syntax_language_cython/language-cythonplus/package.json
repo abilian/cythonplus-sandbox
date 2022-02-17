@@ -1,0 +1,18 @@
+{
+  "name": "language-cythonplus",
+  "main": "./lib/language-cythonplus",
+  "version": "0.0.0",
+  "description": "CythonPlus language support in Atom",
+  "keywords": ["CythonPlus", "language", "syntax"
+  ],
+  "activationCommands": {
+    "atom-workspace": "language-cythonplus:toggle"
+  },
+  "repository": "https://github.com/xxxxxxxxxxxxxxxxxxxxxxxxxxxx/language-cythonplus",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+  }
+}

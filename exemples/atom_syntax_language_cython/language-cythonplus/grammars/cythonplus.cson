@@ -1,0 +1,1858 @@
+fileTypes: [
+    "pyx"
+    "pxi"
+    "pxd"
+]
+foldingStartMarker: "^\\s*((cp?)?def|class|property|struct|enum|union)\\s+([.a-zA-Z0-9_ <]+)\\s*(\\((.*)\\)|['\"]+.+['\"]+)?\\s*:|\\{\\s*$|\\(\\s*$|\\[\\s*$|^\\s*\"\"\"(?=.)(?!.*\"\"\")"
+foldingStopMarker: "^\\s*$|^\\s*\\}|^\\s*\\]|^\\s*\\)|^\\s*\"\"\"\\s*$"
+name: "CythonPlus"
+patterns: [
+    {
+        captures:
+            "1":
+                name: "punctuation.definition.comment.cythonplus"
+        match: "(#).*$\\n?"
+        name: "comment.line.number-sign.cythonplus"
+    }
+    {
+        match: "\\b(?i:(0x\\h*)L)"
+        name: "constant.numeric.integer.long.hexadecimal.cythonplus"
+    }
+    {
+        match: "\\b(?i:(0x\\h*))"
+        name: "constant.numeric.integer.hexadecimal.cythonplus"
+    }
+    {
+        match: "\\b(?i:(0[0-7]+)L)"
+        name: "constant.numeric.integer.long.octal.cythonplus"
+    }
+    {
+        match: "\\b(0[0-7]+)"
+        name: "constant.numeric.integer.octal.cythonplus"
+    }
+    {
+        match: "\\b(?i:(((\\d+(\\.(?=[^a-zA-Z_])\\d*)?|(?<=[^0-9a-zA-Z_])\\.\\d+)(e[\\-\\+]?\\d+)?))J)"
+        name: "constant.numeric.complex.cythonplus"
+    }
+    {
+        match: "\\b(?i:(\\d+\\.\\d*(e[\\-\\+]?\\d+)?))(?=[^a-zA-Z_])"
+        name: "constant.numeric.float.cythonplus"
+    }
+    {
+        match: "(?<=[^0-9a-zA-Z_])(?i:(\\.\\d+(e[\\-\\+]?\\d+)?))"
+        name: "constant.numeric.float.cythonplus"
+    }
+    {
+        match: "\\b(?i:(\\d+e[\\-\\+]?\\d+))"
+        name: "constant.numeric.float.cythonplus"
+    }
+    {
+        match: "\\b(?i:([1-9]+[0-9]*|0)L)"
+        name: "constant.numeric.integer.long.decimal.cythonplus"
+    }
+    {
+        match: "\\b([1-9]+[0-9]*|0)"
+        name: "constant.numeric.integer.decimal.cythonplus"
+    }
+    {
+        captures:
+            "1":
+                name: "storage.modifier.global.cythonplus"
+        match: "\\b(global|readonly|public|api|nogil|gil)\\b"
+    }
+    {
+        captures:
+            "1":
+                name: "keyword.control.import.cythonplus"
+            "2":
+                name: "keyword.control.import.from.cythonplus"
+        match: "\\b(?:(c?import|include)|(from))\\b"
+    }
+    {
+        match: "\\bexcept\\?"
+        name: "keyword.control.flow.cythonplus"
+    }
+    {
+        comment: "keywords that delimit flow blocks"
+        match: "\\b(elif|else|except|finally|for|if|try|while|with|IF|ELIF|ELSE)\\b"
+        name: "keyword.control.flow.cythonplus"
+    }
+    {
+        match: "\\bDEF\\b"
+        name: "keyword.control.define.cythonplus"
+    }
+    {
+        comment: "keywords that alter flow from within a block"
+        match: "\\b(break|continue|pass|raise|return|yield)\\b"
+        name: "keyword.control.flow.cythonplus"
+    }
+    {
+        comment: "keyword operators that evaluate to True or False"
+        match: "\\b(and|in|is|not|or)\\b"
+        name: "keyword.operator.logical.cythonplus"
+    }
+    {
+        captures:
+            "1":
+                name: "keyword.other.cythonplus"
+        comment: "keywords that haven't fit into other groups (yet)."
+        match: "\\b(as|assert|del|exec|print|by)\\b"
+    }
+    {
+        match: "\\b(extern|register|restrict|static|volatile|inline)\\b"
+        name: "storage.modifier.cythonplus"
+    }
+    {
+        captures:
+            "2":
+                name: "storage.type.cythonplus"
+        match: "(<)\\s*(([a-zA-Z_][a-zA-Z0-9_]*)(\\s+[a-zA-Z_][a-zA-Z0-9_]*)*[ *]*)\\s*\\??\\s*(>)"
+        name: "operator.cast.cythonplus"
+    }
+    {
+        match: "<\\=|>\\=|\\=\\=|<|>|<>"
+        name: "keyword.operator.comparison.cythonplus"
+    }
+    {
+        match: "\\+\\=|-\\=|\\*\\=|/\\=|//\\=|%\\=|&\\=|\\|\\=|\\^\\=|>>\\=|<<\\=|\\*\\*\\="
+        name: "keyword.operator.assignment.augmented.cythonplus"
+    }
+    {
+        match: "\\+|\\-|\\*|\\*\\*|/|//|%|<<|>>|&|\\||\\^|~"
+        name: "keyword.operator.arithmetic.cythonplus"
+    }
+    {
+        match: "\\="
+        name: "keyword.operator.assignment.cythonplus"
+    }
+    {
+        begin: "^(cdef)\\s+(extern|import)\\s+(from)"
+        beginCaptures:
+            "1":
+                name: "storage.type.cdef.cythonplus"
+            "2":
+                name: "keyword.control.import.cythonplus"
+            "3":
+                name: "keyword.control.import.from.cythonplus"
+        end: ":"
+        name: "meta.cextern.cythonplus"
+        patterns: [
+            {
+                include: "#strings"
+            }
+        ]
+    }
+    {
+        begin: "^\\s*(cp?def\\s+)?(?!(raise|return|yield|assert|del|print|exec|def|class|if|elif|for|while|except|with|IF|ELIF)\\b)(([a-zA-Z_][a-zA-Z0-9_]*)(\\s+[a-zA-Z_][a-zA-Z0-9_]*)*([ *]*))\\s*(\\b[a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\(|'|\")(?=.*\\()"
+        beginCaptures:
+            "1":
+                name: "storage.type.cdef.cythonplus"
+            "3":
+                name: "storage.type.cythonplus"
+            "7":
+                name: "entity.name.cfunction.cythonplus"
+            "8":
+                name: "punctuation.definition.cfunction.cythonplus"
+        end: "(\\)):?"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.cfunction.cythonplus"
+        name: "meta.cfunction.cythonplus"
+        patterns: [
+            {
+                include: "#strings"
+            }
+        ]
+    }
+    {
+        captures:
+            "1":
+                name: "storage.type.property.cythonplus"
+            "2":
+                name: "entity.name.type.property.cythonplus"
+        match: "^\\s*(property)\\s+([a-zA-Z_][a-zA-Z_0-9]*)"
+        name: "meta.property.cythonplus"
+    }
+    {
+        captures:
+            "1":
+                name: "storage.type.cdef.cythonplus"
+            "3":
+                name: "storage.modifier.cythonplus"
+            "4":
+                name: "storage.type.struct.cythonplus"
+            "5":
+                name: "entity.name.type.struct.cythonplus"
+        match: "^\\s*(cdef\\s+)?((extern|api|public)\\s+)?(struct)\\s+([a-zA-Z_][a-zA-Z_0-9]*)"
+        name: "meta.struct.cythonplus"
+    }
+    {
+        captures:
+            "1":
+                name: "storage.type.cdef.cythonplus"
+            "3":
+                name: "storage.modifier.cythonplus"
+            "4":
+                name: "storage.type.union.cythonplus"
+            "5":
+                name: "entity.name.type.union.cythonplus"
+        match: "^\\s*(cdef\\s+)?((extern|api|public)\\s+)?(union)\\s+([a-zA-Z_][a-zA-Z_0-9]*)"
+        name: "meta.union.cythonplus"
+    }
+    {
+        captures:
+            "1":
+                name: "storage.type.cdef.cythonplus"
+            "3":
+                name: "storage.modifier.cythonplus"
+            "4":
+                name: "storage.type.enum.cythonplus"
+            "5":
+                name: "entity.name.type.enum.cythonplus"
+        match: "^\\s*(cdef\\s+)?((extern|api|public)\\s+)?(enum)\\s+([a-zA-Z_][a-zA-Z_0-9]*)"
+        name: "meta.enum.cythonplus"
+    }
+    {
+        match: "\\b(object|asm|__asm__|auto|bool|_Bool|char|const char\*|const char \*|iso|lock|active|Str|string|cyplist|cypdict|cypset|_Complex|double|enum|float|_Imaginary|int|long|short|signed|struct|ctypedef|typedef|union|unsigned|void)\\b"
+        name: "storage.type.cythonplus"
+    }
+    {
+        begin: "^\\s*(cdef\\s+)?(class)\\s+(?=[a-zA-Z_][a-zA-Z_0-9]*\\s*\\:)"
+        beginCaptures:
+            "1":
+                name: "storage.type.cdef.cythonplus"
+            "2":
+                name: "storage.type.class.cythonplus"
+        contentName: "entity.name.type.class.cythonplus"
+        end: "\\s*(:)"
+        endCaptures:
+            "1":
+                name: "punctuation.section.class.begin.cythonplus"
+        name: "meta.class.cythonplus"
+        patterns: [
+            {
+                include: "#entity_name_class"
+            }
+        ]
+    }
+    {
+        begin: "^\\s*(cdef\\s+)?((extern|api|public)\\s+)?(class)\\s+(?=[a-zA-Z_][a-zA-Z_0-9]*\\s*\\()"
+        beginCaptures:
+            "1":
+                name: "storage.type.cdef.cythonplus"
+            "3":
+                name: "storage.modifier.cythonplus"
+            "4":
+                name: "storage.type.class.cythonplus"
+        end: "(\\))\\s*(?:(\\:)|(.*$\\n?))"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.inheritance.end.cythonplus"
+            "2":
+                name: "punctuation.section.class.begin.cythonplus"
+            "3":
+                name: "invalid.illegal.missing-section-begin.cythonplus"
+        name: "meta.class.cythonplus"
+        patterns: [
+            {
+                begin: "(?=[A-Za-z_][A-Za-z0-9_]*)"
+                contentName: "entity.name.type.class.cythonplus"
+                end: "(?![A-Za-z0-9_])"
+                patterns: [
+                    {
+                        include: "#entity_name_class"
+                    }
+                ]
+            }
+            {
+                begin: "(\\()"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.inheritance.begin.cythonplus"
+                contentName: "meta.class.inheritance.cythonplus"
+                end: "(?=\\)|:)"
+                patterns: [
+                    {
+                        begin: "(?<=\\(|,)\\s*"
+                        contentName: "entity.other.inherited-class.cythonplus"
+                        end: "\\s*(?:(,)|(?=\\)))"
+                        endCaptures:
+                            "1":
+                                name: "punctuation.separator.inheritance.cythonplus"
+                        patterns: [
+                            {
+                                include: "$self"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+    {
+        begin: "^\\s*(class)\\s+(?=[a-zA-Z_][a-zA-Z_0-9])"
+        beginCaptures:
+            "1":
+                name: "storage.type.class.cythonplus"
+        end: "(\\()|\\s*($\\n?|#.*$\\n?)"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.inheritance.begin.cythonplus"
+            "2":
+                name: "invalid.illegal.missing-inheritance.cythonplus"
+        name: "meta.class.cythonplus"
+        patterns: [
+            {
+                begin: "(?=[A-Za-z_][A-Za-z0-9_]*)"
+                contentName: "entity.name.type.class.cythonplus"
+                end: "(?![A-Za-z0-9_])"
+                patterns: [
+                    {
+                        include: "#entity_name_function"
+                    }
+                ]
+            }
+        ]
+    }
+    {
+        begin: "^\\s*(cdef\\s+)?(cypclass)\\s+(?=[a-zA-Z_][a-zA-Z_0-9]*\\s*\\:)"
+        beginCaptures:
+            "1":
+                name: "storage.type.cdef.cythonplus"
+            "2":
+                name: "storage.type.class.cythonplus"
+        contentName: "entity.name.type.cypclass.cythonplus"
+        end: "\\s*(:)"
+        endCaptures:
+            "1":
+                name: "punctuation.section.cypclass.begin.cythonplus"
+        name: "meta.class.cythonplus"
+        patterns: [
+            {
+                include: "#entity_name_class"
+            }
+        ]
+    }
+    {
+        begin: "^\\s*(cdef\\s+)?(cypclass)\\s+(?=[a-zA-Z_][a-zA-Z_0-9]*\\s*\\()"
+        beginCaptures:
+            "1":
+                name: "storage.type.cdef.cythonplus"
+            "2":
+                name: "storage.type.class.cythonplus"
+        end: "(\\))\\s*(?:(\\:)|(.*$\\n?))"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.inheritance.end.cythonplus"
+            "2":
+                name: "punctuation.section.class.begin.cythonplus"
+            "3":
+                name: "invalid.illegal.missing-section-begin.cythonplus"
+        name: "meta.class.cythonplus"
+        patterns: [
+            {
+                begin: "(?=[A-Za-z_][A-Za-z0-9_]*)"
+                contentName: "entity.name.type.class.cythonplus"
+                end: "(?![A-Za-z0-9_])"
+                patterns: [
+                    {
+                        include: "#entity_name_class"
+                    }
+                ]
+            }
+            {
+                begin: "(\\()"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.inheritance.begin.cythonplus"
+                contentName: "meta.class.inheritance.cythonplus"
+                end: "(?=\\)|:)"
+                patterns: [
+                    {
+                        begin: "(?<=\\(|,)\\s*"
+                        contentName: "entity.other.inherited-class.cythonplus"
+                        end: "\\s*(?:(,)|(?=\\)))"
+                        endCaptures:
+                            "1":
+                                name: "punctuation.separator.inheritance.cythonplus"
+                        patterns: [
+                            {
+                                include: "$self"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+    {
+        begin: "^\\s*(cypclass)\\s+(?=[a-zA-Z_][a-zA-Z_0-9])"
+        beginCaptures:
+            "1":
+                name: "storage.type.class.cythonplus"
+        end: "(\\()|\\s*($\\n?|#.*$\\n?)"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.inheritance.begin.cythonplus"
+            "2":
+                name: "invalid.illegal.missing-inheritance.cythonplus"
+        name: "meta.class.cythonplus"
+        patterns: [
+            {
+                begin: "(?=[A-Za-z_][A-Za-z0-9_]*)"
+                contentName: "entity.name.type.class.cythonplus"
+                end: "(?![A-Za-z0-9_])"
+                patterns: [
+                    {
+                        include: "#entity_name_function"
+                    }
+                ]
+            }
+        ]
+    }
+    {
+        begin: "^\\s*(def)\\s+(?=[A-Za-z_][A-Za-z0-9_]*\\s*\\()"
+        beginCaptures:
+            "1":
+                name: "storage.type.function.cythonplus"
+        end: "(\\))\\s*(?:(\\:)|(.*$\\n?))"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.parameters.end.cythonplus"
+            "2":
+                name: "punctuation.section.function.begin.cythonplus"
+            "3":
+                name: "invalid.illegal.missing-section-begin.cythonplus"
+        name: "meta.function.cythonplus"
+        patterns: [
+            {
+                begin: "(?=[A-Za-z_][A-Za-z0-9_]*)"
+                contentName: "entity.name.function.cythonplus"
+                end: "(?![A-Za-z0-9_])"
+                patterns: [
+                    {
+                        include: "#entity_name_function"
+                    }
+                ]
+            }
+            {
+                begin: "(\\()"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.parameters.begin.cythonplus"
+                contentName: "meta.function.parameters.cythonplus"
+                end: "(?=\\)\\s*\\:)"
+                patterns: [
+                    {
+                        include: "#keyword_arguments"
+                    }
+                    {
+                        include: "#typed_arguments"
+                    }
+                    {
+                        captures:
+                            "1":
+                                name: "variable.parameter.function.cythonplus"
+                            "2":
+                                name: "punctuation.separator.parameters.cythonplus"
+                        match: "\\b([a-zA-Z_][a-zA-Z_0-9]*)\\s*(?:(,)|(?=[\\n\\)]))"
+                    }
+                ]
+            }
+        ]
+    }
+    {
+        begin: "^\\s*(def)\\s+(?=[A-Za-z_][A-Za-z0-9_]*)"
+        beginCaptures:
+            "1":
+                name: "storage.type.function.cythonplus"
+        end: "(\\()|\\s*($\\n?|#.*$\\n?)"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.parameters.begin.cythonplus"
+            "2":
+                name: "invalid.illegal.missing-parameters.cythonplus"
+        name: "meta.function.cythonplus"
+        patterns: [
+            {
+                begin: "(?=[A-Za-z_][A-Za-z0-9_]*)"
+                contentName: "entity.name.function.cythonplus"
+                end: "(?![A-Za-z0-9_])"
+                patterns: [
+                    {
+                        include: "#entity_name_function"
+                    }
+                ]
+            }
+        ]
+    }
+    {
+        begin: "(lambda)(?=\\s+)"
+        beginCaptures:
+            "1":
+                name: "storage.type.function.inline.cythonplus"
+        end: "(\\:)"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.parameters.end.cythonplus"
+            "2":
+                name: "punctuation.section.function.begin.cythonplus"
+            "3":
+                name: "invalid.illegal.missing-section-begin.cythonplus"
+        name: "meta.function.inline.cythonplus"
+        patterns: [
+            {
+                begin: "\\s+"
+                contentName: "meta.function.inline.parameters.cythonplus"
+                end: "(?=\\:)"
+                patterns: [
+                    {
+                        include: "#keyword_arguments"
+                    }
+                    {
+                        captures:
+                            "1":
+                                name: "variable.parameter.function.cythonplus"
+                            "2":
+                                name: "punctuation.separator.parameters.cythonplus"
+                        match: "\\b([a-zA-Z_][a-zA-Z_0-9]*)\\s*(?:(,)|(?=[\\n\\)\\:]))"
+                    }
+                ]
+            }
+        ]
+    }
+    {
+        begin: "^\\s*(?=@\\s*[A-Za-z_][A-Za-z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z_0-9]*)*\\s*\\()"
+        comment: "a decorator may be a function call which returns a decorator."
+        end: "(\\))"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.arguments.end.cythonplus"
+        name: "meta.function.decorator.cythonplus"
+        patterns: [
+            {
+                begin: "(?=(@)\\s*[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*\\s*\\()"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.decorator.cythonplus"
+                contentName: "entity.name.function.decorator.cythonplus"
+                end: "(?=\\s*\\()"
+                patterns: [
+                    {
+                        include: "#dotted_name"
+                    }
+                ]
+            }
+            {
+                begin: "(\\()"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.arguments.begin.cythonplus"
+                contentName: "meta.function.decorator.arguments.cythonplus"
+                end: "(?=\\))"
+                patterns: [
+                    {
+                        include: "#keyword_arguments"
+                    }
+                    {
+                        include: "$self"
+                    }
+                ]
+            }
+        ]
+    }
+    {
+        begin: "^\\s*(?=@\\s*[A-Za-z_][A-Za-z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z_0-9]*)*)"
+        contentName: "entity.name.function.decorator.cythonplus"
+        end: "(?=\\s|$\\n?|#)"
+        name: "meta.function.decorator.cythonplus"
+        patterns: [
+            {
+                begin: "(?=(@)\\s*[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*)"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.decorator.cythonplus"
+                end: "(?=\\s|$\\n?|#)"
+                patterns: [
+                    {
+                        include: "#dotted_name"
+                    }
+                ]
+            }
+        ]
+    }
+    {
+        begin: "(?<=\\)|\\])\\s*(\\()"
+        beginCaptures:
+            "1":
+                name: "punctuation.definition.arguments.begin.cythonplus"
+        contentName: "meta.function-call.arguments.cythonplus"
+        end: "(\\))"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.arguments.end.cythonplus"
+        name: "meta.function-call.cythonplus"
+        patterns: [
+            {
+                include: "#keyword_arguments"
+            }
+            {
+                include: "$self"
+            }
+        ]
+    }
+    {
+        begin: "(?=[A-Za-z_][A-Za-z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z_0-9]*)*\\s*\\()"
+        end: "(\\))"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.arguments.end.cythonplus"
+        name: "meta.function-call.cythonplus"
+        patterns: [
+            {
+                begin: "(?=[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*\\s*\\()"
+                end: "(?=\\s*\\()"
+                patterns: [
+                    {
+                        include: "#dotted_name"
+                    }
+                ]
+            }
+            {
+                begin: "(\\()"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.arguments.begin.cythonplus"
+                contentName: "meta.function-call.arguments.cythonplus"
+                end: "(?=\\))"
+                patterns: [
+                    {
+                        include: "#keyword_arguments"
+                    }
+                    {
+                        include: "$self"
+                    }
+                ]
+            }
+        ]
+    }
+    {
+        begin: "(?=[A-Za-z_][A-Za-z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z_0-9]*)*\\s*\\[)"
+        end: "(\\])"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.arguments.end.cythonplus"
+        name: "meta.item-access.cythonplus"
+        patterns: [
+            {
+                begin: "(?=[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*\\s*\\[)"
+                end: "(?=\\s*\\[)"
+                patterns: [
+                    {
+                        include: "#dotted_name"
+                    }
+                ]
+            }
+            {
+                begin: "(\\[)"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.arguments.begin.cythonplus"
+                contentName: "meta.item-access.arguments.cythonplus"
+                end: "(?=\\])"
+                patterns: [
+                    {
+                        include: "$self"
+                    }
+                ]
+            }
+        ]
+    }
+    {
+        begin: "(?<=\\)|\\])\\s*(\\[)"
+        beginCaptures:
+            "1":
+                name: "punctuation.definition.arguments.begin.cythonplus"
+        contentName: "meta.item-access.arguments.cythonplus"
+        end: "(\\])"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.arguments.end.cythonplus"
+        name: "meta.item-access.cythonplus"
+        patterns: [
+            {
+                include: "$self"
+            }
+        ]
+    }
+    {
+        captures:
+            "1":
+                name: "storage.type.function.cythonplus"
+        match: "\\b(def|lambda)\\b"
+    }
+    {
+        captures:
+            "1":
+                name: "storage.type.class.cythonplus"
+        match: "\\b(class)\\b"
+    }
+    {
+        captures:
+            "1":
+                name: "storage.type.cdef.cythonplus"
+        match: "\\b(cdef)\\b"
+    }
+    {
+        include: "#line_continuation"
+    }
+    {
+        include: "#language_variables"
+    }
+    {
+        match: "\\b(None|True|False|Ellipsis|NotImplemented|NULL)\\b"
+        name: "constant.language.cythonplus"
+    }
+    {
+        include: "#string_quoted_single"
+    }
+    {
+        include: "#string_quoted_double"
+    }
+    {
+        include: "#dotted_name"
+    }
+    {
+        begin: "(\\()"
+        end: "(\\))"
+        patterns: [
+            {
+                include: "$self"
+            }
+        ]
+    }
+    {
+        captures:
+            "1":
+                name: "punctuation.definition.list.begin.cythonplus"
+            "2":
+                name: "meta.empty-list.cythonplus"
+            "3":
+                name: "punctuation.definition.list.end.cythonplus"
+        match: "(\\[)(\\s*(\\]))\\b"
+    }
+    {
+        begin: "(\\[)"
+        beginCaptures:
+            "1":
+                name: "punctuation.definition.list.begin.cythonplus"
+        end: "(\\])"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.list.end.cythonplus"
+        name: "meta.structure.list.cythonplus"
+        patterns: [
+            {
+                begin: "(?<=\\[|\\,)\\s*(?![\\],])"
+                contentName: "meta.structure.list.item.cythonplus"
+                end: "\\s*(?:(,)|(?=\\]))"
+                endCaptures:
+                    "1":
+                        name: "punctuation.separator.list.cythonplus"
+                patterns: [
+                    {
+                        include: "$self"
+                    }
+                ]
+            }
+        ]
+    }
+    {
+        captures:
+            "1":
+                name: "punctuation.definition.tuple.begin.cythonplus"
+            "2":
+                name: "meta.empty-tuple.cythonplus"
+            "3":
+                name: "punctuation.definition.tuple.end.cythonplus"
+        match: "(\\()(\\s*(\\)))"
+        name: "meta.structure.tuple.cythonplus"
+    }
+    {
+        captures:
+            "1":
+                name: "punctuation.definition.dictionary.begin.cythonplus"
+            "2":
+                name: "meta.empty-dictionary.cythonplus"
+            "3":
+                name: "punctuation.definition.dictionary.end.cythonplus"
+        match: "(\\{)(\\s*(\\}))"
+        name: "meta.structure.dictionary.cythonplus"
+    }
+    {
+        begin: "(\\{)"
+        beginCaptures:
+            "1":
+                name: "punctuation.definition.dictionary.begin.cythonplus"
+        end: "(\\})"
+        endCaptures:
+            "1":
+                name: "punctuation.definition.dictionary.end.cythonplus"
+        name: "meta.structure.dictionary.cythonplus"
+        patterns: [
+            {
+                begin: "(?<=\\{|\\,|^)\\s*(?![\\},])"
+                contentName: "meta.structure.dictionary.key.cythonplus"
+                end: "\\s*(?:(?=\\})|(\\:))"
+                endCaptures:
+                    "1":
+                        name: "punctuation.separator.valuepair.dictionary.cythonplus"
+                patterns: [
+                    {
+                        include: "$self"
+                    }
+                ]
+            }
+            {
+                begin: "(?<=\\:|^)\\s*"
+                contentName: "meta.structure.dictionary.value.cythonplus"
+                end: "\\s*(?:(?=\\})|(,))"
+                endCaptures:
+                    "1":
+                        name: "punctuation.separator.dictionary.cythonplus"
+                patterns: [
+                    {
+                        include: "$self"
+                    }
+                ]
+            }
+        ]
+    }
+]
+repository:
+    builtin_exceptions:
+        match: "(?x)\\b((Arithmetic|Assertion|Attribute|EOF|Environment|FloatingPoint|IO|Import|Indentation|Index|Key|Lookup|Memory|Name|OS|Overflow|NotImplemented|Reference|Runtime|Standard|Syntax|System|Tab|Type|UnboundLocal|Unicode(Translate|Encode|Decode)?|Value|ZeroDivision)Error|(Deprecation|Future|Overflow|PendingDeprecation|Runtime|Syntax|User)?Warning|KeyboardInterrupt|NotImplemented|StopIteration|SystemExit|(Base)?Exception)\\b"
+        name: "support.type.exception.cythonplus"
+    builtin_functions:
+        match: '''
+                 (?x)\b(
+                                 __import__|all|abs|any|apply|callable|chr|cmp|coerce|compile|delattr|dir|
+                                 divmod|eval|execfile|filter|getattr|globals|hasattr|hash|hex|id|
+                                 input|intern|isinstance|issubclass|iter|len|locals|map|max|min|oct|
+                                 ord|pow|range|raw_input|reduce|reload|repr|round|setattr|sorted|
+                                 sum|unichr|vars|zip|sizeof
+                 			)\b
+               '''
+        name: "support.function.builtin.cythonplus"
+    builtin_types:
+        match: '''
+                 (?x)\b(
+                 				basestring|bool|buffer|classmethod|complex|dict|enumerate|file|
+                 				float|frozenset|int|list|long|open|reversed|set|
+                 				slice|staticmethod|str|super|tuple|type|unicode|xrange|
+                 				Str|string|cyplist|cypdict|cypset
+                 			)\b
+               '''
+        name: "support.type.cythonplus"
+    c_type:
+        match: "([a-zA-Z_][a-zA-Z0-9_]*)(\\s+[a-zA-Z_][a-zA-Z0-9_]*)*([ *]*)"
+    constant_placeholder:
+        match: "(?i:%(\\([a-z_]+\\))?#?0?\\-?[ ]?\\+?([0-9]*|\\*)(\\.([0-9]*|\\*))?[hL]?[a-z%])"
+        name: "constant.other.placeholder.cythonplus"
+    docstrings:
+        patterns: [
+            {
+                begin: "^\\s*(?=[uU]?[rR]?\"\"\")"
+                end: "(?<=\"\"\")"
+                name: "comment.block.cythonplus"
+                patterns: [
+                    {
+                        include: "#string_quoted_double"
+                    }
+                ]
+            }
+            {
+                begin: "^\\s*(?=[uU]?[rR]?''')"
+                end: "(?<=''')"
+                name: "comment.block.cythonplus"
+                patterns: [
+                    {
+                        include: "#string_quoted_single"
+                    }
+                ]
+            }
+        ]
+    dotted_name:
+        begin: "(?=[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*)"
+        end: "(?![A-Za-z0-9_\\.])"
+        patterns: [
+            {
+                begin: "(\\.)(?=[A-Za-z_][A-Za-z0-9_]*)"
+                end: "(?![A-Za-z0-9_])"
+                patterns: [
+                    {
+                        include: "#magic_function_names"
+                    }
+                    {
+                        include: "#magic_variable_names"
+                    }
+                    {
+                        include: "#illegal_names"
+                    }
+                    {
+                        include: "#generic_names"
+                    }
+                ]
+            }
+            {
+                begin: "(?<!\\.)(?=[A-Za-z_][A-Za-z0-9_]*)"
+                end: "(?![A-Za-z0-9_])"
+                patterns: [
+                    {
+                        include: "#builtin_functions"
+                    }
+                    {
+                        include: "#builtin_types"
+                    }
+                    {
+                        include: "#builtin_exceptions"
+                    }
+                    {
+                        include: "#illegal_names"
+                    }
+                    {
+                        include: "#magic_function_names"
+                    }
+                    {
+                        include: "#magic_variable_names"
+                    }
+                    {
+                        include: "#language_variables"
+                    }
+                    {
+                        include: "#generic_names"
+                    }
+                ]
+            }
+        ]
+    entity_name_class:
+        patterns: [
+            {
+                include: "#illegal_names"
+            }
+            {
+                include: "#generic_names"
+            }
+        ]
+    entity_name_function:
+        patterns: [
+            {
+                include: "#magic_function_names"
+            }
+            {
+                include: "#illegal_names"
+            }
+            {
+                include: "#generic_names"
+            }
+        ]
+    escaped_char:
+        captures:
+            "1":
+                name: "constant.character.escape.hex.cythonplus"
+            "2":
+                name: "constant.character.escape.octal.cythonplus"
+            "3":
+                name: "constant.character.escape.newline.cythonplus"
+            "4":
+                name: "constant.character.escape.backlash.cythonplus"
+            "5":
+                name: "constant.character.escape.double-quote.cythonplus"
+            "6":
+                name: "constant.character.escape.single-quote.cythonplus"
+            "7":
+                name: "constant.character.escape.bell.cythonplus"
+            "8":
+                name: "constant.character.escape.backspace.cythonplus"
+            "9":
+                name: "constant.character.escape.formfeed.cythonplus"
+            "10":
+                name: "constant.character.escape.linefeed.cythonplus"
+            "11":
+                name: "constant.character.escape.return.cythonplus"
+            "12":
+                name: "constant.character.escape.tab.cythonplus"
+            "13":
+                name: "constant.character.escape.vertical-tab.cythonplus"
+        match: "(\\\\x[0-9A-F]{2})|(\\\\[0-7]{3})|(\\\\\\n)|(\\\\\\\\)|(\\\\\\\")|(\\\\')|(\\\\a)|(\\\\b)|(\\\\f)|(\\\\n)|(\\\\r)|(\\\\t)|(\\\\v)"
+    escaped_unicode_char:
+        captures:
+            "1":
+                name: "constant.character.escape.unicode.16-bit-hex.cythonplus"
+            "2":
+                name: "constant.character.escape.unicode.32-bit-hex.cythonplus"
+            "3":
+                name: "constant.character.escape.unicode.name.cythonplus"
+        match: "(\\\\U[0-9A-Fa-f]{8})|(\\\\u[0-9A-Fa-f]{4})|(\\\\N\\{[a-zA-Z ]+\\})"
+    function_name:
+        patterns: [
+            {
+                include: "#magic_function_names"
+            }
+            {
+                include: "#magic_variable_names"
+            }
+            {
+                include: "#builtin_exceptions"
+            }
+            {
+                include: "#builtin_functions"
+            }
+            {
+                include: "#builtin_types"
+            }
+            {
+                include: "#generic_names"
+            }
+        ]
+    generic_names:
+        match: "[A-Za-z_][A-Za-z0-9_]*"
+    illegal_names:
+        match: "\\b(and|as|assert|break|class|continue|def|del|elif|else|except|exec|finally|for|from|global|if|import|in|is|lambda|not|or|pass|print|raise|return|try|while|with|yield)\\b"
+        name: "invalid.illegal.name.cythonplus"
+    keyword_arguments:
+        begin: "\\b(([a-zA-Z_][a-zA-Z0-9_]*)(\\s+[a-zA-Z_][a-zA-Z0-9_]*)*([ *]+))?([a-zA-Z_][a-zA-Z_0-9]*)\\s*(=)(?!=)"
+        beginCaptures:
+            "1":
+                name: "storage.type.cythonplus"
+            "5":
+                name: "variable.parameter.function.cythonplus"
+            "6":
+                name: "keyword.operator.assignment.cythonplus"
+        end: "\\s*(?:(,)|(?=$\\n?|[\\)\\:]))"
+        endCaptures:
+            "1":
+                name: "punctuation.separator.parameters.cythonplus"
+        patterns: [
+            {
+                include: "$self"
+            }
+        ]
+    language_variables:
+        match: "\\b(self|cls)\\b"
+        name: "variable.language.cythonplus"
+    line_continuation:
+        captures:
+            "1":
+                name: "punctuation.separator.continuation.line.cythonplus"
+            "2":
+                name: "invalid.illegal.unexpected-text.cythonplus"
+        match: "(\\\\)(.*)$\\n?"
+    magic_function_names:
+        comment: "these methods have magic interpretation by cythonplus and are generally called indirectly through syntactic constructs"
+        match: '''
+                 (?x)\b(__(?:
+                 						abs|add|and|call|cmp|coerce|complex|contains|del|delattr|
+                 						delete|delitem|delslice|div|divmod|enter|exit|float|
+                 						floordiv|get|getattr|getattribute|getitem|getslice|
+                 						hash|hex|iadd|iand|idiv|ifloordiv|ilshift|imod|imul|init|
+                 						int|invert|ior|ipow|irshift|isub|iter|itruediv|ixor|len|
+                 						long|lshift|mod|mul|neg|new|nonzero|oct|or|pos|pow|
+                 						radd|rand|rdiv|rdivmod|repr|rfloordiv|rlshift|rmod|rmul|ror|
+                 						rpow|rrshift|rshift|rsub|rtruediv|rxor|set|setattr|setitem|
+                 						setslice|str|sub|truediv|unicode|xor|cinit|dealloc|richcmp|
+                 						next|index|getreadbuffer|getwritebuffer|getsegcount|getcharbuffer|
+                 						iso|consume|lock|locked|active|activable
+                 					)__)\b
+               '''
+        name: "support.function.magic.cythonplus"
+    magic_variable_names:
+        comment: "magic variables which a class/module may have."
+        match: "\\b__(all|bases|class|debug|dict|doc|file|members|metaclass|methods|name|slots|weakref)__\\b"
+        name: "support.variable.magic.cythonplus"
+    regular_expressions:
+        comment: "Changed disabled to 1 to turn off syntax highlighting in “r” strings."
+        disabled: 0
+        patterns: [
+            {
+                include: "source.regexp.cythonplus"
+            }
+        ]
+    string_quoted_double:
+        patterns: [
+            {
+                begin: "([uU]r)(\"\"\")"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted unicode-raw string"
+                end: "((?<=\"\"\")(\")\"\"|\"\"\")"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.double.cythonplus"
+                name: "string.quoted.double.block.unicode-raw-regex.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_unicode_char"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                    {
+                        include: "#regular_expressions"
+                    }
+                ]
+            }
+            {
+                begin: "([uU]R)(\"\"\")"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted unicode-raw string without regular expression highlighting"
+                end: "((?<=\"\"\")(\")\"\"|\"\"\")"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.double.cythonplus"
+                name: "string.quoted.double.block.unicode-raw.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_unicode_char"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+            {
+                begin: "(r)(\"\"\")"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "double quoted raw string"
+                end: "((?<=\"\"\")(\")\"\"|\"\"\")"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.double.cythonplus"
+                name: "string.quoted.double.block.raw-regex.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                    {
+                        include: "#regular_expressions"
+                    }
+                ]
+            }
+            {
+                begin: "(R)(\"\"\")"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "double quoted raw string"
+                end: "((?<=\"\"\")(\")\"\"|\"\"\")"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.double.cythonplus"
+                name: "string.quoted.double.block.raw.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+            {
+                begin: "([uU])(\"\"\")"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "double quoted unicode string"
+                end: "((?<=\"\"\")(\")\"\"|\"\"\")"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.double.cythonplus"
+                name: "string.quoted.double.block.unicode.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_unicode_char"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+            {
+                begin: "([uU]r)(\")"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "double-quoted raw string"
+                end: "((?<=\")(\")|\")|(\\n)"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.double.cythonplus"
+                    "3":
+                        name: "invalid.illegal.unclosed-string.cythonplus"
+                name: "string.quoted.double.single-line.unicode-raw-regex.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_unicode_char"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                    {
+                        include: "#regular_expressions"
+                    }
+                ]
+            }
+            {
+                begin: "([uU]R)(\")"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "double-quoted raw string"
+                end: "((?<=\")(\")|\")|(\\n)"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.double.cythonplus"
+                    "3":
+                        name: "invalid.illegal.unclosed-string.cythonplus"
+                name: "string.quoted.double.single-line.unicode-raw.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_unicode_char"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+            {
+                begin: "(r)(\")"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "double-quoted raw string"
+                end: "((?<=\")(\")|\")|(\\n)"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.double.cythonplus"
+                    "3":
+                        name: "invalid.illegal.unclosed-string.cythonplus"
+                name: "string.quoted.double.single-line.raw-regex.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                    {
+                        include: "#regular_expressions"
+                    }
+                ]
+            }
+            {
+                begin: "(R)(\")"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "double-quoted raw string"
+                end: "((?<=\")(\")|\")|(\\n)"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.double.cythonplus"
+                    "3":
+                        name: "invalid.illegal.unclosed-string.cythonplus"
+                name: "string.quoted.double.single-line.raw.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+            {
+                begin: "([uU])(\")"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "double quoted unicode string"
+                end: "((?<=\")(\")|\")|(\\n)"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.double.cythonplus"
+                    "3":
+                        name: "invalid.illegal.unclosed-string.cythonplus"
+                name: "string.quoted.double.single-line.unicode.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_unicode_char"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+            {
+                begin: "(\"\"\")(?=\\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|REPLACE|ALTER))"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "double quoted string"
+                end: "((?<=\"\"\")(\")\"\"|\"\"\")"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.double.cythonplus"
+                name: "string.quoted.double.block.sql.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                    {
+                        include: "source.sql"
+                    }
+                ]
+            }
+            {
+                begin: "(\")(?=\\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|REPLACE|ALTER))"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "double quoted string"
+                end: "((?<=\")(\")|\")|(\\n)"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.double.cythonplus"
+                    "3":
+                        name: "invalid.illegal.unclosed-string.cythonplus"
+                name: "string.quoted.double.single-line.sql.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                    {
+                        include: "source.sql"
+                    }
+                ]
+            }
+            {
+                begin: "(\"\"\")"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "double quoted string"
+                end: "((?<=\"\"\")(\")\"\"|\"\"\")"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.double.cythonplus"
+                name: "string.quoted.double.block.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+            {
+                begin: "(\")"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "double quoted string"
+                end: "((?<=\")(\")|\")|(\\n)"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.double.cythonplus"
+                    "3":
+                        name: "invalid.illegal.unclosed-string.cythonplus"
+                name: "string.quoted.double.single-line.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+        ]
+    string_quoted_single:
+        patterns: [
+            {
+                captures:
+                    "1":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "3":
+                        name: "meta.empty-string.single.cythonplus"
+                match: "(?<!')(')(('))(?!')"
+                name: "string.quoted.single.single-line.cythonplus"
+            }
+            {
+                begin: "([uU]r)(''')"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted unicode-raw string"
+                end: "((?<=''')(')''|''')"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.single.cythonplus"
+                name: "string.quoted.single.block.unicode-raw-regex.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_unicode_char"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                    {
+                        include: "#regular_expressions"
+                    }
+                ]
+            }
+            {
+                begin: "([uU]R)(''')"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted unicode-raw string"
+                end: "((?<=''')(')''|''')"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.single.cythonplus"
+                name: "string.quoted.single.block.unicode-raw.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_unicode_char"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+            {
+                begin: "(r)(''')"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted raw string"
+                end: "((?<=''')(')''|''')"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.single.cythonplus"
+                name: "string.quoted.single.block.raw-regex.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                    {
+                        include: "#regular_expressions"
+                    }
+                ]
+            }
+            {
+                begin: "(R)(''')"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted raw string"
+                end: "((?<=''')(')''|''')"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.single.cythonplus"
+                name: "string.quoted.single.block.raw.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+            {
+                begin: "([uU])(''')"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted unicode string"
+                end: "((?<=''')(')''|''')"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.single.cythonplus"
+                name: "string.quoted.single.block.unicode.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_unicode_char"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+            {
+                begin: "([uU]r)(')"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted raw string"
+                end: "(')|(\\n)"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "invalid.illegal.unclosed-string.cythonplus"
+                name: "string.quoted.single.single-line.unicode-raw-regex.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_unicode_char"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                    {
+                        include: "#regular_expressions"
+                    }
+                ]
+            }
+            {
+                begin: "([uU]R)(')"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted raw string"
+                end: "(')|(\\n)"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "invalid.illegal.unclosed-string.cythonplus"
+                name: "string.quoted.single.single-line.unicode-raw.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_unicode_char"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+            {
+                begin: "(r)(')"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted raw string"
+                end: "(')|(\\n)"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "invalid.illegal.unclosed-string.cythonplus"
+                name: "string.quoted.single.single-line.raw-regex.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                    {
+                        include: "#regular_expressions"
+                    }
+                ]
+            }
+            {
+                begin: "(R)(')"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted raw string"
+                end: "(')|(\\n)"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "invalid.illegal.unclosed-string.cythonplus"
+                name: "string.quoted.single.single-line.raw.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+            {
+                begin: "([uU])(')"
+                beginCaptures:
+                    "1":
+                        name: "storage.type.string.cythonplus"
+                    "2":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted unicode string"
+                end: "(')|(\\n)"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "invalid.illegal.unclosed-string.cythonplus"
+                name: "string.quoted.single.single-line.unicode.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_unicode_char"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+            {
+                begin: "(''')(?=\\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|REPLACE|ALTER))"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted string"
+                end: "((?<=''')(')''|''')"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.single.cythonplus"
+                name: "string.quoted.single.block.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                    {
+                        include: "source.sql"
+                    }
+                ]
+            }
+            {
+                begin: "(')(?=\\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|REPLACE|ALTER))"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted string"
+                end: "(')|(\\n)"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "invalid.illegal.unclosed-string.cythonplus"
+                name: "string.quoted.single.single-line.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                    {
+                        include: "source.sql"
+                    }
+                ]
+            }
+            {
+                begin: "(''')"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted string"
+                end: "((?<=''')(')''|''')"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "meta.empty-string.single.cythonplus"
+                name: "string.quoted.single.block.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+            {
+                begin: "(')"
+                beginCaptures:
+                    "1":
+                        name: "punctuation.definition.string.begin.cythonplus"
+                comment: "single quoted string"
+                end: "(')|(\\n)"
+                endCaptures:
+                    "1":
+                        name: "punctuation.definition.string.end.cythonplus"
+                    "2":
+                        name: "invalid.illegal.unclosed-string.cythonplus"
+                name: "string.quoted.single.single-line.cythonplus"
+                patterns: [
+                    {
+                        include: "#constant_placeholder"
+                    }
+                    {
+                        include: "#escaped_char"
+                    }
+                ]
+            }
+        ]
+    strings:
+        patterns: [
+            {
+                include: "#string_quoted_double"
+            }
+            {
+                include: "#string_quoted_single"
+            }
+        ]
+    typed_arguments:
+        captures:
+            "1":
+                name: "storage.type.cythonplus"
+            "6":
+                name: "variable.parameter.function.cythonplus"
+            "7":
+                name: "storage.type.conditional.cythonplus"
+        match: "(([a-zA-Z_][a-zA-Z0-9_]*)(\\s+[a-zA-Z_][a-zA-Z0-9_]*)*([ *]+))(?!(not|None)\\b)([a-zA-Z_][a-zA-Z0-9_]*)(\\s+not\\s*None)?"
+scopeName: "source.cythonplus"
