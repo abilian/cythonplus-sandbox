@@ -1,0 +1,52 @@
+Basic gunicorn/flask/whitenoise configuration, 16 gunicorn workers, small files
+
+using whitenoise version 5.3.0
+found 50750 files in /home/jd/tmp/site_root/static
+50750 files cached by Whitenoise
+Whitenoise initialization (ms): 4916
+
+[2022-04-11 14:32:10 +0000] [897853] [INFO] Starting gunicorn 20.1.0
+[2022-04-11 14:32:10 +0000] [897853] [INFO] Listening at: http://127.0.0.1:5004 (897853)
+[2022-04-11 14:32:10 +0000] [897853] [INFO] Using worker: sync
+[2022-04-11 14:32:10 +0000] [897858] [INFO] Booting worker with pid: 897858
+[2022-04-11 14:32:10 +0000] [897859] [INFO] Booting worker with pid: 897859
+[2022-04-11 14:32:10 +0000] [897860] [INFO] Booting worker with pid: 897860
+[2022-04-11 14:32:10 +0000] [897861] [INFO] Booting worker with pid: 897861
+[2022-04-11 14:32:10 +0000] [897862] [INFO] Booting worker with pid: 897862
+[2022-04-11 14:32:10 +0000] [897863] [INFO] Booting worker with pid: 897863
+[2022-04-11 14:32:10 +0000] [897864] [INFO] Booting worker with pid: 897864
+[2022-04-11 14:32:11 +0000] [897865] [INFO] Booting worker with pid: 897865
+[2022-04-11 14:32:11 +0000] [897866] [INFO] Booting worker with pid: 897866
+[2022-04-11 14:32:11 +0000] [897867] [INFO] Booting worker with pid: 897867
+[2022-04-11 14:32:11 +0000] [897868] [INFO] Booting worker with pid: 897868
+[2022-04-11 14:32:11 +0000] [897869] [INFO] Booting worker with pid: 897869
+[2022-04-11 14:32:11 +0000] [897870] [INFO] Booting worker with pid: 897870
+[2022-04-11 14:32:11 +0000] [897871] [INFO] Booting worker with pid: 897871
+[2022-04-11 14:32:11 +0000] [897872] [INFO] Booting worker with pid: 897872
+[2022-04-11 14:32:11 +0000] [897873] [INFO] Booting worker with pid: 897873
+Running 30s test @ http://localhost:5004
+  4 threads and 80 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     8.20ms    3.63ms  82.92ms   93.46%
+    Req/Sec     2.52k   152.89     2.94k    83.00%
+  300917 requests in 30.01s, 1.22GB read
+Requests/sec:  10027.45
+Transfer/sec:     41.52MB
+[2022-04-11 14:32:43 +0000] [897853] [INFO] Handling signal: term
+[2022-04-11 14:32:43 +0000] [897863] [INFO] Worker exiting (pid: 897863)
+[2022-04-11 14:32:43 +0000] [897858] [INFO] Worker exiting (pid: 897858)
+[2022-04-11 14:32:43 +0000] [897873] [INFO] Worker exiting (pid: 897873)
+[2022-04-11 14:32:43 +0000] [897859] [INFO] Worker exiting (pid: 897859)
+[2022-04-11 14:32:43 +0000] [897860] [INFO] Worker exiting (pid: 897860)
+[2022-04-11 14:32:43 +0000] [897864] [INFO] Worker exiting (pid: 897864)
+[2022-04-11 14:32:43 +0000] [897861] [INFO] Worker exiting (pid: 897861)
+[2022-04-11 14:32:43 +0000] [897868] [INFO] Worker exiting (pid: 897868)
+[2022-04-11 14:32:43 +0000] [897862] [INFO] Worker exiting (pid: 897862)
+[2022-04-11 14:32:43 +0000] [897871] [INFO] Worker exiting (pid: 897871)
+[2022-04-11 14:32:43 +0000] [897865] [INFO] Worker exiting (pid: 897865)
+[2022-04-11 14:32:43 +0000] [897869] [INFO] Worker exiting (pid: 897869)
+[2022-04-11 14:32:43 +0000] [897867] [INFO] Worker exiting (pid: 897867)
+[2022-04-11 14:32:43 +0000] [897872] [INFO] Worker exiting (pid: 897872)
+[2022-04-11 14:32:43 +0000] [897866] [INFO] Worker exiting (pid: 897866)
+[2022-04-11 14:32:43 +0000] [897870] [INFO] Worker exiting (pid: 897870)
+[2022-04-11 14:32:47 +0000] [897853] [INFO] Shutting down: Master

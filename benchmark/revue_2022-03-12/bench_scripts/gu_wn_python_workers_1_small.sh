@@ -1,7 +1,6 @@
 #!/bin/bash
 NAME="gu_wn_python"
-msg="Basic gunicorn/flask/whitenoise configuration, 8 gunicorn workers"
-WORKERS=8
+msg="Basic gunicorn/flask/whitenoise configuration (HTTP/1.1), 1 worker, small files"
 
 [[ -f constants.sh ]] || exit 1
 . constants.sh
@@ -23,16 +22,16 @@ echo -e "${msg}\n" > ${LOG}
 
 PORT=5004
 cd "bin/${NAME}"
-gunicorn "${NAME}:create_app()" --preload --workers ${WORKERS} --disable-redirect-access-to-syslog \
+gunicorn "${NAME}:create_app()" --preload --disable-redirect-access-to-syslog \
 --log-file ${LOG} --capture-output -D -b 127.0.0.1:${PORT} -p ${PID}
-sleep 4
+sleep 1
 
 grep -q 'initialization' <(tail -f ${LOG})
 
-sleep 1
+sleep 3
 echo "start requests"
 # ${WRK} -c10 -d20s -t1 http://localhost:${PORT}/random_image
-${WRK} -c80 -d30s -t4 -s "${ORIG}"/wrk_rnd.lua http://localhost:${PORT} >> "${LOG}" 2>&1
+${WRK} -c80 -d30s -t4 -s "${ORIG}"/wrk_rnd_small.lua http://localhost:${PORT} >> "${LOG}" 2>&1
 
 cd "${ORIG}"
 mkdir -p results

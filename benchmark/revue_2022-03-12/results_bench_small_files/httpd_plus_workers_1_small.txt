@@ -1,0 +1,19 @@
+Httpd-Plus with 1 workers, HTTP/1.1, small files
+
+2022-03-11 14:38:30 - static_path: /home/jd/tmp/site_root/static
+2022-03-11 14:38:30 - prefix: static
+2022-03-11 14:38:30 - start scan filesystem (4 workers)
+2022-03-11 14:38:33 - files cached: 50750
+2022-03-11 14:38:33 - scan duration (ms): 2354
+2022-03-11 14:38:33 - httpd-plus 0.3 (1 workers)
+2022-03-11 14:38:33 - using protocol HTTP/1.1
+2022-03-11 14:38:33 - listening on http://127.0.0.1:5016
+2022-03-11 14:38:33 - initialization ok.
+Running 30s test @ http://localhost:5016
+  4 threads and 80 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   522.64us    4.30ms  48.11ms   99.03%
+    Req/Sec     1.88k     0.91k    8.53k    82.67%
+  56222 requests in 30.04s, 231.80MB read
+Requests/sec:   1871.74
+Transfer/sec:      7.72MB

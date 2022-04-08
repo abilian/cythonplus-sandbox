@@ -1,0 +1,60 @@
+Basic gunicorn/flask/whitenoise configuration, 20 gunicorn workers, small files
+
+using whitenoise version 5.3.0
+found 50750 files in /home/jd/tmp/site_root/static
+50750 files cached by Whitenoise
+Whitenoise initialization (ms): 4949
+
+[2022-04-11 14:33:31 +0000] [897911] [INFO] Starting gunicorn 20.1.0
+[2022-04-11 14:33:31 +0000] [897911] [INFO] Listening at: http://127.0.0.1:5004 (897911)
+[2022-04-11 14:33:31 +0000] [897911] [INFO] Using worker: sync
+[2022-04-11 14:33:31 +0000] [897917] [INFO] Booting worker with pid: 897917
+[2022-04-11 14:33:31 +0000] [897918] [INFO] Booting worker with pid: 897918
+[2022-04-11 14:33:31 +0000] [897919] [INFO] Booting worker with pid: 897919
+[2022-04-11 14:33:31 +0000] [897920] [INFO] Booting worker with pid: 897920
+[2022-04-11 14:33:31 +0000] [897921] [INFO] Booting worker with pid: 897921
+[2022-04-11 14:33:31 +0000] [897922] [INFO] Booting worker with pid: 897922
+[2022-04-11 14:33:31 +0000] [897923] [INFO] Booting worker with pid: 897923
+[2022-04-11 14:33:31 +0000] [897924] [INFO] Booting worker with pid: 897924
+[2022-04-11 14:33:31 +0000] [897925] [INFO] Booting worker with pid: 897925
+[2022-04-11 14:33:31 +0000] [897926] [INFO] Booting worker with pid: 897926
+[2022-04-11 14:33:32 +0000] [897927] [INFO] Booting worker with pid: 897927
+[2022-04-11 14:33:32 +0000] [897928] [INFO] Booting worker with pid: 897928
+[2022-04-11 14:33:32 +0000] [897929] [INFO] Booting worker with pid: 897929
+[2022-04-11 14:33:32 +0000] [897930] [INFO] Booting worker with pid: 897930
+[2022-04-11 14:33:32 +0000] [897931] [INFO] Booting worker with pid: 897931
+[2022-04-11 14:33:32 +0000] [897932] [INFO] Booting worker with pid: 897932
+[2022-04-11 14:33:32 +0000] [897933] [INFO] Booting worker with pid: 897933
+[2022-04-11 14:33:32 +0000] [897934] [INFO] Booting worker with pid: 897934
+[2022-04-11 14:33:32 +0000] [897935] [INFO] Booting worker with pid: 897935
+[2022-04-11 14:33:32 +0000] [897936] [INFO] Booting worker with pid: 897936
+Running 30s test @ http://localhost:5004
+  4 threads and 80 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     7.96ms    5.13ms  94.91ms   89.32%
+    Req/Sec     2.66k   251.31     4.74k    82.09%
+  317733 requests in 30.04s, 1.28GB read
+Requests/sec:  10578.21
+Transfer/sec:     43.79MB
+[2022-04-11 14:34:04 +0000] [897911] [INFO] Handling signal: term
+[2022-04-11 14:34:04 +0000] [897922] [INFO] Worker exiting (pid: 897922)
+[2022-04-11 14:34:04 +0000] [897921] [INFO] Worker exiting (pid: 897921)
+[2022-04-11 14:34:04 +0000] [897918] [INFO] Worker exiting (pid: 897918)
+[2022-04-11 14:34:04 +0000] [897923] [INFO] Worker exiting (pid: 897923)
+[2022-04-11 14:34:04 +0000] [897927] [INFO] Worker exiting (pid: 897927)
+[2022-04-11 14:34:04 +0000] [897924] [INFO] Worker exiting (pid: 897924)
+[2022-04-11 14:34:04 +0000] [897930] [INFO] Worker exiting (pid: 897930)
+[2022-04-11 14:34:04 +0000] [897928] [INFO] Worker exiting (pid: 897928)
+[2022-04-11 14:34:04 +0000] [897934] [INFO] Worker exiting (pid: 897934)
+[2022-04-11 14:34:04 +0000] [897926] [INFO] Worker exiting (pid: 897926)
+[2022-04-11 14:34:04 +0000] [897920] [INFO] Worker exiting (pid: 897920)
+[2022-04-11 14:34:04 +0000] [897936] [INFO] Worker exiting (pid: 897936)
+[2022-04-11 14:34:04 +0000] [897931] [INFO] Worker exiting (pid: 897931)
+[2022-04-11 14:34:04 +0000] [897917] [INFO] Worker exiting (pid: 897917)
+[2022-04-11 14:34:04 +0000] [897933] [INFO] Worker exiting (pid: 897933)
+[2022-04-11 14:34:04 +0000] [897929] [INFO] Worker exiting (pid: 897929)
+[2022-04-11 14:34:04 +0000] [897935] [INFO] Worker exiting (pid: 897935)
+[2022-04-11 14:34:04 +0000] [897925] [INFO] Worker exiting (pid: 897925)
+[2022-04-11 14:34:04 +0000] [897919] [INFO] Worker exiting (pid: 897919)
+[2022-04-11 14:34:04 +0000] [897932] [INFO] Worker exiting (pid: 897932)
+[2022-04-11 14:34:08 +0000] [897911] [INFO] Shutting down: Master

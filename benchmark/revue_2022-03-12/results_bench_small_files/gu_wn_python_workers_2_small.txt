@@ -1,0 +1,24 @@
+Basic gunicorn/flask/whitenoise configuration, 2 gunicorn workers, small files
+
+using whitenoise version 5.3.0
+found 50750 files in /home/jd/tmp/site_root/static
+50750 files cached by Whitenoise
+Whitenoise initialization (ms): 4930
+
+[2022-04-11 14:34:57 +0000] [897999] [INFO] Starting gunicorn 20.1.0
+[2022-04-11 14:34:57 +0000] [897999] [INFO] Listening at: http://127.0.0.1:5004 (897999)
+[2022-04-11 14:34:57 +0000] [897999] [INFO] Using worker: sync
+[2022-04-11 14:34:57 +0000] [898006] [INFO] Booting worker with pid: 898006
+[2022-04-11 14:34:57 +0000] [898007] [INFO] Booting worker with pid: 898007
+Running 30s test @ http://localhost:5004
+  4 threads and 80 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    11.88ms    2.52ms  57.96ms   99.03%
+    Req/Sec     1.70k    92.80     1.82k    89.92%
+  203214 requests in 30.01s, 841.42MB read
+Requests/sec:   6770.77
+Transfer/sec:     28.03MB
+[2022-04-11 14:35:30 +0000] [897999] [INFO] Handling signal: term
+[2022-04-11 14:35:30 +0000] [898006] [INFO] Worker exiting (pid: 898006)
+[2022-04-11 14:35:30 +0000] [898007] [INFO] Worker exiting (pid: 898007)
+[2022-04-11 14:35:31 +0000] [897999] [INFO] Shutting down: Master

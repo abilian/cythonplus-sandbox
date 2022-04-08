@@ -1,0 +1,44 @@
+Basic gunicorn/flask/whitenoise configuration, 12 gunicorn workers, small files
+
+using whitenoise version 5.3.0
+found 50750 files in /home/jd/tmp/site_root/static
+50750 files cached by Whitenoise
+Whitenoise initialization (ms): 4889
+
+[2022-04-11 14:31:29 +0000] [897815] [INFO] Starting gunicorn 20.1.0
+[2022-04-11 14:31:29 +0000] [897815] [INFO] Listening at: http://127.0.0.1:5004 (897815)
+[2022-04-11 14:31:29 +0000] [897815] [INFO] Using worker: sync
+[2022-04-11 14:31:29 +0000] [897821] [INFO] Booting worker with pid: 897821
+[2022-04-11 14:31:29 +0000] [897822] [INFO] Booting worker with pid: 897822
+[2022-04-11 14:31:29 +0000] [897823] [INFO] Booting worker with pid: 897823
+[2022-04-11 14:31:29 +0000] [897824] [INFO] Booting worker with pid: 897824
+[2022-04-11 14:31:29 +0000] [897825] [INFO] Booting worker with pid: 897825
+[2022-04-11 14:31:29 +0000] [897826] [INFO] Booting worker with pid: 897826
+[2022-04-11 14:31:30 +0000] [897827] [INFO] Booting worker with pid: 897827
+[2022-04-11 14:31:30 +0000] [897828] [INFO] Booting worker with pid: 897828
+[2022-04-11 14:31:30 +0000] [897829] [INFO] Booting worker with pid: 897829
+[2022-04-11 14:31:30 +0000] [897830] [INFO] Booting worker with pid: 897830
+[2022-04-11 14:31:30 +0000] [897831] [INFO] Booting worker with pid: 897831
+[2022-04-11 14:31:30 +0000] [897832] [INFO] Booting worker with pid: 897832
+Running 30s test @ http://localhost:5004
+  4 threads and 80 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     8.01ms    3.07ms  78.99ms   95.77%
+    Req/Sec     2.56k   131.99     2.88k    83.83%
+  305412 requests in 30.01s, 1.23GB read
+Requests/sec:  10178.54
+Transfer/sec:     42.14MB
+[2022-04-11 14:32:02 +0000] [897815] [INFO] Handling signal: term
+[2022-04-11 14:32:02 +0000] [897821] [INFO] Worker exiting (pid: 897821)
+[2022-04-11 14:32:02 +0000] [897824] [INFO] Worker exiting (pid: 897824)
+[2022-04-11 14:32:02 +0000] [897828] [INFO] Worker exiting (pid: 897828)
+[2022-04-11 14:32:02 +0000] [897822] [INFO] Worker exiting (pid: 897822)
+[2022-04-11 14:32:02 +0000] [897826] [INFO] Worker exiting (pid: 897826)
+[2022-04-11 14:32:02 +0000] [897829] [INFO] Worker exiting (pid: 897829)
+[2022-04-11 14:32:02 +0000] [897825] [INFO] Worker exiting (pid: 897825)
+[2022-04-11 14:32:02 +0000] [897832] [INFO] Worker exiting (pid: 897832)
+[2022-04-11 14:32:02 +0000] [897830] [INFO] Worker exiting (pid: 897830)
+[2022-04-11 14:32:02 +0000] [897823] [INFO] Worker exiting (pid: 897823)
+[2022-04-11 14:32:02 +0000] [897827] [INFO] Worker exiting (pid: 897827)
+[2022-04-11 14:32:02 +0000] [897831] [INFO] Worker exiting (pid: 897831)
+[2022-04-11 14:32:05 +0000] [897815] [INFO] Shutting down: Master
