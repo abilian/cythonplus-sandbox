@@ -44,6 +44,14 @@ compatible avec Cython++.
 
 ## Essai sur les exemples du tutoriel
 
+Pour obtenir un code Python légal, on utilise ici un module fake.py qui permet de
+définir des classes et méthode en lieu et place d'implémentation d'un compilateur
+spécifique.
+
+Les annotations Python mises en oeuvre utilisent notamment Annotated (défini ici:
+<https://peps.python.org/pep-0593/https://peps.python.org/pep-0593/>) qui permet d'asssocier à un type une série d'arguments, par exemple un range de validité, une classe personalisée,
+ou autre. En l'occurence, cela permet de représenter le type `lock` du Cython+ actuel.
+
 ### Exemple "Hello World"
 
 **Version "Cython++"**, compatible Python :
