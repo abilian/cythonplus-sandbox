@@ -1,0 +1,4 @@
+title = "N-queens, basic DFS, cython+ monocore"
+module = "n_queens_basic_dfs"
+function = "main"
+args = [18]

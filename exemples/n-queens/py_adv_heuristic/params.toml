@@ -1,0 +1,4 @@
+title = "N-queens, heuristic, sum of 5 runs, pure python"
+module = "n_queens_adv_heuristic"
+function = "main"
+args = [100, 5]

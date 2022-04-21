@@ -1,0 +1,4 @@
+title = "N-queens, basic DFS, pure python"
+module = "n_queens_basic_dfs"
+function = "main"
+args = [18]
