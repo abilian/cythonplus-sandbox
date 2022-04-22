@@ -29,12 +29,12 @@ class Board:
         for row in range(size):
             self.queens.append(row * size + rnd(size))
 
-    def seen(self, y, col, dia1, dia2):
-        if col == y % self.size:
+    def seen(self, q, col, dia1, dia2):
+        if col == q % self.size:
             return 1
-        if dia1 == (y % self.size + y // self.size) % self.large:
+        if dia1 == (q % self.size + q // self.size) % self.large:
             return 1
-        if dia2 == (y % self.size - y // self.size) % self.large:
+        if dia2 == (q % self.size - q // self.size) % self.large:
             return 1
         return 0
 
@@ -42,8 +42,8 @@ class Board:
         # count nb of hits with queens on other rows:
         row = x // self.size
         col = x % self.size
-        dia1 = (x % self.size + x // self.size) % self.large
-        dia2 = (x % self.size - x // self.size) % self.large
+        dia1 = (col + row) % self.large
+        dia2 = (col - row) % self.large
         return sum(self.seen(q, col, dia1, dia2) for q in self.queens[0:row]) + sum(
             self.seen(q, col, dia1, dia2) for q in self.queens[row + 1 :]
         )
@@ -62,20 +62,17 @@ class Board:
                 q = conflict_queens.pop(rnd(len(conflict_queens)))
                 row = q // self.size
                 # find a column with minimal conflicts
-                results = []
+                candidates = []
+                min_hits = 2**30
                 for c in range(self.size):
                     try_pos = row * self.size + c
                     hits = self.hit_number(try_pos)
-                    results.append((hits, try_pos))
-                results.sort()
-                mini_hit = results[0][0]
-                candidates = []
-                for r in results:
-                    if r[0] <= mini_hit:
-                        candidates.append(r[1])
-                    else:
-                        break
-                chosen = candidates.pop(rnd(len(candidates)))
+                    if hits <= min_hits:
+                        if hits < min_hits:
+                            candidates = []
+                            min_hits = hits
+                        candidates.append(try_pos)
+                chosen = candidates[rnd(len(candidates))]
                 # so we have the new position for the queen of this row
                 self.queens[row] = chosen
 
@@ -95,11 +92,11 @@ class Board:
 def main(size=100, runs=5):
     for i in range(runs):
         t0 = perf_counter()
-        print(f"solving for size {size}: ", end="")
+        print(f"solving for size {size}")
         board = Board(size)
         board.solve()
         board.display()
-        print(f"{perf_counter() - t0:3.3f}s")
+        print(f"duration for size {size}: {perf_counter() - t0:3.3f}s")
 
 
 if __name__ == "__main__":
@@ -113,4 +110,4 @@ if __name__ == "__main__":
         runs = int(sys.argv[2])
 
     main(size, runs)
-    print(f"duration: {perf_counter() - t0:.3f}s")
+    print(f"total duration: {perf_counter() - t0:.3f}s")

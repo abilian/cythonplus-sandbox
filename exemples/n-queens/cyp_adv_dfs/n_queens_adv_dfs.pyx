@@ -1,5 +1,5 @@
 """N-queens problem
-Deep first search using advanced 1D list of queens positions, cython+ monocore
+Deep first search using advanced 1D list of queens positions, cython+ single-core
 """
 
 from libc.stdio cimport printf

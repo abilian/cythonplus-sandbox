@@ -1,5 +1,5 @@
 """N-queens problem
-Deep first search using basic list of list grid, cython+ monocore
+Deep first search using basic list of list grid, cython+ single-core
 """
 
 from libc.stdio cimport printf
