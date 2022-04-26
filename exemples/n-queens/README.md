@@ -47,6 +47,9 @@ When using a board size of 1000x1000, actors become faster than single-core comp
 -   Cython+ single-core: 35.667s
 -   Cython+ with parallel actors: 15.399s
 
+For bigger boards:
+![comparison graph](./cyp_heuristic_actor/result_comparison.png)
+
 ## Expected results:
 
 To proceed:
