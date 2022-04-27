@@ -13,6 +13,6 @@ cyp_heuristic_actor
 for d in ${folders}; do
    cd ${d}
    echo "============================================================================"
-   ./launcher.py
+   ./launcher.py params.toml stdout
    cd ..
 done

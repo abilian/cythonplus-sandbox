@@ -1,6 +1,8 @@
-title = "N-queens, heuristic, sum of 5 runs, cython+ actors"
 module = "n_queens_adv_heuristic_actor"
 function = "main"
+default_title = "N-queens, heuristic, sum of 5 runs, cython+ actors"
+[[test]]
 args = [250, 5]
-args2 = [1000, 2]
-title2 = "N-queens, heuristic, sum of 2 runs, cython+ actors"
+[[test]]
+title = "N-queens, heuristic, sum of 2 runs, cython+ actors"
+args = [1000, 2]

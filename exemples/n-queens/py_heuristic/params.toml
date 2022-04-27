@@ -1,4 +1,5 @@
-title = "N-queens, heuristic, sum of 5 runs, pure python"
 module = "n_queens_adv_heuristic"
 function = "main"
+default_title = "N-queens, heuristic, sum of 5 runs, pure python"
+[[test]]
 args = [250, 5]

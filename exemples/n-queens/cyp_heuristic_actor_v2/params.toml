@@ -1,0 +1,8 @@
+module = "n_queens_adv_heuristic_actor_v2"
+function = "main"
+default_title = "N-queens, heuristic v2, sum of 5 runs, cython+ actors"
+[[test]]
+args = [250, 5]
+[[test]]
+title = "N-queens, heuristic v2, sum of 2 runs, cython+ actors"
+args = [1000, 2]

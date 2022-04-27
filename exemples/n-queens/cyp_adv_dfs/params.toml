@@ -1,5 +1,7 @@
-title = "N-queens, advanced DFS, cython+ single-core"
 module = "n_queens_adv_dfs"
 function = "main"
+default_title = "N-queens, advanced DFS, cython+ single-core"
+[[test]]
 args = [18]
-args2 = [28]
+[[test]]
+args = [28]

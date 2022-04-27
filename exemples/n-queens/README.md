@@ -19,8 +19,8 @@
 
 But Python is slow on calculations and fast on accessing lists. So the results:
 
--   Basic DFS, Python: 0.851s
--   Advanced DFS, Python: 2.705s, slower then basic!
+-   Basic DFS, Python: 0.838s
+-   Advanced DFS, Python: 2.758s, slower then basic!
 
 Then using Cython+, the calculations are done in C++:
 
@@ -28,7 +28,7 @@ Then using Cython+, the calculations are done in C++:
 -   Advanced DFS, Cython+ single-core: 0.086s, faster than basic, (speed/python almost x10)
 
 However, DFS is not possible for large map sizes: by changing the map size from
-18 to 28, the result goes from 0.086s to 14.133s. And this algorithm is not suitable
+18 to 28, the result goes from 0.086s to 14.100s. And this algorithm is not suitable
 for parallelization.
 
 **Heuristic**
@@ -36,19 +36,31 @@ for parallelization.
 On a large board, using custom heuristics (gradually improving queens placement with
 some randomness), board size of 250x250:
 
--   Python: 53.085s
--   Cython+ single-core: 2.002s
--   Cython+ with parallel actors: 2.153s
+-   Python: 52.873s
+-   Cython+ single-core: 2.014s
+-   Cython+ with parallel actors: 2.166s
 
 The implementation with actors is slower, the additional cost of actors is not
 compensated by the parallelization gains.
 
 When using a board size of 1000x1000, actors become faster than single-core computation:
--   Cython+ single-core: 35.667s
--   Cython+ with parallel actors: 15.399s
+-   Cython+ single-core: 32.572s
+-   Cython+ with parallel actors: 13.349s
 
 For bigger boards:
-![comparison graph](./cyp_heuristic_actor/result_comparison.png)
+
+-   Time complexity (from data log & linear regression):
+    - single-core ~ O(n^2.93)
+
+      ![complexity graph](./cyp_heuristic_mono/reg.png)
+
+    - actors ~ O(n^2.60)
+
+      ![complexity graph](./cyp_heuristic_actor/reg.png)
+
+-   Comparison single-core / actors
+
+  ![comparison graph](./cyp_heuristic_actor/result_comparison.png)
 
 ## Expected results:
 
@@ -57,11 +69,11 @@ To proceed:
       ./make_all.sh
       ./launch_all.sh
 
-Resulst:
+Results:
 
     ./launch_all.sh
     ============================================================================
-    N-queens, basic DFS, pure python
+    1/1 - N-queens, basic DFS, pure python
     params: [18]
     solving for size 18:
     * . . . . . . . . . . . . . . . . .
@@ -82,10 +94,10 @@ Resulst:
     . . . . . . . * . . . . . . . . . .
     . . . . . . . . . * . . . . . . . .
     . . . . . . . . . . . * . . . . . .
-    duration: 0.851s
+    duration: 0.838s
 
     ============================================================================
-    N-queens, basic DFS, cython+ single-core
+    1/1 - N-queens, basic DFS, cython+ single-core
     params: [18]
     solving for size 18:
     * . . . . . . . . . . . . . . . . .
@@ -109,7 +121,7 @@ Resulst:
     duration: 0.299s
 
     ============================================================================
-    N-queens, advanced DFS, pure python
+    1/1 - N-queens, advanced DFS, pure python
     params: [18]
     solving for size 18:
     * . . . . . . . . . . . . . . . . .
@@ -130,10 +142,10 @@ Resulst:
     . . . . . . . . * . . . . . . . . .
     . . . . . . . . . . . . . * . . . .
     . . . . . . . . . * . . . . . . . .
-    duration: 2.705s
+    duration: 2.758s
 
     ============================================================================
-    N-queens, advanced DFS, cython+ single-core
+    1/2 - N-queens, advanced DFS, cython+ single-core
     params: [18]
     solving for size 18:
     * . . . . . . . . . . . . . . . . .
@@ -156,8 +168,7 @@ Resulst:
     . . . . . . . . . * . . . . . . . .
     duration: 0.086s
 
-    Other test:
-    N-queens, advanced DFS, cython+ single-core
+    2/2 - N-queens, advanced DFS, cython+ single-core
     params: [28]
     solving for size 28:
     * . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -188,49 +199,48 @@ Resulst:
     . . . . . * . . . . . . . . . . . . . . . . . . . . . .
     . . . . . . . . . . . . . . . . . . . . * . . . . . . .
     . . . . . . . . . . . . . . . . . . * . . . . . . . . .
-    duration: 14.133s
+    duration: 14.100s
 
     ============================================================================
-    N-queens, heuristic, sum of 5 runs, pure python
+    1/1 - N-queens, heuristic, sum of 5 runs, pure python
     params: [250, 5]
     solving for size 250
-    duration for size 250: 9.436s
+    duration for size 250: 9.458s
     solving for size 250
-    duration for size 250: 8.718s
+    duration for size 250: 8.616s
     solving for size 250
-    duration for size 250: 10.538s
+    duration for size 250: 10.534s
     solving for size 250
-    duration for size 250: 9.129s
+    duration for size 250: 9.005s
     solving for size 250
-    duration for size 250: 15.264s
-    duration: 53.085s
+    duration for size 250: 15.260s
+    duration: 52.873s
 
     ============================================================================
-    N-queens, heuristic, sum of 5 runs, cython+ single-core
+    1/2 - N-queens, heuristic, sum of 5 runs, cython+ single-core
     params: [250, 5]
-    solving for size 250
-    duration for size 250: ~0s
-    solving for size 250
-    duration for size 250: ~0s
     solving for size 250
     duration for size 250: ~1s
     solving for size 250
     duration for size 250: ~0s
     solving for size 250
     duration for size 250: ~1s
-    duration: 2.002s
+    solving for size 250
+    duration for size 250: ~0s
+    solving for size 250
+    duration for size 250: ~0s
+    duration: 2.014s
 
-    Other test:
-    N-queens, heuristic, sum of 2 runs, cython+ single-core
+    2/2 - N-queens, heuristic, sum of 2 runs, cython+ single-core
     params: [1000, 2]
     solving for size 1000
-    duration for size 1000: ~18s
+    duration for size 1000: ~16s
     solving for size 1000
-    duration for size 1000: ~17s
-    duration: 35.667s
+    duration for size 1000: ~16s
+    duration: 32.572s
 
     ============================================================================
-    N-queens, heuristic, sum of 5 runs, cython+ actors
+    1/2 - N-queens, heuristic, sum of 5 runs, cython+ actors
     params: [250, 5]
     solving for size 250
     duration for size 250: ~1s
@@ -242,13 +252,12 @@ Resulst:
     duration for size 250: ~0s
     solving for size 250
     duration for size 250: ~0s
-    duration: 2.153s
+    duration: 2.166s
 
-    Other test:
-    N-queens, heuristic, sum of 2 runs, cython+ actors
+    2/2 - N-queens, heuristic, sum of 2 runs, cython+ actors
     params: [1000, 2]
     solving for size 1000
-    duration for size 1000: ~8s
+    duration for size 1000: ~7s
     solving for size 1000
-    duration for size 1000: ~8s
-    duration: 15.399s
+    duration for size 1000: ~7s
+    duration: 13.349s
