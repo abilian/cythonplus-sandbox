@@ -23,7 +23,7 @@ Par rapport à Cython+ actuel:
     (Str et str, cyplist et list, ...)
 -   Syntaxe Python, notamment compréhension de liste et dictionnaire, methodes
     `sort`, `reverse` et fonction `sum`. (Peut-être sur liste ou iterateur, avec
-    imbrication possible ou non, variable internes d'itération possiblement déclarée
+    imbrication possible ou non, variable interne d'itération possiblement déclarée
     "à l'exterieur de la boucle"). Principe: il ne s'agit pas de viser une exhaustivité
     des fonctionnalités de Python, mais de minimiser les retouches à faire à un code
     porté.
@@ -45,11 +45,11 @@ compatible avec Cython++.
 ## Essai sur les exemples du tutoriel
 
 Pour obtenir un code Python légal, on utilise ici un module fake.py qui permet de
-définir des classes et méthode en lieu et place d'implémentation d'un compilateur
+définir des classes et méthodes en lieu et place de l'implémentation d'un compilateur
 spécifique.
 
 Les annotations Python mises en oeuvre utilisent notamment Annotated (défini ici:
-<https://peps.python.org/pep-0593/https://peps.python.org/pep-0593/>) qui permet d'asssocier à un type une série d'arguments, par exemple un range de validité, une classe personalisée,
+<https://peps.python.org/pep-0593/>) qui permet d'asssocier à un type une série d'arguments, par exemple un range de validité, une classe personalisée,
 ou autre. En l'occurence, cela permet de représenter le type `lock` du Cython+ actuel.
 
 ### Exemple "Hello World"
@@ -118,20 +118,20 @@ cdef cypclass HelloWorld:
         self.message = Str("Hello World!")
 ```
 
-> interpreter `""` directement comme un `Str`
+> interpréter `""` directement comme un `Str`
 
 ```Python
     void print_message(self):
 ```
 
-> préferer la syntaxe Python `-> None`. Il est acceptable de rendre les annotation
+> préférer la syntaxe Python `-> None`. Il est acceptable de rendre les annotations
 > "typing" obligatoires.
 
 ```Python
         printf("%s\n", self.message.bytes())
 ```
 
-> il est souhaitable que print deviennt un alias de printf (ou progressiveent d'une
+> il est souhaitable que print devienne un alias de printf (ou progressiveent d'une
 > implémentation plus proche de `print`, aka saut de ligne, gestion des arguments
 > multiples)
 
@@ -140,7 +140,7 @@ def main():
     cdef HelloWorld hello
 ```
 
-> préferer la syntaxe Python `hello: HelloWorld`.
+> préférer la syntaxe Python `hello: HelloWorld`.
 
 ```Python
     with nogil:
@@ -148,7 +148,7 @@ def main():
 
 > par rapport à cette syntaxe, ou à une déclaration nogil dans la signature, il
 > serait acceptable
-> d'avoir en Cython++ un mode "nogil" par défaut, et, un décorateur "withgil"
+> d'avoir en Cython++ un mode "nogil" par défaut, et un décorateur "withgil"
 >   optionnel pour des fonctions d'interface avec Python
 
 ```Python
@@ -201,8 +201,8 @@ class Containers:
 ```
 
 > Il semble souhaitable de disposer de la syntaxe de création de liste / dict via
->   énumération. (Pour des types homogènes et des variables déclarés.) Néanmoins une
-> série de `.append()` reste accptable dans le cadre proposé.
+>   énumération. (Pour des types homogènes et des variables déclarées.) Néanmoins une
+> série de `.append()` reste acceptable dans le cadre proposé.
 
 ```Python
     def show_content(self) -> None:
@@ -221,7 +221,7 @@ class Containers:
             print(f"  {k}: {v}")
 ```
 
-> Non nécessaire: parcours de dictionnaire avec un tuple implicite. cf contournement:
+> Facultatif: parcours de dictionnaire avec un tuple implicite. cf contournement:
 
 ```Python
         print("another_dict:")
@@ -229,7 +229,7 @@ class Containers:
             print(f"  {item2[0]}: {item2[1]}")
 ```
 
-> Il est accaptable de devoir "ouvrir" le tuple. Par contre, la syntaxe `item.first`
+> Il est acceptable de devoir "ouvrir" le tuple. Par contre, la syntaxe `item.first`
 >   `item.second` est problématique dans le cadre proposé de compatibilité avec Python.
 
 ```Python
@@ -397,7 +397,7 @@ from libc.stdio cimport printf
 from libcpp.algorithm cimport sort, reverse
 ```
 
-> Utilisation de la bibliothèque `libcpp.algorithm` et les itérateurs C++.
+> Utilisation de la bibliothèque `libcpp.algorithm` et des itérateurs C++.
 
 ```Pythonfrom libcythonplus.list cimport cyplist
 # define a specialized type: list of int
@@ -551,7 +551,7 @@ class Fibo:
             self.results[self.level] = a
 ```
 
-> Le contaxt manager `wlocked` est transparent dans la version Python "fake".
+> Le context manager `wlocked` est transparent dans la version Python "fake".
 
 ```Python
 def fibo_list_cyp(
@@ -588,7 +588,7 @@ def fibo_list(level: int) -> list[int]:
     ]
 ```
 
-> Cette imbrication et l'objet non annoté `item` nécessiterait vraisembleblement
+> Cette imbrication et l'objet non annoté `item` nécessiterait vraisemblablement
 >   une adaptation pour un portage effectif vers "Cython++".
 >
 >  Remarque: il semblerait que ce soit le seul endroit ayant une difficulté de
